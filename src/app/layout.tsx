@@ -169,7 +169,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       </head>
       <body>
         <noscript>
-          <style>{`.intro{display:none!important}[data-reveal]{opacity:1!important}`}</style>
+          <style>{`.intro{display:none!important}[data-reveal]{opacity:1!important}.annotate-mark .hand-stroke{opacity:.8}`}</style>
         </noscript>
         {children}
       </body>

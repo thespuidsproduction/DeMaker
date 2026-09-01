@@ -7,6 +7,7 @@ import { trackSpecular, useGsapSetup, gsap, prefersReducedMotion } from "@/lib/m
 import { useTraces, Marginalia } from "@/lib/traces";
 import { Movement } from "./Movement";
 import { CornerLeaf } from "./Ornament";
+import { Annotate } from "./Annotate";
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
@@ -95,7 +96,8 @@ export function Toolbox() {
   return (
     <Movement id="toolbox" index="§ 04" title="The Toolbox" aside="six objects">
       <p className="t-body tb-lede" data-reveal>
-        Six things I do. Open one to see what it is made of.
+        Six things I do. <Annotate kind="underline">Open one</Annotate> to see what
+        it is made of.
       </p>
 
       <div ref={rigRef} className="tb-rig">

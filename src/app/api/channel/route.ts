@@ -94,6 +94,10 @@ type Transport = {
   send: (p: Payload) => Promise<boolean>;
 };
 
+/** Telegram parses HTML, so anything the sender typed has to be neutralised. */
+const esc = (v: string) =>
+  v.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
 const body = (p: Payload) =>
   [`From: ${p.name}`, `Reply to: ${p.replyTo}`, `Meta: ${p.meta}`, "", p.message].join("\n");
 
@@ -166,7 +170,19 @@ const TRANSPORTS: Transport[] = [
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             chat_id: process.env.TELEGRAM_CHAT_ID,
-            text: `princey.dev channel\n\n${body(p)}`,
+            parse_mode: "HTML",
+            // Everything the sender typed is escaped: a name containing a
+            // tag must not be able to inject markup into the notification.
+            text: [
+              "<b>princey.dev</b> · new message",
+              "",
+              `<b>From</b> ${esc(p.name)}`,
+              `<b>Reply</b> <code>${esc(p.replyTo)}</code>`,
+              "",
+              esc(p.message),
+              "",
+              `<i>${esc(p.meta)}</i>`,
+            ].join("\n"),
             disable_web_page_preview: true,
           }),
         },
@@ -218,14 +234,31 @@ const TRANSPORTS: Transport[] = [
 
 type Payload = { name: string; replyTo: string; message: string; meta: string };
 
-const active = () => TRANSPORTS.find((t) => t.ready()) ?? null;
+const active = () => TRANSPORTS.filter((t) => t.ready());
 
-const configured = () => active() !== null;
+const configured = () => active().length > 0;
 
-async function deliver(p: Payload): Promise<boolean> {
-  const t = active();
-  if (!t) return false;
-  return t.send(p);
+/**
+ * Every configured transport fires, not just the first. Telegram for the
+ * notification that reaches a pocket in a second, email for the copy that is
+ * still there next week: those are different jobs and both are worth doing.
+ *
+ * Success means at least one landed. One transport being down does not lose
+ * somebody's message, and a failure is only reported when every route failed.
+ */
+async function deliver(p: Payload): Promise<{ ok: boolean; sent: string[]; failed: string[] }> {
+  const results = await Promise.allSettled(
+    active().map(async (t) => ({ id: t.id, ok: await t.send(p) })),
+  );
+
+  const sent: string[] = [];
+  const failed: string[] = [];
+  for (const r of results) {
+    if (r.status === "fulfilled" && r.value.ok) sent.push(r.value.id);
+    else if (r.status === "fulfilled") failed.push(r.value.id);
+    else failed.push("unknown");
+  }
+  return { ok: sent.length > 0, sent, failed };
 }
 
 /* ── Status ───────────────────────────────────────────────────────────────
@@ -233,8 +266,14 @@ async function deliver(p: Payload): Promise<boolean> {
    accepting a message it cannot deliver. */
 
 export function GET() {
+  const routes = active();
   return NextResponse.json(
-    { status: configured() ? "ready" : "offline" },
+    {
+      status: routes.length ? "ready" : "offline",
+      // How many routes, never which: naming the transport would leak a hint
+      // about where the messages actually land.
+      routes: routes.length,
+    },
     { headers: { "Cache-Control": "no-store" } },
   );
 }
@@ -303,13 +342,22 @@ export async function POST(request: Request) {
   }
 
   try {
-    const ok = await deliver({
+    const result = await deliver({
       name,
       replyTo,
       message,
       meta: `dwell ${Math.round(dwell / 1000)}s · ${request.headers.get("user-agent")?.slice(0, 120) ?? "unknown agent"}`,
     });
-    if (!ok) return fail("transport", 502, "Delivery refused upstream. Try again shortly.");
+    if (!result.ok) {
+      return fail("transport", 502, "Delivery refused upstream. Try again shortly.");
+    }
+    if (result.failed.length) {
+      // Partial success is still success for the sender, but it belongs in the
+      // server log so a broken route does not go unnoticed for weeks.
+      console.warn(
+        `[channel] delivered via ${result.sent.join(", ")}; failed: ${result.failed.join(", ")}`,
+      );
+    }
   } catch {
     // The upstream error may contain the destination address. It is never
     // forwarded to the client.

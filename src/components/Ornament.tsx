@@ -225,6 +225,129 @@ export function EngravedRule({ className, ...rest }: OrnProps) {
   );
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   BOHEMIA
+   The free hand against the ruled page. Everything below is drawn slightly
+   wrong on purpose: nothing closes perfectly, nothing is symmetrical, and no
+   two strokes have the same weight.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/** A circle drawn round a word by someone who was not being careful. */
+export function HandCircle({ className, ...rest }: OrnProps) {
+  return (
+    <svg
+      viewBox="0 0 220 72"
+      className={className}
+      aria-hidden="true"
+      fill="none"
+      preserveAspectRatio="none"
+      {...rest}
+    >
+      {/* Overshoots the start, because a hand does. */}
+      <path
+        className="hand-stroke"
+        d="M170 12C140 3 74 1 40 12 6 23 2 46 22 57c20 11 92 15 138 4 40-9 52-31 33-42-9-5-26-8-44-9"
+      />
+    </svg>
+  );
+}
+
+/** Two passes of an underline, the second not quite over the first. */
+export function HandUnderline({ className, ...rest }: OrnProps) {
+  return (
+    <svg
+      viewBox="0 0 220 16"
+      className={className}
+      aria-hidden="true"
+      fill="none"
+      preserveAspectRatio="none"
+      {...rest}
+    >
+      <path className="hand-stroke" d="M4 9c46-4 92-6 138-5 26 1 52 2 74 5" />
+      <path className="hand-stroke hand-stroke-2" d="M14 13c52-3 104-4 156-2 16 1 32 2 44 3" />
+    </svg>
+  );
+}
+
+/** A bracket scrawled in a margin to gather a few lines together. */
+export function HandBracket({ className, ...rest }: OrnProps) {
+  return (
+    <svg viewBox="0 0 24 160" className={className} aria-hidden="true" fill="none" {...rest}>
+      <path className="hand-stroke" d="M18 4C9 6 5 14 5 30v42c0 6-1 8-3 8 2 0 3 2 3 8v42c0 16 4 24 13 26" />
+    </svg>
+  );
+}
+
+/**
+ * A length of vine. Segments stack down a page edge and grow as it scrolls,
+ * which is the one piece of pure ornament in the system and is allowed to be.
+ */
+export function VineSegment({ className, flip = false, ...rest }: OrnProps & { flip?: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 60 240"
+      className={className}
+      aria-hidden="true"
+      fill="none"
+      preserveAspectRatio="none"
+      style={flip ? { transform: "scaleX(-1)" } : undefined}
+      {...rest}
+    >
+      <path className="vine-stem" d="M30 0c-14 30 14 58 0 88s14 58 0 88 12 46 4 64" />
+      <g className="vine-leaf">
+        <path d="M30 26c16-6 26 2 28 16-16 5-26-3-28-16Z" />
+        <path d="M30 78c-16-6-26 2-28 16 16 5 26-3 28-16Z" />
+        <path d="M30 132c16-6 26 2 28 16-16 5-26-3-28-16Z" />
+        <path d="M28 186c-16-6-26 2-28 16 16 5 26-3 28-16Z" />
+      </g>
+      <g className="vine-bud">
+        <circle cx="34" cy="54" r="3" />
+        <circle cx="26" cy="106" r="2.4" />
+        <circle cx="34" cy="160" r="2.8" />
+        <circle cx="24" cy="214" r="2.2" />
+      </g>
+    </svg>
+  );
+}
+
+/** A woven band. Bohemian textile logic on a Swiss rule. */
+export function WovenRule({ className, ...rest }: OrnProps) {
+  const cells = Array.from({ length: 24 }, (_, i) => i);
+  return (
+    <svg
+      viewBox="0 0 480 14"
+      className={className}
+      aria-hidden="true"
+      fill="none"
+      preserveAspectRatio="none"
+      {...rest}
+    >
+      {cells.map((i) => (
+        <g key={i} transform={`translate(${i * 20} 0)`}>
+          <path className={base} d="M0 7l5-5 5 5-5 5z" />
+          <path className={base} d="M10 7l5-5 5 5-5 5z" opacity="0.5" />
+          <line className={base} x1="0" y1="7" x2="20" y2="7" strokeDasharray="1 3" opacity="0.4" />
+        </g>
+      ))}
+    </svg>
+  );
+}
+
+/** An engraved frame for a drop capital. */
+export function CapFrame({ className, ...rest }: OrnProps) {
+  return (
+    <svg viewBox="0 0 64 64" className={className} aria-hidden="true" fill="none" {...rest}>
+      <rect className={base} x="1" y="1" width="62" height="62" />
+      <rect className={base} x="5" y="5" width="54" height="54" strokeDasharray="2 4" />
+      <path className={base} d="M1 12C8 12 12 8 12 1M63 12c-7 0-11-4-11-11M1 52c7 0 11 4 11 11M63 52c-7 0-11 4-11 11" />
+      <circle className="engraved-fill" cx="6" cy="6" r="1" />
+      <circle className="engraved-fill" cx="58" cy="6" r="1" />
+      <circle className="engraved-fill" cx="6" cy="58" r="1" />
+      <circle className="engraved-fill" cx="58" cy="58" r="1" />
+    </svg>
+  );
+}
+
 /** Oscilloscope-like trace. A quiet retro-futurist heartbeat. */
 export function SignalTrace({ className, ...rest }: OrnProps) {
   return (

@@ -3,7 +3,7 @@
 import { SITE, PRINCIPLES } from "@/content/site";
 import { Marginalia } from "@/lib/traces";
 import { Movement } from "./Movement";
-import { CornerLeaf, EngravedRule, BotanicalDiagram } from "./Ornament";
+import { CornerLeaf, EngravedRule, BotanicalDiagram, CapFrame, WovenRule } from "./Ornament";
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
@@ -48,7 +48,12 @@ export function Profile() {
         <EngravedRule className="pf-rule" />
 
         <p className="t-body pf-bio">
-          I work across the whole surface of a product: the interface someone
+          <span className="dropcap" aria-hidden="true">
+            <CapFrame className="dropcap-frame" />
+            <span className="dropcap-letter">I</span>
+          </span>
+          <span className="sr-only">I</span>
+          <span aria-hidden="true"> </span>work across the whole surface of a product: the interface someone
           touches, the API it speaks to, the schema underneath, the pipeline that
           ships it, and the agentic layer that lets software act rather than
           merely answer. Not three jobs. One system, and the seams between them
@@ -69,6 +74,8 @@ export function Profile() {
           </li>
         ))}
       </ol>
+
+      <WovenRule className="woven pf-weave" />
 
       <Marginalia after={2} prefix="you opened" pick="random" className="pf-margin" />
     </Movement>

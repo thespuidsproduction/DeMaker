@@ -2,12 +2,14 @@
   "name": "princey-dev",
   "version": "1.0.0",
   "private": true,
-  "description": "Personal portfolio and developer identity for Prince Chipango — princey.dev",
+  "description": "Personal portfolio and developer identity for Prince Chipango \u2014 princey.dev",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "lint": "next lint",
+    "check": "npm run typecheck && npm run build"
   },
   "dependencies": {
     "next": "16.3.4",
@@ -25,5 +27,8 @@
     "tailwindcss": "4.3.3",
     "@tailwindcss/postcss": "4.3.3",
     "postcss": "^8.5.0"
+  },
+  "engines": {
+    "node": ">=20.9.0"
   }
 }

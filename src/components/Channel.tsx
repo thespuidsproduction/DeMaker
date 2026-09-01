@@ -118,7 +118,19 @@ export function Channel() {
     if (phase === "open") firstFieldRef.current?.focus();
   }, [phase]);
 
-  /* A pulse travels the interface and disappears. */
+  /* A drop of ink blooms where the message left, then the pulse travels the
+     interface and disappears. */
+  const fireInk = useCallback(() => {
+    const host = consoleRef.current;
+    if (!host || prefersReducedMotion()) return;
+    const drop = document.createElement("span");
+    drop.className = "ink";
+    drop.style.left = "50%";
+    drop.style.top = "62%";
+    host.appendChild(drop);
+    window.setTimeout(() => drop.remove(), 1300);
+  }, []);
+
   const firePulse = useCallback(() => {
     const el = pulseRef.current;
     if (!el || prefersReducedMotion()) return;
@@ -158,6 +170,7 @@ export function Channel() {
         const json = (await res.json()) as { ok?: boolean; hint?: string };
         if (res.ok && json.ok) {
           setPhase("sent");
+          fireInk();
           firePulse();
         } else {
           setError(json.hint || "Transmission refused.");
@@ -168,7 +181,7 @@ export function Channel() {
         setPhase("error");
       }
     },
-    [phase, firePulse],
+    [phase, firePulse, fireInk],
   );
 
   const statusText =
@@ -187,7 +200,7 @@ export function Channel() {
   return (
     <section ref={sectionRef} id="contact" className="movement ch" aria-labelledby="ch-heading">
       <div className="shell">
-        <span className="t-label ch-eyebrow">§ 08 / Contact</span>
+        <span className="t-label ch-eyebrow">§ 09 / Contact</span>
 
         <h2 id="ch-heading" className="ch-statement t-display">
           <span className="sr-only">Let&rsquo;s build something that should not exist yet.</span>

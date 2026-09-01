@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { SITE } from "@/content/site";
 import { useGsapSetup, gsap, prefersReducedMotion } from "@/lib/motion";
 import { EngravedRule, BotanicalDiagram } from "./Ornament";
+import { Annotate } from "./Annotate";
 
 /**
  * The manifesto. Set as a declaration, not résumé copy — the line breaks are
@@ -77,7 +78,13 @@ export function Manifesto() {
             <p className="manifesto-statement">
               {clauses.map((c, i) => (
                 <span key={c} data-clause className="manifesto-clause">
-                  {c}
+                  {c === "and stay understandable long" ? (
+                    <>
+                      and stay <Annotate kind="circle">understandable</Annotate> long
+                    </>
+                  ) : (
+                    c
+                  )}
                   {i < clauses.length - 1 ? " " : ""}
                 </span>
               ))}

@@ -275,23 +275,93 @@ something was sent.
 
 ### Turning it on
 
-Six transports, tried in order; the first one configured wins. Full detail and
-copy-paste variables in `.env.example`.
+Every configured transport fires, not just the first. Telegram for the
+notification that reaches a pocket in a second, Resend for the copy that is
+still there next week: those are different jobs and both are worth doing.
+A message counts as delivered if at least one route accepts it, so one provider
+being down never loses somebody's message; the failure is logged rather than
+swallowed.
 
-| | Transport | Free tier | Setup |
+#### Resend, in four steps
+
+1. Sign up at [resend.com](https://resend.com) and add `princey.dev` under
+   **Domains**. It gives you three DNS records (an MX and two TXT, for SPF and
+   DKIM). Add them wherever `princey.dev` is registered and wait for the
+   dashboard to go green. This step is what keeps mail out of spam, and it is
+   worth doing properly.
+2. **API Keys** → create one with *Sending access*. It starts `re_`.
+3. Set three variables on the host:
+   ```
+   RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxx
+   CONTACT_TO=the-inbox-you-actually-read@example.com
+   CONTACT_FROM=princey.dev <channel@princey.dev>
+   ```
+   `CONTACT_FROM` has to be on the verified domain. The mailbox part does not
+   need to exist; nothing is delivered to it, it only has to be yours.
+4. Redeploy. `GET /api/channel` should answer `{"status":"ready","routes":1}`.
+
+Free tier is 3,000 emails a month, 100 a day, which for a portfolio contact
+form is effectively unlimited.
+
+#### Telegram, in three steps
+
+1. Message [@BotFather](https://t.me/BotFather), send `/newbot`, pick a name.
+   It replies with a token like `8123456789:AAF...`.
+2. Send your new bot any message, once. A bot cannot open a conversation with
+   you, so this is what lets it message you at all. Then message
+   [@userinfobot](https://t.me/userinfobot) to get your numeric chat id.
+3. Set both variables:
+   ```
+   TELEGRAM_BOT_TOKEN=8123456789:AAF...
+   TELEGRAM_CHAT_ID=123456789
+   ```
+
+Messages arrive formatted, and everything the sender typed is HTML-escaped
+first: a name containing a tag cannot inject markup into your notification.
+
+#### Everything available
+
+| | Transport | Free tier | Variables |
 | --- | --- | --- | --- |
-| 1 | **Resend** | 3,000/month, 100/day | Best deliverability, mail comes from a domain you own. Needs `princey.dev` verified. `RESEND_API_KEY` + `CONTACT_TO` |
-| 2 | **Web3Forms** | 250/month | Lowest friction with a key. Enter an email, they send an access key. `WEB3FORMS_KEY` |
-| 3 | **Formspree** | 50/month | Form id hides the destination. `FORMSPREE_ID` |
-| 4 | **Telegram** | unlimited | Lands on a phone in about a second, no email deliverability to worry about. `TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID` |
-| 5 | **FormSubmit** | unlimited | No account at all: set `CONTACT_TO` alone and confirm the first message |
-| 6 | **Any JSON endpoint** | n/a | Discord or Slack webhook, an automation runner, your own service. `CONTACT_WEBHOOK_URL` |
+| 1 | **Resend** | 3,000/month | `RESEND_API_KEY` + `CONTACT_TO` |
+| 2 | **Web3Forms** | 250/month | `WEB3FORMS_KEY` |
+| 3 | **Formspree** | 50/month | `FORMSPREE_ID` |
+| 4 | **Telegram** | unlimited | `TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID` |
+| 5 | **FormSubmit** | unlimited | `CONTACT_TO` alone, no account |
+| 6 | **Any JSON endpoint** | n/a | `CONTACT_WEBHOOK_URL` |
 
-Every one of these is called server side, so the destination never reaches the
-browser, including with FormSubmit, where the address is normally in the form
-action. **With none set the channel is offline and the console says so** rather
-than accepting a message it cannot deliver.
+Every one is called server side, so the destination never reaches the browser,
+FormSubmit included, where the address normally sits in the form action.
+**With none set the channel reports itself offline** rather than accepting a
+message it cannot deliver.
 
+---
+
+## Going to production
+
+- [ ] Set the channel variables above, then confirm `GET /api/channel` returns
+      `routes` greater than zero.
+- [ ] Point `princey.dev` at the deployment. The canonical origin comes from
+      `SITE.url` in `src/content/site.ts` and nothing else needs changing.
+- [ ] Send one real message through the form and check it arrives.
+
+Already handled in the repo:
+
+- **Security headers** on every response: a CSP with no third-party origins at
+  all, HSTS with preload, `nosniff`, a restrictive `Permissions-Policy`, and
+  `frame-ancestors`. The CSP includes `wasm-unsafe-eval`, which is not
+  optional: the physics solver is a WebAssembly module and without it every
+  draggable object on the site silently stops moving.
+- **Caching**: hashed build output immutable for a year; `/api/channel`
+  `no-store` and `noindex`.
+- **Error states**: a 404 and a 500 in the site's own voice, plus a
+  self-contained global handler for the case where the root layout itself
+  fails.
+- **No third-party requests at run time.** Fonts are self-hosted by Next, and
+  the delivery provider is only ever contacted from the server.
+- Node 20+ is pinned in `engines` and `.nvmrc`.
+
+## Content
 ## Content
 
 Everything the site says lives in `src/content/site.ts`. Nothing is invented at

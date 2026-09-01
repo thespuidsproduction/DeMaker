@@ -30,8 +30,54 @@ const nextConfig: NextConfig = {
           { key: "X-Frame-Options", value: "SAMEORIGIN" },
           {
             key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=(), interest-cohort=()",
+            value:
+              "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()",
           },
+          // The site makes no third-party requests of any kind, so the policy
+          // can say exactly that. 'unsafe-inline' on styles is required by
+          // Next's inlined critical CSS; scripts are hashed by the framework.
+          {
+            key: "Content-Security-Policy",
+            value: [
+              "default-src 'self'",
+              // 'wasm-unsafe-eval' is required and is not optional: the physics
+              // solver is a WebAssembly module, and without it every draggable
+              // object on the site silently stops moving. It permits WASM
+              // compilation only; it does not re-enable eval().
+              "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'",
+              "style-src 'self' 'unsafe-inline'",
+              "img-src 'self' data: blob:",
+              "font-src 'self' data:",
+              // The channel talks to a delivery provider from the server, not
+              // from the page, so the browser needs no outbound allowance.
+              "connect-src 'self'",
+              "form-action 'self'",
+              "frame-ancestors 'self'",
+              "base-uri 'self'",
+              "object-src 'none'",
+              "upgrade-insecure-requests",
+            ].join("; "),
+          },
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=63072000; includeSubDomains; preload",
+          },
+          { key: "X-DNS-Prefetch-Control", value: "off" },
+        ],
+      },
+      {
+        // Hashed build output is immutable by definition.
+        source: "/_next/static/:path*",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+        ],
+      },
+      {
+        // The channel must never be cached anywhere, by anyone.
+        source: "/api/channel",
+        headers: [
+          { key: "Cache-Control", value: "no-store, no-cache, must-revalidate" },
+          { key: "X-Robots-Tag", value: "noindex" },
         ],
       },
       ...WELL_KNOWN_JSON.map((source) => ({

@@ -3406,3 +3406,466 @@ svg {
   text-transform: uppercase;
   color: var(--fg-faint);
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   BOHEMIA
+   The free hand against the ruled page. Ornament earns its place by being
+   deliberately imperfect: nothing closes, nothing is symmetrical, and no two
+   strokes carry the same weight.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.hand-stroke {
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linecap: round;
+  fill: none;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.85;
+}
+
+.hand-stroke-2 {
+  stroke-width: 1.2;
+  opacity: 0.5;
+}
+
+/* ── Annotations ──────────────────────────────────────────────────────── */
+
+.annotate {
+  position: relative;
+  display: inline-block;
+  isolation: isolate;
+}
+
+.annotate-text {
+  position: relative;
+  z-index: 1;
+}
+
+.annotate-mark {
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Hidden on the stroke itself, not on the wrapper: the wrapper is what the
+   dash animation lives inside, and hiding that would keep the finished mark
+   invisible however far the stroke had drawn. */
+.annotate-mark .hand-stroke {
+  opacity: 0;
+}
+
+.annotate-circle .annotate-mark {
+  inset: -0.42em -0.7em -0.34em -0.7em;
+  width: auto;
+  height: auto;
+}
+
+.annotate-underline .annotate-mark {
+  left: -0.1em;
+  right: -0.1em;
+  bottom: -0.34em;
+  height: 0.42em;
+}
+
+/* ── The vine ─────────────────────────────────────────────────────────── */
+
+.vine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 60px;
+  z-index: 1;
+  pointer-events: none;
+  display: none;
+}
+
+@media (min-width: 1400px) {
+  .vine {
+    display: block;
+  }
+}
+
+.vine-left {
+  left: max(0.75rem, calc((100vw - 1560px) / 2 - 46px));
+}
+
+.vine-right {
+  right: max(0.75rem, calc((100vw - 1560px) / 2 - 46px));
+}
+
+.vine-seg {
+  height: 240px;
+}
+
+.vine-svg {
+  width: 60px;
+  height: 240px;
+}
+
+.vine-stem {
+  stroke: var(--accent);
+  stroke-width: 1.1;
+  fill: none;
+  opacity: 0.42;
+  vector-effect: non-scaling-stroke;
+}
+
+.vine-leaf {
+  fill: color-mix(in srgb, var(--sage) 42%, transparent);
+  stroke: var(--accent);
+  stroke-width: 0.7;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.55;
+}
+
+.vine-bud {
+  fill: color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+/* ── Woven bands ──────────────────────────────────────────────────────── */
+
+.woven {
+  width: 100%;
+  height: 14px;
+  opacity: 0.45;
+}
+
+/* ── Drop capital ─────────────────────────────────────────────────────── */
+
+.dropcap {
+  position: relative;
+  float: left;
+  width: 3.4em;
+  height: 3.4em;
+  margin: 0.12em 0.75em 0.1em 0;
+  display: grid;
+  place-items: center;
+  font-size: 1em;
+}
+
+.dropcap-frame {
+  position: absolute;
+  inset: 0;
+  opacity: 0.55;
+}
+
+.dropcap-letter {
+  position: relative;
+  font-weight: 900;
+  font-size: 1.9em;
+  line-height: 1;
+  letter-spacing: -0.05em;
+  color: var(--accent-ink);
+}
+
+/* ── Ink ──────────────────────────────────────────────────────────────── */
+
+@keyframes ink-bloom {
+  0% {
+    transform: scale(0.2);
+    opacity: 0.5;
+    filter: blur(1px);
+  }
+  70% {
+    opacity: 0.16;
+  }
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+    filter: blur(9px);
+  }
+}
+
+.ink {
+  position: absolute;
+  width: 130px;
+  height: 130px;
+  margin: -65px 0 0 -65px;
+  border-radius: 46% 54% 58% 42% / 52% 44% 56% 48%;
+  background: radial-gradient(
+    circle at 42% 40%,
+    color-mix(in srgb, var(--accent) 55%, transparent),
+    transparent 68%
+  );
+  pointer-events: none;
+  z-index: 6;
+  animation: ink-bloom 1200ms var(--ease-door) forwards;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   THE CHART
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.chart {
+  display: grid;
+  gap: clamp(1.25rem, 2.5vw, 2rem);
+}
+
+.chart-sky {
+  position: relative;
+  padding: clamp(0.75rem, 1.6vw, 1.4rem);
+  overflow: hidden;
+  background-image: radial-gradient(
+      1px 1px at 20% 30%,
+      color-mix(in srgb, var(--fg) 18%, transparent),
+      transparent
+    ),
+    radial-gradient(1px 1px at 72% 64%, color-mix(in srgb, var(--fg) 14%, transparent), transparent),
+    radial-gradient(1px 1px at 44% 82%, color-mix(in srgb, var(--fg) 12%, transparent), transparent),
+    radial-gradient(1px 1px at 88% 18%, color-mix(in srgb, var(--fg) 15%, transparent), transparent);
+}
+
+.chart-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.chart-ecliptic {
+  fill: none;
+  stroke: var(--rule-strong);
+  stroke-width: 1;
+  stroke-dasharray: 2 6;
+  opacity: 0.55;
+  vector-effect: non-scaling-stroke;
+}
+
+.chart-ecliptic-inner {
+  stroke-dasharray: 1 8;
+  opacity: 0.35;
+}
+
+.chart-axis {
+  stroke: var(--rule);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.chart-link {
+  stroke: var(--accent);
+  stroke-width: 1;
+  opacity: 0.42;
+  vector-effect: non-scaling-stroke;
+}
+
+.chart-star {
+  cursor: crosshair;
+}
+
+.chart-halo {
+  fill: color-mix(in srgb, var(--accent) 16%, transparent);
+  transition: fill 320ms var(--ease-door);
+}
+
+.chart-core {
+  fill: var(--accent);
+}
+
+.chart-hit {
+  fill: transparent;
+}
+
+.chart-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  fill: var(--fg-muted);
+  opacity: 0;
+  transition: opacity 300ms var(--ease-door);
+  pointer-events: none;
+}
+
+.chart-star:hover .chart-label,
+.chart-star-on .chart-label {
+  opacity: 1;
+}
+
+.chart-star:hover .chart-halo,
+.chart-star-on .chart-halo {
+  fill: color-mix(in srgb, var(--accent) 34%, transparent);
+}
+
+.chart-empty {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  text-align: center;
+  padding-inline: 2rem;
+}
+
+.chart-empty .t-hand {
+  font-size: clamp(1.5rem, 3.4vw, 2.5rem);
+  transform: rotate(-1.8deg);
+}
+
+.chart-foot {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.chart-weave {
+  width: min(100%, 22rem);
+  height: 14px;
+  opacity: 0.45;
+}
+
+.chart-note {
+  margin: 0;
+  font-size: 0.6875rem;
+  line-height: 1.7;
+  color: var(--fg-faint);
+  max-width: 58ch;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hand-stroke {
+    stroke-dasharray: none !important;
+    stroke-dashoffset: 0 !important;
+  }
+  .vine-stem {
+    stroke-dasharray: none !important;
+    stroke-dashoffset: 0 !important;
+  }
+  .vine-leaf,
+  .vine-bud {
+    opacity: 0.55;
+  }
+  .ink {
+    animation: none;
+    display: none;
+  }
+}
+
+.pf-weave {
+  margin-top: clamp(2rem, 4vw, 3rem);
+  max-width: 26rem;
+}
+
+.manifesto-clause .annotate {
+  display: inline-block;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   EDGES
+   404 and 500. The same voice as everywhere else: say what happened, offer
+   the one action that helps.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.edge {
+  position: relative;
+  z-index: 2;
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  padding-block: 4rem;
+}
+
+.edge-inner {
+  width: 100%;
+}
+
+.edge-code {
+  display: block;
+  color: var(--accent-ink);
+}
+
+.edge-numeral {
+  margin: 0.4rem 0 0;
+  font-size: clamp(5rem, 22vw, 16rem);
+  color: var(--fg);
+}
+
+.edge-line {
+  margin: clamp(1.25rem, 3vw, 2rem) 0 0;
+  font-size: clamp(1rem, 1.6vw, 1.375rem);
+  line-height: 1.6;
+  color: var(--fg-muted);
+  max-width: 34ch;
+}
+
+.edge-hand {
+  margin: 1.25rem 0 0;
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  transform: rotate(-1.6deg);
+  transform-origin: left center;
+}
+
+.edge-digest {
+  margin: 0.9rem 0 0;
+  font-size: 0.625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+}
+
+.edge-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem 1.75rem;
+  margin-top: clamp(2rem, 4vw, 3rem);
+}
+
+.edge-back {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  background: var(--fg);
+  color: var(--bg);
+  border: 1px solid var(--fg);
+  border-radius: 2px;
+  padding: 0.85rem 1.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 160ms var(--ease-door), background 300ms, border-color 300ms;
+}
+
+.edge-back:hover {
+  background: var(--accent-ink);
+  border-color: var(--accent-ink);
+}
+
+.edge-back:active {
+  transform: translateY(1px) scale(0.985);
+}
+
+.edge-back-glyph {
+  width: 7px;
+  height: 7px;
+  background: currentColor;
+  transform: rotate(45deg);
+  flex: none;
+}
+
+.edge-alt {
+  color: var(--fg-faint);
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 0.25rem;
+  transition: color 300ms var(--ease-door), border-color 300ms var(--ease-door);
+}
+
+.edge-alt:hover {
+  color: var(--accent-ink);
+  border-bottom-color: var(--accent);
+}
+
+.chart-group {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  fill: var(--fg-faint);
+  opacity: 0.55;
+  pointer-events: none;
+}

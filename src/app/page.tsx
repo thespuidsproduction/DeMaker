@@ -3,6 +3,8 @@ import { Ambient } from "@/components/Ambient";
 import { Intro } from "@/components/Intro";
 import { Lens } from "@/components/Lens";
 import { Ticker } from "@/components/Ticker";
+import { Vine } from "@/components/Vine";
+import { Chart } from "@/components/Chart";
 import { Nav } from "@/components/Nav";
 import { Hero } from "@/components/Hero";
 import { Manifesto } from "@/components/Manifesto";
@@ -25,6 +27,7 @@ import { OpticalDefs } from "@/components/Optical";
  *   Measured  four numerals and nothing else — silence again
  *   Agent     a compact machine that grows when touched
  *   Profile   editorial, quiet, handwritten
+ *   Chart     the sky of everything you opened
  *   Channel   a console
  *   Footer    almost nothing
  */
@@ -47,6 +50,10 @@ export default function Page() {
       <Nav />
 
       <main id="main">
+        {/* Ornament, and it says so. Wide viewports only: in a narrow column
+            there is no margin for anything to grow in. */}
+        <Vine side="left" segments={7} />
+        <Vine side="right" segments={5} />
         <Hero />
         <Ticker />
         <Manifesto />
@@ -56,6 +63,7 @@ export default function Page() {
         <Credibility />
         <AgentLab />
         <Profile />
+        <Chart />
         <Channel />
       </main>
 
