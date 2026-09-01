@@ -17,23 +17,31 @@ there is nothing here to opt out of.
    leaves your browser, is never transmitted anywhere, and is readable only
    by this origin. Clearing site data removes it and nothing else is lost.
 
-4. LOGS
+4. THE CONTACT CHANNEL
+   If you send a message, the name, reply address and text you type are
+   transmitted to this site's own server and forwarded to a private address.
+   They are used to reply to you and for nothing else: not stored in a
+   database here, not added to any list, not shared with anyone. The request
+   IP is held in memory only long enough to enforce a rate limit, and is never
+   written to disk or attached to the message.
+
+5. LOGS
    The hosting provider may retain standard request logs (IP address, user
    agent, path, timestamp) for operational and abuse-prevention purposes. I
    do not query these logs to identify individuals, do not join them to any
    other dataset, and do not retain them beyond the provider's own default
    window.
 
-5. THIRD PARTIES
+6. THIRD PARTIES
    Typefaces are served self-hosted from this origin. No request made while
    loading this site goes to an analytics, advertising or social platform.
 
-6. WHEN A DNT SIGNAL IS RECEIVED
+7. WHEN A DNT SIGNAL IS RECEIVED
    No change in behaviour is required, because the behaviour it asks for is
    already the only behaviour this site has.
 
-7. CHANGES
+8. CHANGES
    Any change to this policy will be published here with a new version
    number and effective date.
 
-Contact: princethree@tuta.io
+Contact: https://princey.dev/#contact

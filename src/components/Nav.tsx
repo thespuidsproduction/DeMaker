@@ -2,15 +2,16 @@
 
 import { useEffect, useRef, useState } from "react";
 import { ThemeToggle } from "./ThemeToggle";
+import { Readout } from "./Ambient";
 import { SITE } from "@/content/site";
 
 const STOPS = [
   { id: "identity", label: "Identity" },
-  { id: "disciplines", label: "Disciplines" },
   { id: "work", label: "Work" },
-  { id: "lab", label: "Agent Lab" },
+  { id: "toolbox", label: "Toolbox" },
+  { id: "agent", label: "Agent" },
   { id: "profile", label: "Profile" },
-  { id: "contact", label: "Contact" },
+  { id: "contact", label: "Channel" },
 ];
 
 export function Nav() {
@@ -82,6 +83,8 @@ export function Nav() {
           </span>
           <span className="t-label nav-domain">{SITE.domain}</span>
         </a>
+
+        <Readout />
 
         <nav aria-label="Sections" style={{ display: "flex", alignItems: "center", gap: "0.15rem" }}>
           <ul className="nav-list">

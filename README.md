@@ -7,8 +7,25 @@ Developer, Frontend Engineer, AI / Agentic Systems Developer.
 
 Built as **The Atelier of Weightless Machinery**: Swiss International
 Typographic Style as the structural foundation, an optical glass system layered
-over it, a restrained surrealist dimension in the composition, Victorian
-engraving as accent, and a real physics layer underneath.
+over it, Victorian engraving as accent, and a real physics layer underneath.
+
+It is not a catalogue of skills. It is a piece of software that happens to
+introduce its creator.
+
+## The two rules
+
+**1. The iceberg.** Six technologies are visible unprompted — React, Next.js,
+TypeScript, Node, PostgreSQL, AI. Everything else is *earned through context*:
+a facet of the toolbox opened, a project taken apart. `JWT` and `RBAC` do not
+appear on the page until someone opens the hood on the ledger system; `GSAP`,
+`Motion` and `Rapier` appear only inside the interface project. Surface is
+beautiful; depth is technical. That contrast is the identity.
+
+**2. Nothing private is published.** No email address, no telephone number, no
+street address — not in the markup, not in the client bundle, not in
+`/.well-known/`, not in the JSON-LD, not in `llms.txt`. The only location shown
+is *United Kingdom*. Contact runs through a server-side channel that resolves
+the destination from an environment variable.
 
 ---
 
@@ -41,20 +58,24 @@ src/
     opengraph-image.tsx     Generated 1200×630 share card
     robots.ts sitemap.ts manifest.ts
     well-known/webfinger/   RFC 7033 endpoint (rewritten from /.well-known/)
+    api/channel/route.ts    Contact delivery: honeypot, dwell, validation, rate limit
   components/
-    Hero.tsx                Identity, optical field, physics fragments
+    Hero.tsx                Identity, optical field, six physics fragments
     Manifesto.tsx           Scrubbed clause-by-clause statement
-    Disciplines.tsx         Three rooms, one laboratory
-    Projects.tsx            The exhibition; architecture revealed by inspection
-    Credibility.tsx         Oversized numerals
-    AgentLab.tsx            The agent as a translucent machine
-    Profile.tsx             Editorial profile + the résumé publication
-    Contact.tsx Footer.tsx Nav.tsx ThemeToggle.tsx Movement.tsx
+    Work.tsx                Projects. Surface → blueprint under the hood
+    Toolbox.tsx             Six floating objects that unfold, never a list
+    Credibility.tsx         Four oversized numerals and silence
+    AgentLab.tsx            Perceive → Think → Act, growing on demand
+    Profile.tsx             Editorial page, handwritten signature
+    Channel.tsx             The contact console
+    Ambient.tsx             The pulse: mote, trace line, header readout
+    Footer.tsx Nav.tsx ThemeToggle.tsx Movement.tsx
     Ornament.tsx            Hand-authored engraved SVG (no stock, no icon font)
     Optical.tsx             SVG filters: refraction, dispersion, hatch
   lib/
     physics.ts              Rapier 2D world mapped onto real DOM nodes
     motion.ts               GSAP setup, reveal scoring, magnetism, specular tracking
+    traces.tsx              What the visitor uncovered, returned as marginalia
     theme.ts                Pre-paint theme boot script
   content/
     site.ts                 Single source of truth for every string on the page
@@ -103,6 +124,57 @@ text flow; physics only ever writes a `transform`.
 The world is torn down on unmount and never boots at all under
 `prefers-reduced-motion: reduce`.
 
+### Progressive disclosure
+
+Every section has a maximum information threshold. Past it, information is
+deferred rather than shrunk:
+
+| Surface | Depth | Deeper still |
+| --- | --- | --- |
+| A verb and a capability sentence | Three primary technologies | `+ more` → the long tail, as prose |
+| A project name and one line | **Under the hood** → blueprint, callouts, stack, four strata | — |
+| Perceive → Think → Act | **Open the system** → seven stages with notes | **Show the architecture** → the invariants |
+| `Open a channel` | Console boots, status resolves | The form |
+
+Nothing that is hidden is hidden from assistive technology: every disclosure is
+a real `aria-expanded` button controlling a real `hidden` panel, and the audit
+below opens all of them before measuring.
+
+### Traces — the site remembers
+
+`lib/traces.tsx` records what a visitor uncovers, in `sessionStorage`, and
+never transmits it. Open the hood on the ledger and `JWT` is remembered;
+several sections later a handwritten note appears in the margin — *"from
+earlier — JWT, in The Ledger"* — and the header readout switches from
+`SYSTEM NOMINAL` to the last thing found, with a count.
+
+It makes the page feel like one connected world rather than eight unrelated
+sections. It is deliberately quiet: a `Marginalia` renders nothing at all until
+enough has actually been discovered, so the site never invents a memory it does
+not have.
+
+### Ambient life
+
+Four signs the environment is running, none of which asks for attention: a mote
+of glass drifting on a ~90 second Lissajous path, a line tracing an invisible
+system once every 34 seconds, a status readout that changes its mind on an
+irregular cadence, and light tracking the pointer across every glass plate. All
+of it stops under `prefers-reduced-motion`.
+
+The readout lives in the header, not floating over the page — a status line
+that covers the paragraph you are reading is not ambient, it is in the way.
+
+### Motion as body language
+
+Different things move differently, on purpose:
+
+- **Typography glides** — masked, `expo.out`, settling rather than snapping.
+- **Glass floats** — long tethers, high damping, drifting within a leash.
+- **Diagrams snap** — blueprint callouts land in 0.28s; drawings do not glide.
+- **Physics objects carry inertia** — mass scales with area, release overshoots.
+- **Buttons respond immediately** — 160ms, and they depress under the finger.
+- **Images move slowly** — project artifacts drift on a 1.4 scrub.
+
 ### Motion
 
 GSAP with ScrollTrigger for scored section reveals and scrub-linked
@@ -135,16 +207,45 @@ computed size and weight.
 
 ---
 
+## The channel
+
+`src/app/api/channel/route.ts`. The delivery address is read from the server
+environment inside the handler and appears in no markup, no client bundle, no
+JSON payload and no error message — an upstream failure that mentions the
+destination is caught and replaced before it reaches the browser.
+
+Defence in depth, cheapest check first:
+
+1. **Honeypot** — a `company` field, off-screen but `display: inline-block`, so
+   a bot that checks computed style still fills it in. A filled honeypot gets
+   `200 OK`; a bot learns nothing from success.
+2. **Dwell time** — submitted under 2.5s after opening, or over 6 hours, is
+   rejected. A person cannot compose a message in two seconds.
+3. **Shape** — required fields, length bounds, and a `\r\n` guard on the name
+   and reply address, which are handed to a mail transport.
+4. **Rate limit** — 3 per client per 15 minutes, plus a global ceiling of 60.
+   In-memory and therefore per-instance: it bounds abuse from one client
+   against one server, not a distributed flood. Back it with a shared store on
+   a multi-region deployment.
+
+`GET /api/channel` reports `ready` or `offline` so the console can say so
+honestly rather than accepting a message it cannot deliver — it never pretends
+something was sent.
+
+Configure delivery with either Resend (`RESEND_API_KEY` + `CONTACT_TO`) or any
+HTTPS endpoint that accepts JSON (`CONTACT_WEBHOOK_URL`). See `.env.example`.
+**With neither set the channel is offline and the console says so.**
+
 ## Content
 
 Everything the site says lives in `src/content/site.ts`. Nothing is invented at
 the component layer.
 
-**Projects** describe the architecture of shipped systems — frontend, backend,
-database, infrastructure, AI architecture, performance, design decisions —
-without client names, invented URLs or unverifiable metrics. Replace `name`,
-add `href`, and add entries as each system becomes publicly referenceable; the
-exhibition layout takes any number.
+**Projects** describe the architecture of shipped systems — surface, boundary,
+floor, consequence — without client names, invented URLs or unverifiable
+metrics. Replace `name`, add `href`, and add entries as each system becomes
+publicly referenceable. `reveals` is the list of technologies that only exists
+under the hood, and those become the traces that resurface later.
 
 **Numbers.** Only four figures are published (9+ live applications, 60fps
 target, WCAG AA target, 100% ownership of the stack). No metric appears on the
@@ -175,8 +276,12 @@ configured in `next.config.ts`.
 
 ## Deployment
 
-Any Node host that runs `next start`, or Vercel with zero configuration. The
-only dynamic route is `/.well-known/webfinger`; everything else is prerendered.
+Any Node host that runs `next start`, or Vercel with zero configuration. Two
+dynamic routes — `/api/channel` and `/.well-known/webfinger`; everything else is
+prerendered.
+
+**Set the channel environment variables** (see `.env.example`) or the contact
+console will correctly report itself offline.
 
 Point `princey.dev` at the deployment and nothing else needs changing — the
 canonical origin is read from `SITE.url` in `src/content/site.ts`.
@@ -186,5 +291,14 @@ canonical origin is read from `SITE.url` in `src/content/site.ts`.
 ## Privacy
 
 No analytics, no cookies, no third-party tags, no fonts loaded from a third
-party. One `localStorage` key (`atelier-theme`) records the colour-scheme
-preference and never leaves the browser.
+party.
+
+Two browser-storage keys, neither of which ever leaves the device:
+`atelier-theme` in `localStorage` (colour scheme) and `princey-traces` in
+`sessionStorage` (what you uncovered this visit).
+
+No personal contact detail is published. This is verified, not assumed — the
+served HTML and every JavaScript chunk were fetched and scanned for the email
+address, the telephone number, the town, `mailto:`, `tel:` links and the
+delivery environment variables. Zero matches across ~800KB. Re-run that check
+after any change to the content layer.

@@ -11,21 +11,18 @@ import { SITE } from "@/content/site";
 
 const SUBJECT = `acct:${SITE.handle}@${SITE.domain}`;
 
-/** Every identifier that resolves to the same person. */
-const ALIASES = [
-  SUBJECT,
-  SITE.url,
-  `${SITE.url}/`,
-  `mailto:${SITE.email}`,
-] as const;
+/** Every identifier that resolves to the same person. No mailto: the address
+ *  is not published anywhere, here included. */
+const ALIASES = [SUBJECT, SITE.url, `${SITE.url}/`] as const;
 
 const JRD = {
   subject: SUBJECT,
-  aliases: [SITE.url, `mailto:${SITE.email}`],
+  aliases: [SITE.url],
   properties: {
     "http://schema.org/name": SITE.name,
     "http://schema.org/jobTitle": SITE.roles.join(", "),
     "http://schema.org/address": SITE.location,
+    "http://schema.org/contactPoint": `${SITE.url}/#contact`,
   },
   links: [
     {

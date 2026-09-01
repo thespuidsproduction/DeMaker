@@ -15,7 +15,7 @@ answer; a fabricated key is a lie that verification tooling will act on.
 
 | Path | Standard | Status |
 | --- | --- | --- |
-| [`security.txt`](./security.txt) | [RFC 9116](https://www.rfc-editor.org/rfc/rfc9116) | **Real.** Contact routes, scope, disclosure handling and expiry. |
+| [`security.txt`](./security.txt) | [RFC 9116](https://www.rfc-editor.org/rfc/rfc9116) | **Real.** Web contact route, scope, disclosure handling and expiry. No `mailto:` — see below. |
 | [`ai.txt`](./ai.txt) | de-facto | **Real.** What automated agents and model builders may and may not do with this site. |
 | [`dnt-policy.txt`](./dnt-policy.txt) | EFF DNT Policy 1.0 | **Real.** There is nothing to opt out of; this says so precisely. |
 | [`gpc.json`](./gpc.json) | [Global Privacy Control](https://globalprivacycontrol.github.io/gpc-spec/) | **Real.** GPC is honoured. No data is sold or shared. |
@@ -67,10 +67,14 @@ Query it like this:
 curl 'https://princey.dev/.well-known/webfinger?resource=acct:princey@princey.dev'
 ```
 
-It answers for `acct:princey@princey.dev`, `mailto:princethree@tuta.io`,
-`https://princey.dev` and `https://princey.dev/`. Anything else returns `404`
-with a JRD-shaped error body; a missing `resource` returns `400`, as the RFC
-requires.
+It answers for `acct:princey@princey.dev`, `https://princey.dev` and
+`https://princey.dev/`. Anything else returns `404` with a JRD-shaped error
+body; a missing `resource` returns `400`, as the RFC requires.
+
+Note the absence of a `mailto:` alias. **No email address, telephone number or
+postal address is published anywhere on this site**, this directory included.
+Every contact route points at `/#contact`, whose API resolves the real
+destination from a server-side environment variable.
 
 ## Content types
 
@@ -92,4 +96,4 @@ cross-origin verifiers can read them.
 
 ---
 
-Maintained by Prince Chipango — <princethree@tuta.io>
+Maintained by Prince Chipango — https://princey.dev/#contact

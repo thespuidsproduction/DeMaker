@@ -48,7 +48,6 @@ export const metadata: Metadata = {
     "Python",
     "RAG",
     "LLM systems",
-    "Weston-super-Mare",
     "UK developer",
   ],
   alternates: {
@@ -99,15 +98,19 @@ const jsonLd = {
       givenName: "Prince",
       familyName: "Chipango",
       url: SITE.url,
-      email: `mailto:${SITE.email}`,
-      telephone: SITE.phone,
+      // Deliberately no email or telephone. Reaching this person goes through
+      // the channel at /#contact, which resolves the address server-side.
       jobTitle: [...SITE.roles],
       description: SITE.manifesto,
       address: {
         "@type": "PostalAddress",
-        addressLocality: SITE.locality,
-        addressRegion: SITE.region,
         addressCountry: SITE.country,
+      },
+      contactPoint: {
+        "@type": "ContactPoint",
+        contactType: "Engineering enquiries",
+        url: `${SITE.url}/#contact`,
+        availableLanguage: "en",
       },
       knowsAbout: [
         "Full-stack engineering",

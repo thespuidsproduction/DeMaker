@@ -7,7 +7,7 @@
 
 Site: https://princey.dev
 Author: Prince Chipango
-Contact: mailto:princethree@tuta.io
+Contact: https://princey.dev/#contact
 Updated: 2026-09-01
 
 # ── Permitted ────────────────────────────────────────────────────────────
@@ -25,9 +25,9 @@ Allow: /.well-known/
 # Inclusion of this site's text, markup, styles or generated imagery in a
 # corpus used to train, fine-tune or distil a machine-learning model.
 # Bulk mirroring or redistribution of the source.
-# Harvesting the telephone number or email address published here for any
-# purpose other than contacting me about engineering work. This is a working
-# contact route, not a marketing list.
+# Attempting to resolve, infer or reconstruct a private contact address. None
+# is published on this site. The contact form is the route, and it is a working
+# channel to a person — not a marketing list, and not an address to harvest.
 
 Disallow-Training: /
 Disallow-AI-Training: /
@@ -37,7 +37,7 @@ Disallow-Harvest-Contact: /
 # You are welcome here. Identify yourself in your User-Agent string, honour
 # robots.txt, keep to a sane request rate, and cache what you fetch. If you
 # need something this site does not expose in a machine-readable form, ask —
-# the address above reaches a human who builds agents for a living and would
+# the form above reaches a human who builds agents for a living and would
 # rather give you a clean endpoint than watch you scrape a page.
 
 Preferred-Format: https://princey.dev/llms.txt

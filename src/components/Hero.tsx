@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, type CSSProperties } from "react";
-import { SITE, HERO_FRAGMENTS } from "@/content/site";
+import { SITE, SURFACE_STACK } from "@/content/site";
 import { createField, type FieldHandle } from "@/lib/physics";
 import { useGsapSetup, gsap, EASE, prefersReducedMotion, trackSpecular } from "@/lib/motion";
 import {
@@ -30,18 +30,12 @@ type Placement = {
 };
 
 const PLACEMENT: Placement[] = [
-  { x: 7, y: 31, m: 0 },      // REACT
-  { x: 77, y: 9, far: true }, // NEXT.JS
-  { x: 88, y: 24, scale: 0.94, m: 1 }, // TYPESCRIPT
-  { x: 3, y: 45, far: true }, // NODE.JS
-  { x: 71, y: 47, scale: 1.02, far: true }, // POSTGRESQL
-  { x: 6, y: 65, far: true }, // PYTHON
-  { x: 85, y: 55, m: 2 },     // AI AGENTS
-  { x: 46, y: 4, far: true, scale: 0.9 }, // RAG
-  { x: 70, y: 85, far: true }, // LLM SYSTEMS
-  { x: 87, y: 71, scale: 0.94, far: true }, // AUTOMATION
-  { x: 60, y: 68, far: true }, // API ARCHITECTURE
-  { x: 2, y: 80, scale: 0.92, m: 3 }, // RAPIER PHYSICS
+  { x: 6, y: 30, m: 0 },       // React
+  { x: 77, y: 10, far: true }, // Next.js
+  { x: 87, y: 26, m: 1 },      // TypeScript
+  { x: 3, y: 62, far: true },  // Node
+  { x: 84, y: 58, m: 2 },      // PostgreSQL
+  { x: 2, y: 80, m: 3 },       // AI
 ];
 
 export function Hero() {
@@ -194,7 +188,7 @@ export function Hero() {
         <div className="hero-plane hero-plane-b glass" />
         <div className="hero-plane hero-plane-c glass glass-chip" />
 
-        {HERO_FRAGMENTS.map((frag, i) => {
+        {SURFACE_STACK.map((frag, i) => {
           const p: Placement = PLACEMENT[i] ?? { x: 50, y: 50 };
           // Fragments on the right half are anchored by their right edge, so
           // a long label can never push past the viewport.

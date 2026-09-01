@@ -3,13 +3,14 @@
 # RFC 9116 · https://www.rfc-editor.org/rfc/rfc9116
 #
 # If you have found a security issue affecting this site or anything I have
-# built, I would rather hear it from you than from an incident. Write to me
-# directly; I read everything and I will confirm receipt.
+# built, I would rather hear it from you than from an incident.
+#
+# No email address is published anywhere on this site, including here. The
+# contact form below reaches me directly; the delivery address is resolved
+# server-side and is not exposed to the page, to this file, or to a crawler.
 # ═══════════════════════════════════════════════════════════════════════════
 
-Contact: mailto:princethree@tuta.io
 Contact: https://princey.dev/#contact
-Contact: tel:+447823977850
 
 Expires: 2027-09-01T00:00:00.000Z
 
@@ -20,16 +21,22 @@ Canonical: https://princey.dev/.well-known/security.txt
 Policy: https://princey.dev/.well-known/README.md
 
 # ── Scope ────────────────────────────────────────────────────────────────
-# In scope:   princey.dev and any subdomain of princey.dev.
+# In scope:   princey.dev and any subdomain of princey.dev, including the
+#             contact channel endpoint at /api/channel.
 # Out of scope:
 #   - Reports generated solely by an automated scanner, with no demonstrated
 #     impact and no proof of concept.
-#   - Missing security headers on this static site where no vulnerability
-#     follows from their absence.
+#   - Missing security headers where no vulnerability follows from their
+#     absence.
 #   - Denial of service, volumetric testing, or social engineering of any
-#     person. Please do not perform these.
+#     person. Please do not perform these. The contact endpoint is rate
+#     limited; do not test that limit by exhausting it.
 #   - Vulnerabilities in third-party infrastructure I do not control. Report
 #     those to the operator; tell me too, and I will follow up.
+#
+# ── Especially welcome ───────────────────────────────────────────────────
+# Anything that causes the contact endpoint to disclose its delivery address,
+# bypass its bot defences, or be used to relay mail to a third party.
 #
 # ── Handling ─────────────────────────────────────────────────────────────
 # Acknowledgement:  within 72 hours.

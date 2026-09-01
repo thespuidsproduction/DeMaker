@@ -265,7 +265,16 @@ export function createField(
 
   const onDown = (e: PointerEvent) => {
     if (!draggable || !nodes.length) return;
-    const target = (e.target as HTMLElement)?.closest<HTMLElement>("[data-phys]");
+    const from = e.target as HTMLElement | null;
+
+    // A physics body may contain real controls. Capturing the pointer on the
+    // body would redirect the pointerup and swallow the click, so a gesture
+    // that starts on something interactive is never a drag.
+    if (from?.closest("button, a, input, textarea, select, label, [role='button']")) {
+      return;
+    }
+
+    const target = from?.closest<HTMLElement>("[data-phys]");
     if (!target) return;
     const n = nodes.find((x) => x.el === target);
     if (!n) return;

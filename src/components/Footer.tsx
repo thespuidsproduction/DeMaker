@@ -1,7 +1,7 @@
 import { SITE, FOOTER_STACK } from "@/content/site";
 import { CircuitTrace } from "./Ornament";
 
-/** Exceptionally quiet. A note in the margin, then the metadata, then a plate. */
+/** Exceptionally quiet. A note in the margin, the surface stack, a plate. */
 export function Footer() {
   return (
     <footer className="footer">
@@ -11,7 +11,7 @@ export function Footer() {
         <p className="t-label footer-stack">
           {FOOTER_STACK.map((s, i) => (
             <span key={s}>
-              {s}
+              {s.toUpperCase()}
               {i < FOOTER_STACK.length - 1 ? <span aria-hidden="true"> / </span> : null}
             </span>
           ))}
@@ -23,7 +23,10 @@ export function Footer() {
           <span className="t-meta">
             © {new Date().getFullYear()} {SITE.name}
           </span>
-          <span className="t-meta">{SITE.domain}</span>
+          <span className="t-meta">{SITE.location}</span>
+          <a className="t-meta footer-sec" href="#contact">
+            Open a channel
+          </a>
           <a className="t-meta footer-sec" href="/.well-known/security.txt">
             security.txt
           </a>

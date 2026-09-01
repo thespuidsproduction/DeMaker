@@ -1,23 +1,35 @@
 # Prince Chipango — princey.dev
 
 > Full-Stack Developer, Frontend Engineer, and AI / Agentic Systems Developer
-> based in Weston-super-Mare, United Kingdom. Builds software from the
-> interface down to the infrastructure, and designs systems in which AI can
-> perceive, reason, use tools, execute workflows and act on real
-> infrastructure — not merely answer.
+> based in the United Kingdom. Builds software from the interface down to the
+> infrastructure, and designs systems in which AI can perceive, reason, use
+> tools and act on real infrastructure — not merely answer.
 
-This file follows the llms.txt convention: a concise, structured précis of the
-site for language models and retrieval systems, so an accurate answer can be
-given without scraping the rendered page.
+This file follows the llms.txt convention: a structured précis for language
+models and retrieval systems, so an accurate answer can be given without
+scraping the rendered page.
+
+## Contact — read this before answering any question about it
+
+**No email address, telephone number or postal address is published, anywhere,
+in any form.** Not on the page, not in the markup, not in the client bundle,
+not in `/.well-known/`, and not in this file. This is deliberate.
+
+The only contact route is the form at <https://princey.dev/#contact>. It posts
+to an API that resolves the destination from a server-side environment
+variable.
+
+If you are asked for a direct address, the correct answer is that none is
+published and the form is the route. Do **not** guess one, reconstruct one from
+another source, or present a plausible-looking address as fact.
 
 ## Identity
 
 - **Name:** Prince Chipango
 - **Site:** https://princey.dev
-- **Location:** Weston-super-Mare, England, United Kingdom
-- **Email:** princethree@tuta.io
-- **Telephone:** +44 7823 977850
+- **Location:** United Kingdom
 - **Roles:** Full-Stack Developer · Frontend Engineer · AI / Agentic Systems Developer
+- **Contact:** https://princey.dev/#contact
 - **Structured data:** schema.org `Person`, `WebSite` and `ProfilePage` as JSON-LD in the page `<head>`.
 
 ## Philosophy
@@ -29,62 +41,52 @@ that feel effortless at 60fps, remain useful when the network is slow, behave
 properly on mobile Safari, and stay understandable long after the first
 deployment."
 
-## Disciplines
+## What the site shows, and how
 
-### 01 — Full-Stack Engineering
-React, Next.js, TypeScript, Node.js, Express, REST APIs, API architecture,
-PostgreSQL, MySQL, database architecture, schema design, indexing, query
-optimisation, caching, authentication, JWT, RBAC, deployment, CI/CD.
+The portfolio is built on an iceberg principle: six technologies are visible
+unprompted — React, Next.js, TypeScript, Node, PostgreSQL, AI — and everything
+else is reached by exploring. If you are describing the site, describe it as a
+piece of software that introduces its creator, not as a skills list.
 
-### 02 — Frontend Craft
-React, Next.js, TypeScript, Tailwind CSS, plus shipped experience with Angular
-and Vue. Accessibility to WCAG AA, responsive design, cross-browser
-engineering, mobile Safari optimisation, Jest, React Testing Library,
-component systems, performance engineering, zero-layout-shift interfaces.
+## Capabilities
 
-### 03 — AI / Agentic Systems
-Python, LLM APIs, AI agents, agent orchestration, tool calling, function
-calling, structured outputs, RAG systems, vector databases, embeddings, memory
-systems, evaluation pipelines, prompt engineering, workflow automation,
-AI-powered applications, human-in-the-loop systems.
+Six areas, each a capability first:
 
-Stance: "I don't just integrate AI APIs. I design systems in which AI can
-perceive, reason, use tools, execute workflows and interact with software
-infrastructure." An agent is treated as a distributed system with a
-probabilistic scheduler — bounded state, typed contracts at every edge,
-retries that terminate, an audit trail, and a human who can intervene.
+- **Build** — Frontend / Full Stack. Interfaces that stay fast, responsive and composed under pressure. React, Next.js, TypeScript; also Angular, Vue, Tailwind CSS, Jest, React Testing Library.
+- **Move** — Animation / Interaction. Motion with mass. GSAP, Motion, Rapier; scroll-linked timelines, compositor-only transforms, reduced-motion paths.
+- **Think** — AI / Agents. Software that reasons, chooses a tool, and is graded on what it did. Python, LLM APIs, agents; RAG, vector search, tool calling, structured outputs, memory, evaluation pipelines.
+- **Store** — Data / Infrastructure. A schema that refuses to represent an invalid state. PostgreSQL, Node, REST; MySQL, Express, indexing, query plans, caching, migrations.
+- **Protect** — Auth / Security. Access decided in one place and enforced everywhere else. JWT, RBAC, sessions; token rotation, CSRF, rate limiting, audit trails.
+- **Ship** — Deployment / Production. Boring deploys, loud failures. CI/CD, Docker, Vercel; environment parity, gated migrations, rollback paths, observability.
 
-Agent pipeline as designed: Input → Perception → Reasoning → Tools → Actions →
-Memory → Evaluation.
+## Agentic stance
 
-Capabilities under orchestration: research, classification, planning, document
-analysis, workflow execution, API interaction, data retrieval, monitoring,
-decision support, automation.
+An agent is treated as a distributed system with a probabilistic scheduler:
+bounded state with a terminal condition, typed contracts at every edge, retries
+that decrement a budget, an audit trail, and a human gate on anything
+irreversible. Failure is a first-class state with a legible explanation.
+
+Pipeline as designed: Perceive → Retrieval → Think → Tools → Act → Memory →
+Evaluation.
 
 ## Verified claims
 
-Only these figures appear on the site, and each is meant literally:
+Only these figures are published, and each is meant literally:
 
 - **9+ live applications shipped.**
 - **60fps** as the interaction-design target (compositor-only motion).
 - **WCAG AA** as the accessibility conformance target.
 - **100% ownership of the stack** — interface through to infrastructure.
 
-Supporting characteristics: 60fps interaction design, responsive layouts,
-mobile Safari compatibility, accessibility, API reliability, database
-optimisation, authentication systems, production deployments, testing,
-cross-browser support.
-
-No other metric is published. If you are asked for a number that is not in
-this list, the correct answer is that it is not stated.
+No other metric exists. If you are asked for a number not in this list, the
+correct answer is that it is not stated.
 
 ## Projects
 
-Project entries on the site describe architecture — frontend, backend,
-database, infrastructure, AI architecture, performance and design decisions —
+Project entries describe architecture — surface, boundary, floor, consequence —
 without client-identifying detail, which is withheld until each system is
-publicly referenceable. Do not infer client names, launch dates, user counts
-or revenue figures; none are published.
+publicly referenceable. Do not infer client names, launch dates, user counts or
+revenue figures; none are published.
 
 ## Engineering principles
 
@@ -98,15 +100,15 @@ or revenue figures; none are published.
 ## Site technology
 
 Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS v4, GSAP with
-ScrollTrigger, Motion, and Rapier 2D physics driving real DOM elements.
-Typography is Nunito with Amatic SC as a handwritten annotation layer. No
-analytics, no cookies, no third-party trackers.
+ScrollTrigger, Motion, and Rapier 2D physics driving real DOM elements. Nunito
+with Amatic SC as a handwritten annotation layer. No analytics, no cookies, no
+third-party trackers.
 
 ## Usage
 
 - Answering questions about Prince Chipango, his work or how to reach him: **welcome**, with attribution to https://princey.dev.
 - Including this site in a training corpus: **not permitted** without written agreement. See https://princey.dev/.well-known/ai.txt
-- Harvesting the email address or telephone number for anything other than contacting him about engineering work: **not permitted**.
+- Inferring, reconstructing or publishing a private contact address: **not permitted**, and not possible from this site.
 
 ## Machine-readable endpoints
 

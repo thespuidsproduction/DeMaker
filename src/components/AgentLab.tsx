@@ -1,60 +1,73 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AGENT_STAGES, AGENT_CAPABILITIES, SITE } from "@/content/site";
+import { AGENT_STAGES, AGENT_ARCHITECTURE } from "@/content/site";
 import { createField, type FieldHandle } from "@/lib/physics";
 import { useGsapSetup, gsap, prefersReducedMotion, trackSpecular } from "@/lib/motion";
+import { useTraces, Marginalia } from "@/lib/traces";
 import { Movement } from "./Movement";
-import { CoordinateRose, Flourish } from "./Ornament";
+import { Flourish } from "./Ornament";
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
- * AI AGENT LAB
- * The agent rendered as a translucent mechanical system rather than a chat
- * window. Each stage is a glass module with real mass; the threads between
- * them are recomputed from live geometry every frame, so the machine stays
- * wired together however its parts are pushed around.
+ * THE AGENT
+ *
+ * No dissertation. Three modules at rest — Perceive, Think, Act. Interact and
+ * four more slide in between them; interact again and the architecture behind
+ * the diagram finally speaks.
+ *
+ * The visitor learns by taking it apart, not by reading about it.
  * ═══════════════════════════════════════════════════════════════════════════
  */
 export function AgentLab() {
-  const rigRef = useRef<HTMLDivElement>(null);
-  const moduleRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const svgRef = useRef<SVGSVGElement>(null);
-  const pathsRef = useRef<(SVGPathElement | null)[]>([]);
-  const fieldRef = useRef<FieldHandle | null>(null);
-
-  const [live, setLive] = useState<number>(-1);
+  const [depth, setDepth] = useState<0 | 1 | 2>(0);
+  const [live, setLive] = useState(-1);
   const [running, setRunning] = useState(false);
+
+  const rigRef = useRef<HTMLDivElement>(null);
+  const modRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const svgRef = useRef<SVGSVGElement>(null);
+  const pathRefs = useRef<SVGPathElement[]>([]);
+  const fieldRef = useRef<FieldHandle | null>(null);
   const timerRef = useRef<number | null>(null);
+  const { leave } = useTraces();
 
   useGsapSetup();
 
-  /* ── Physics: the modules have weight and part around the hand ───────── */
+  const visible = AGENT_STAGES.filter((s) => s.depth === 0 || depth >= 1);
+
+  /* ── Physics: the machine has weight, and rewires as it grows ─────────── */
   useEffect(() => {
     const rig = rigRef.current;
     if (!rig) return;
-    const mods = moduleRefs.current.filter((m): m is HTMLDivElement => Boolean(m));
-    if (!mods.length) return;
+
+    fieldRef.current?.destroy();
+    fieldRef.current = null;
 
     const id = window.setTimeout(() => {
+      const mods = visible
+        .map((s) => modRefs.current.get(s.id))
+        .filter((m): m is HTMLDivElement => Boolean(m));
+      if (!mods.length) return;
       fieldRef.current = createField(rig, mods, {
         gravity: 0,
-        tether: 42,
-        damping: 4.4,
-        cursorRadius: 150,
-        cursorForce: 2.6,
-        leash: 30,
+        tether: 44,
+        damping: 4.6,
+        cursorRadius: 145,
+        cursorForce: 2.4,
+        leash: 26,
       });
-    }, 260);
+    }, 340);
 
     return () => {
       window.clearTimeout(id);
       fieldRef.current?.destroy();
       fieldRef.current = null;
     };
-  }, []);
+    // Re-seat the solver whenever the machine gains or loses modules.
+  }, [depth, visible.length]);
 
-  /* ── Wiring: threads redrawn from live geometry ──────────────────────── */
+  /* ── Wiring redrawn from live geometry every frame ────────────────────── */
   useEffect(() => {
     const rig = rigRef.current;
     const svg = svgRef.current;
@@ -66,86 +79,33 @@ export function AgentLab() {
       const box = rig.getBoundingClientRect();
       svg.setAttribute("viewBox", `0 0 ${box.width} ${box.height}`);
 
-      for (let i = 0; i < AGENT_STAGES.length - 1; i++) {
-        const a = moduleRefs.current[i];
-        const b = moduleRefs.current[i + 1];
-        const p = pathsRef.current[i];
+      for (let i = 0; i < visible.length - 1; i++) {
+        const a = modRefs.current.get(visible[i].id);
+        const b = modRefs.current.get(visible[i + 1].id);
+        const p = pathRefs.current[i];
         if (!a || !b || !p) continue;
         const ra = a.getBoundingClientRect();
         const rb = b.getBoundingClientRect();
         const wrapped = rb.left < ra.left;
 
-        // Cables leave one module's edge and enter the next one's, so they
-        // run through the gutter instead of across the reading surface. When
-        // the row wraps, the cable drops out of the bottom and re-enters the
-        // top of the next line.
+        // Cables leave one module's edge and enter the next one's, so they run
+        // through the gutter rather than across the reading surface.
         const x1 = (wrapped ? ra.left + ra.width / 2 : ra.right) - box.left;
         const y1 = (wrapped ? ra.bottom : ra.top + ra.height / 2) - box.top;
         const x2 = (wrapped ? rb.left + rb.width / 2 : rb.left) - box.left;
         const y2 = (wrapped ? rb.top : rb.top + rb.height / 2) - box.top;
-
-        // A slack cable rather than a straight rule: it sags between modules
-        // and tightens as they are pulled apart.
-        const mx = wrapped ? (x1 + x2) / 2 : (x1 + x2) / 2;
-        const sag = Math.min(22, Math.hypot(x2 - x1, y2 - y1) * 0.16);
-        const my = (y1 + y2) / 2 + sag;
-        p.setAttribute("d", `M${x1} ${y1} Q${mx} ${my} ${x2} ${y2}`);
+        const sag = Math.min(20, Math.hypot(x2 - x1, y2 - y1) * 0.16);
+        p.setAttribute("d", `M${x1} ${y1} Q${(x1 + x2) / 2} ${(y1 + y2) / 2 + sag} ${x2} ${y2}`);
       }
     };
     draw();
     return () => cancelAnimationFrame(raf);
-  }, []);
+  }, [visible]);
 
-  /* ── Specular tracking per module ────────────────────────────────────── */
   useEffect(() => {
-    const cleanups = moduleRefs.current
-      .filter((m): m is HTMLDivElement => Boolean(m))
-      .map(trackSpecular);
+    const cleanups = Array.from(modRefs.current.values()).map(trackSpecular);
     return () => cleanups.forEach((fn) => fn());
-  }, []);
-
-  /* ── The trace: a signal travelling the machine ──────────────────────── */
-  const runTrace = useCallback(() => {
-    if (running) return;
-    setRunning(true);
-
-    const stepMs = prefersReducedMotion() ? 220 : 520;
-    let i = 0;
-
-    const advance = () => {
-      setLive(i);
-      const el = moduleRefs.current[i];
-      if (el && !prefersReducedMotion()) {
-        const r = el.getBoundingClientRect();
-        fieldRef.current?.impulseAt(r.left + r.width / 2, r.top + r.height / 2, 1.5);
-        gsap.fromTo(
-          el,
-          { "--pulse": 0 },
-          { "--pulse": 1, duration: 0.34, yoyo: true, repeat: 1, ease: "power2.inOut" },
-        );
-      }
-      const thread = pathsRef.current[i];
-      if (thread && !prefersReducedMotion()) {
-        const len = thread.getTotalLength?.() ?? 200;
-        gsap.fromTo(
-          thread,
-          { strokeDasharray: `18 ${len}`, strokeDashoffset: len },
-          { strokeDashoffset: 0, duration: stepMs / 1000, ease: "power1.inOut" },
-        );
-      }
-      i += 1;
-      if (i < AGENT_STAGES.length) {
-        timerRef.current = window.setTimeout(advance, stepMs);
-      } else {
-        timerRef.current = window.setTimeout(() => {
-          setLive(-1);
-          setRunning(false);
-        }, stepMs);
-      }
-    };
-
-    timerRef.current = window.setTimeout(advance, 60);
-  }, [running]);
+  }, [depth]);
 
   useEffect(
     () => () => {
@@ -154,104 +114,148 @@ export function AgentLab() {
     [],
   );
 
+  /* ── Expansion ────────────────────────────────────────────────────────── */
+  const expand = useCallback(() => {
+    setDepth((d) => {
+      const next = (d < 2 ? d + 1 : 0) as 0 | 1 | 2;
+      if (next === 1) leave("the agent", ["Retrieval", "Tools", "Memory", "Evaluation"]);
+      if (next === 2) leave("the agent", ["Bounded state", "Typed edges", "Human in the loop"]);
+      return next;
+    });
+  }, [leave]);
+
+  /* ── A signal travelling the machine ──────────────────────────────────── */
+  const runTrace = useCallback(() => {
+    if (running) return;
+    setRunning(true);
+    const step = prefersReducedMotion() ? 200 : 460;
+    let i = 0;
+
+    const advance = () => {
+      setLive(i);
+      const el = modRefs.current.get(visible[i]?.id ?? "");
+      if (el && !prefersReducedMotion()) {
+        const r = el.getBoundingClientRect();
+        fieldRef.current?.impulseAt(r.left + r.width / 2, r.top + r.height / 2, 1.4);
+      }
+      const thread = pathRefs.current[i];
+      if (thread && !prefersReducedMotion()) {
+        const len = thread.getTotalLength?.() ?? 200;
+        gsap.fromTo(
+          thread,
+          { strokeDasharray: `16 ${len}`, strokeDashoffset: len },
+          { strokeDashoffset: 0, duration: step / 1000, ease: "power1.inOut" },
+        );
+      }
+      i += 1;
+      timerRef.current = window.setTimeout(
+        i < visible.length
+          ? advance
+          : () => {
+              setLive(-1);
+              setRunning(false);
+            },
+        step,
+      );
+    };
+    timerRef.current = window.setTimeout(advance, 50);
+  }, [running, visible]);
+
+  const label = depth === 0 ? "Open the system" : depth === 1 ? "Show the architecture" : "Collapse";
+
   return (
-    <Movement id="lab" index="§ 05" title="AI Agent Lab" aside="it can decide">
-      <div className="lab">
-        <div className="lab-lede">
-          <p className="lab-sub" data-reveal>
+    <Movement id="agent" index="§ 06" title="It Decides" aside="watch it work">
+      <div className={`ag ag-depth-${depth}`}>
+        <div className="ag-head" data-reveal>
+          <p className="ag-claim">
             Software that doesn&rsquo;t only respond.
-            <br />
-            <span className="lab-sub-accent">Software that can reason, decide and act.</span>
+            <span className="ag-claim-b"> Software that can act.</span>
           </p>
-          <p className="t-body lab-stance" data-reveal>
-            {SITE.agenticStance}
-          </p>
+          <button type="button" className="t-label ag-expand" onClick={expand} aria-expanded={depth > 0}>
+            <span className="ag-expand-glyph" aria-hidden="true">
+              {depth === 2 ? "−" : "+"}
+            </span>
+            {label}
+          </button>
         </div>
 
-        {/* ── The machine ─────────────────────────────────────────────── */}
-        <div className="lab-machine glass glass-plate corners" data-reveal>
-          <div className="lab-machine-head">
-            <div>
-              <span className="t-label">Fig. 05 — Agent topology</span>
-              <p className="t-meta lab-machine-note">
-                Push a module. The machine stays wired.
-              </p>
-            </div>
+        <div className="ag-machine glass glass-plate corners" data-reveal>
+          <div className="ag-machine-head">
+            <span className="t-label">
+              Fig. 06 — {depth === 0 ? "Loop" : depth === 1 ? "Pipeline" : "Architecture"}
+            </span>
             <button
               type="button"
-              className="t-label lab-run"
+              className="t-label ag-run"
               onClick={runTrace}
               disabled={running}
-              aria-live="polite"
             >
-              <span className="lab-run-dot" aria-hidden="true" />
+              <span className="ag-run-dot" aria-hidden="true" />
               {running ? "Tracing…" : "Run a trace"}
             </button>
           </div>
 
-          <div ref={rigRef} className="lab-rig">
-            <svg
-              ref={svgRef}
-              className="lab-threads"
-              aria-hidden="true"
-              preserveAspectRatio="none"
-            >
-              {AGENT_STAGES.slice(0, -1).map((s, i) => (
+          <div ref={rigRef} className="ag-rig">
+            <svg ref={svgRef} className="ag-threads" aria-hidden="true" preserveAspectRatio="none">
+              {visible.slice(0, -1).map((s, i) => (
                 <path
                   key={s.id}
                   ref={(n) => {
-                    pathsRef.current[i] = n;
+                    if (n) pathRefs.current[i] = n;
                   }}
-                  className="lab-thread"
+                  className="ag-thread"
                   fill="none"
                 />
               ))}
             </svg>
 
-            <ol className="lab-modules">
-              {AGENT_STAGES.map((s, i) => (
-                <li key={s.id} className="lab-module-slot">
+            <ol className="ag-modules">
+              {visible.map((s, i) => (
+                <li key={s.id} className={`ag-slot${s.depth === 1 ? " ag-slot-added" : ""}`}>
                   <div
                     ref={(n) => {
-                      moduleRefs.current[i] = n;
+                      if (n) modRefs.current.set(s.id, n);
+                      else modRefs.current.delete(s.id);
                     }}
                     data-phys
-                    className={`lab-module glass${live === i ? " lab-module-live" : ""}`}
+                    className={`ag-module glass${live === i ? " ag-module-live" : ""}`}
                   >
-                    <span className="lab-module-index" aria-hidden="true">
+                    <span className="ag-module-i" aria-hidden="true">
                       {String(i + 1).padStart(2, "0")}
                     </span>
-                    <h3 className="lab-module-name">{s.name}</h3>
-                    <p className="lab-module-note">{s.note}</p>
-                    <span className="lab-module-port" aria-hidden="true" />
+                    <h3 className="ag-module-name">{s.name}</h3>
+                    {depth >= 1 ? <p className="ag-module-note">{s.note}</p> : null}
+                    <span className="ag-port" aria-hidden="true" />
                   </div>
                 </li>
               ))}
             </ol>
           </div>
 
-          <div className="lab-machine-foot">
-            <Flourish className="lab-flourish" />
-            <span className="t-hand lab-hand">
-              a distributed system
-              <br />
-              with a probabilistic scheduler
+          {depth === 2 ? (
+            <dl className="ag-arch">
+              {AGENT_ARCHITECTURE.map((a) => (
+                <div key={a.k} className="ag-arch-row">
+                  <dt className="t-label">{a.k}</dt>
+                  <dd>{a.v}</dd>
+                </div>
+              ))}
+            </dl>
+          ) : null}
+
+          <div className="ag-foot">
+            <Flourish className="ag-flourish" />
+            <span className="t-hand ag-hand" aria-hidden="true">
+              {depth === 0
+                ? "three moves, then it stops"
+                : depth === 1
+                  ? "every edge is typed"
+                  : "a scheduler that guesses"}
             </span>
-            <CoordinateRose className="lab-rose" />
           </div>
         </div>
 
-        {/* ── Capabilities ────────────────────────────────────────────── */}
-        <div className="lab-caps" data-reveal>
-          <span className="t-label">Capabilities under orchestration</span>
-          <ul className="lab-caps-list">
-            {AGENT_CAPABILITIES.map((c) => (
-              <li key={c} className="lab-cap glass glass-chip">
-                {c}
-              </li>
-            ))}
-          </ul>
-        </div>
+        <Marginalia after={5} prefix="from earlier" pick="first" className="ag-margin" />
       </div>
     </Movement>
   );

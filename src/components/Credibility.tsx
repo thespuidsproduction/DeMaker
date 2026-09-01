@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { NUMERALS, CREDIBILITY } from "@/content/site";
+import { NUMERALS } from "@/content/site";
 import { useGsapSetup, gsap, prefersReducedMotion } from "@/lib/motion";
 import { Movement } from "./Movement";
 import { SignalTrace } from "./Ornament";
@@ -40,7 +40,7 @@ export function Credibility() {
   }, []);
 
   return (
-    <Movement id="credibility" index="§ 04" title="Measured" aside="no invented numbers">
+    <Movement id="measured" index="§ 05" title="Measured" aside="no invented numbers">
       <div ref={ref} className="numerals">
         {NUMERALS.map((n) => (
           <div key={n.label} className="numeral">
@@ -58,17 +58,6 @@ export function Credibility() {
       </div>
 
       <SignalTrace className="cred-trace" data-reveal />
-
-      <ul className="cred-list">
-        {CREDIBILITY.map((c, i) => (
-          <li key={c} className="cred-item" data-reveal>
-            <span className="cred-item-n" aria-hidden="true">
-              {String(i + 1).padStart(2, "0")}
-            </span>
-            {c}
-          </li>
-        ))}
-      </ul>
     </Movement>
   );
 }

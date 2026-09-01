@@ -9,8 +9,10 @@
     Disciplines:                 Full-Stack Developer
                                  Frontend Engineer
                                  AI / Agentic Systems Developer
-    Location:                    Weston-super-Mare, United Kingdom
-    Contact:                     princethree [at] tuta.io
+    Location:                    United Kingdom
+    Contact:                     https://princey.dev/#contact
+                                 (no address is published — the channel
+                                  resolves it server-side)
     Site:                        https://princey.dev
 
 /* THANKS */
@@ -33,7 +35,9 @@
                      System monospace — laboratory metadata
     Imagery:         No stock. Every diagram and ornament is hand-authored SVG.
     Analytics:       None. No cookies, no trackers, no third-party tags.
-    Storage:         One localStorage key for your colour-scheme preference.
+    Storage:         One localStorage key for your colour-scheme preference,
+                     and a sessionStorage note of what you uncovered while
+                     exploring. Neither ever leaves your browser.
 
 /* PRINCIPLES */
 
