@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { READOUT } from "@/content/site";
 import { useTraces } from "@/lib/traces";
-import { prefersReducedMotion } from "@/lib/motion";
+import { prefersReducedMotion, publishScrollVelocity } from "@/lib/motion";
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
@@ -22,6 +22,11 @@ import { prefersReducedMotion } from "@/lib/motion";
  */
 export function Ambient() {
   const moteRef = useRef<HTMLDivElement>(null);
+
+  /* One scroll loop for the whole page, published as a CSS variable. Glass
+     stretches, motes lag and plates lean off this single value rather than
+     each running its own listener. */
+  useEffect(() => publishScrollVelocity(), []);
 
   /* The mote drifts on a Lissajous path with a ~90 second period, so it never
      repeats visibly within the time anyone watches it. */

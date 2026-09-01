@@ -69,6 +69,9 @@ src/
     Profile.tsx             Editorial page, handwritten signature
     Channel.tsx             The contact console
     Ambient.tsx             The pulse: mote, trace line, header readout
+    Lens.tsx                A piece of glass that follows the pointer
+    Intro.tsx               The curtain, once per session, always skippable
+    Ticker.tsx              The drifting strip, pushed by scroll velocity
     Footer.tsx Nav.tsx ThemeToggle.tsx Movement.tsx
     Ornament.tsx            Hand-authored engraved SVG (no stock, no icon font)
     Optical.tsx             SVG filters: refraction, dispersion, hatch
@@ -155,25 +158,63 @@ not have.
 
 ### Ambient life
 
-Four signs the environment is running, none of which asks for attention: a mote
-of glass drifting on a ~90 second Lissajous path, a line tracing an invisible
+Signs the environment is running, none of which asks for attention: a mote of
+glass drifting on a ~90 second Lissajous path, a line tracing an invisible
 system once every 34 seconds, a status readout that changes its mind on an
-irregular cadence, and light tracking the pointer across every glass plate. All
-of it stops under `prefers-reduced-motion`.
+irregular cadence, glass whose specular layer swells on long unequal periods so
+no two panels breathe together, and light tracking the pointer across every
+plate. All of it stops under `prefers-reduced-motion`.
 
 The readout lives in the header, not floating over the page — a status line
 that covers the paragraph you are reading is not ambient, it is in the way.
+
+### The lens
+
+A piece of the glass system follows the pointer, one beat behind, and actually
+refracts what is under it. The real cursor never moves or hides. It opens and
+draws a ring over a control, squares off into a grab mark over a physics body,
+and collapses on press. Pointer-fine devices only — there is nothing to lag
+behind on a touchscreen — and never under reduced motion.
+
+### The curtain
+
+Two ivory plates part to reveal the page, once per session. It is rendered in
+the server HTML rather than mounted after hydration, so the page never flashes
+before being covered up. Any input at all — pointer, wheel, touch, Esc, Space,
+Enter — jumps it straight to the parting: a full run is ~2.8s, a skipped one
+~0.9s. A CSS failsafe uncovers the page after six seconds if the script never
+runs at all, and `<noscript>` removes it entirely.
+
+### The strip
+
+A measuring tape between movements, drifting on a 46-second loop. Scroll
+velocity leans on it through `timeScale`, so the page and the strip share one
+physical world. Once the visitor has uncovered things, their finds take their
+place in the strip alongside the fixed claims, in copper.
 
 ### Motion as body language
 
 Different things move differently, on purpose:
 
-- **Typography glides** — masked, `expo.out`, settling rather than snapping.
+- **Typography glides** — section titles are split per character and scored on
+  a 28ms stagger, then stay live: each character leans away from the cursor in
+  proportion to its distance, so a headline ripples rather than sliding.
 - **Glass floats** — long tethers, high damping, drifting within a leash.
+- **Glass leans** — project cards tilt on two axes toward the pointer, with
+  real perspective, so a plate reads as a surface in space.
 - **Diagrams snap** — blueprint callouts land in 0.28s; drawings do not glide.
 - **Physics objects carry inertia** — mass scales with area, release overshoots.
+- **Numerals count** — 09+, 60 and 100% run up on arrival. `AA` does not, because
+  a letter cannot count and faking it would be noise.
 - **Buttons respond immediately** — 160ms, and they depress under the finger.
 - **Images move slowly** — project artifacts drift on a 1.4 scrub.
+
+Two rules keep this from fighting itself. A CSS animation outranks inline
+styles, so **nothing animates `transform` in CSS on an element the physics
+solver or the tilt handler writes to** — glass breathes on its specular layer
+instead. And every reveal clears its own `filter` and `will-change` on
+completion: `blur(0px)` is not a no-op, it pins the element to its own
+compositing layer for the life of the page.
 
 ### Motion
 

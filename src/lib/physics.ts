@@ -45,6 +45,13 @@ export type FieldOptions = {
   draggable?: boolean;
   /** Maximum displacement from home, in pixels. Keeps the grid honest. */
   leash?: number;
+  /**
+   * Collider size as a fraction of the element's box. Below 1 the objects get
+   * clearance before they touch: they still collide, but gently, and only
+   * after a real push — rather than jamming against their neighbours and
+   * cancelling the cursor's influence before it can be felt.
+   */
+  colliderScale?: number;
 };
 
 export type FieldHandle = {
@@ -87,10 +94,12 @@ export function createField(
     damping = 3.6,
     draggable = true,
     leash = 130,
+    colliderScale = 0.86,
   } = opts;
 
   let disposed = false;
   let raf = 0;
+  let settleTimer = 0;
   let world: RAPIER_NS.World | null = null;
   let nodes: Node[] = [];
   let R: Rapier | null = null;
@@ -152,7 +161,10 @@ export function createField(
       // move than a small chip.
       const density = 1.1;
       const collider = world!.createCollider(
-        R!.ColliderDesc.cuboid(m.hw / 2 / SCALE, m.hh / 2 / SCALE)
+        R!.ColliderDesc.cuboid(
+          (m.hw * colliderScale) / 2 / SCALE,
+          (m.hh * colliderScale) / 2 / SCALE,
+        )
           .setDensity(density)
           .setRestitution(0.22)
           .setFriction(0.6),
@@ -164,6 +176,12 @@ export function createField(
     });
 
     tick();
+
+    // Anchors are captured as soon as the solver boots, which can be while an
+    // entrance animation is still moving the element. Re-measure once the page
+    // has settled so every body is tethered to where its element actually
+    // came to rest, not to where it was passing through.
+    settleTimer = window.setTimeout(remeasure, 1400);
   };
 
   const tick = () => {
@@ -330,6 +348,7 @@ export function createField(
     destroy() {
       disposed = true;
       cancelAnimationFrame(raf);
+      window.clearTimeout(settleTimer);
       ro.disconnect();
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerleave", onOut);

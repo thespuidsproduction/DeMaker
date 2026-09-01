@@ -38,11 +38,12 @@ export function Toolbox() {
     const id = window.setTimeout(() => {
       fieldRef.current = createField(rig, objs, {
         gravity: 0,
-        tether: 30,
-        damping: 4.6,
-        cursorRadius: 170,
-        cursorForce: 3.4,
-        leash: 22,
+        tether: 20,
+        damping: 4.2,
+        cursorRadius: 260,
+        cursorForce: 8,
+        leash: 30,
+        colliderScale: 0.72,
       });
     }, 260);
 

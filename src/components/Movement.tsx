@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useRef, type ReactNode } from "react";
-import { useGsapSetup, revealSequence } from "@/lib/motion";
+import {
+  useGsapSetup,
+  revealSequence,
+  scoreHeadline,
+  proximityDrift,
+} from "@/lib/motion";
 
 type Props = {
   id?: string;
@@ -20,6 +25,7 @@ type Props = {
  */
 export function Movement({ id, index, title, aside, children, className }: Props) {
   const ref = useRef<HTMLElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
   useGsapSetup();
 
   useEffect(() => {
@@ -27,6 +33,16 @@ export function Movement({ id, index, title, aside, children, className }: Props
     if (!el) return;
     el.classList.add("reveal-ready");
     revealSequence(el);
+  }, []);
+
+  // The title is scored character by character, then stays live: it leans away
+  // from the cursor as the visitor approaches it.
+  useEffect(() => {
+    const t = titleRef.current;
+    const el = ref.current;
+    if (!t || !el) return;
+    scoreHeadline(t, el);
+    return proximityDrift(t);
   }, []);
 
   const headingId = id ? `${id}-heading` : undefined;
@@ -43,7 +59,7 @@ export function Movement({ id, index, title, aside, children, className }: Props
           <span className="movement-index" aria-hidden="true">
             {index}
           </span>
-          <h2 id={headingId} className="movement-title">
+          <h2 ref={titleRef} id={headingId} className="movement-title">
             {title}
           </h2>
           {aside ? (

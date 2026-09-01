@@ -51,11 +51,12 @@ export function AgentLab() {
       if (!mods.length) return;
       fieldRef.current = createField(rig, mods, {
         gravity: 0,
-        tether: 44,
-        damping: 4.6,
-        cursorRadius: 145,
-        cursorForce: 2.4,
-        leash: 26,
+        tether: 26,
+        damping: 4.2,
+        cursorRadius: 200,
+        cursorForce: 5.5,
+        leash: 30,
+        colliderScale: 0.74,
       });
     }, 340);
 

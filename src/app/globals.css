@@ -495,6 +495,13 @@ svg {
   will-change: transform, opacity;
 }
 
+/* The hint is dropped the moment the element has arrived — a page-long
+   `will-change` on every revealed node is a permanent cost for a one-second
+   animation. */
+[data-reveal].is-revealed {
+  will-change: auto;
+}
+
 .no-js [data-reveal],
 .reveal-ready [data-reveal] {
   opacity: 1;
@@ -2929,4 +2936,414 @@ svg {
 
 .pf-principles {
   margin-top: clamp(2rem, 4vw, 3.5rem);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   THE LENS
+   A piece of the glass system that follows the pointer, one beat behind.
+   The real cursor stays exactly where it is.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.lens {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 90;
+  width: 48px;
+  height: 48px;
+  pointer-events: none;
+  will-change: transform;
+  mix-blend-mode: normal;
+}
+
+.lens-glass {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  backdrop-filter: blur(1.5px) saturate(1.5) brightness(1.05);
+  -webkit-backdrop-filter: blur(1.5px) saturate(1.5) brightness(1.05);
+  border: 1px solid color-mix(in srgb, var(--fg) 12%, transparent);
+  box-shadow:
+    inset 0 1px 0 var(--glass-edge),
+    inset 1px 0 0 var(--disp-cool),
+    inset -1px 0 0 var(--disp-warm),
+    0 2px 12px -6px rgba(0, 0, 0, 0.3);
+  transition: opacity 300ms var(--ease-door);
+  opacity: 0.85;
+}
+
+.lens[data-mode="act"] .lens-glass {
+  backdrop-filter: blur(0.5px) saturate(1.9) brightness(1.08);
+  -webkit-backdrop-filter: blur(0.5px) saturate(1.9) brightness(1.08);
+  border-color: color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+.lens[data-mode="grab"] .lens-glass {
+  border-radius: 4px;
+}
+
+.lens-ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.lens-core {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 3px;
+  height: 3px;
+  margin: -1.5px 0 0 -1.5px;
+  border-radius: 50%;
+  background: var(--accent);
+  transition: opacity 300ms var(--ease-door), transform 400ms var(--ease-door);
+}
+
+.lens[data-mode="act"] .lens-core {
+  opacity: 0;
+}
+
+.lens[data-mode="grab"] .lens-core {
+  transform: scale(2.4);
+  opacity: 0.7;
+}
+
+/* No lens on a touchscreen: there is no pointer to lag behind. */
+@media (pointer: coarse), (prefers-reduced-motion: reduce) {
+  .lens {
+    display: none;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   THE CURTAIN
+   Two plates part to reveal the page. Once a session.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.intro {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  pointer-events: none;
+  overflow: hidden;
+  /* Failsafe. The curtain is opaque and is normally removed by the script
+     that animates it; if that script never runs, this uncovers the page
+     anyway. It touches only visibility and opacity, never transform, so it
+     cannot fight the timeline that drives the plates. */
+  animation: intro-failsafe 6s linear forwards;
+}
+
+@keyframes intro-failsafe {
+  0%,
+  96% {
+    visibility: visible;
+    opacity: 1;
+  }
+  100% {
+    visibility: hidden;
+    opacity: 0;
+  }
+}
+
+.intro-plate {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 50.5%;
+  background: var(--bg);
+  will-change: transform;
+}
+
+/* The plates overlap by a hair so no seam shows before they part. */
+.intro-top {
+  top: 0;
+}
+
+.intro-bottom {
+  bottom: 0;
+}
+
+.intro-centre {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.1rem;
+  padding-inline: var(--gutter);
+  text-align: center;
+}
+
+.intro-mark {
+  display: flex;
+  overflow: hidden;
+  font-size: clamp(1.5rem, 6vw, 4.5rem);
+  line-height: 1.05;
+  color: var(--fg);
+  white-space: pre;
+}
+
+.intro-mark .ch {
+  display: inline-block;
+  will-change: transform;
+}
+
+.intro-rule {
+  display: block;
+  width: min(46vw, 420px);
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--accent), transparent);
+  transform-origin: center;
+}
+
+.intro-words {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.35rem 1.1rem;
+}
+
+.intro-domain {
+  margin-top: 0.35rem;
+  color: var(--accent-ink);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   THE STRIP
+   A measuring tape between movements. Scroll velocity leans on it.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.ticker {
+  position: relative;
+  z-index: 2;
+  overflow: hidden;
+  border-block: 1px solid var(--rule);
+  padding-block: 0.7rem;
+  background: color-mix(in srgb, var(--bg-veil) 22%, transparent);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 8%,
+    #000 92%,
+    transparent
+  );
+}
+
+.ticker-rail {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+}
+
+.ticker-run {
+  display: flex;
+  flex: none;
+}
+
+.ticker-item {
+  display: inline-flex;
+  align-items: center;
+  gap: clamp(1.25rem, 3vw, 2.75rem);
+  padding-right: clamp(1.25rem, 3vw, 2.75rem);
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+  white-space: nowrap;
+}
+
+/* Items that came from the visitor's own discoveries carry the accent. */
+.ticker-item-found {
+  color: var(--accent-ink);
+}
+
+.ticker-tick {
+  width: 3px;
+  height: 3px;
+  background: var(--accent);
+  transform: rotate(45deg);
+  flex: none;
+  opacity: 0.55;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LIFE
+   Breathing glass, headline scoring, and the page leaning into its own scroll.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --scroll-v: 0;
+  --scroll-vabs: 0;
+}
+
+/* Headline characters are scored individually. No clipping box: an
+   `overflow: hidden` wrapper around composited children paints its own layer,
+   which shows through as a pale rectangle against the fixed grain behind it. */
+.movement-title {
+  padding-bottom: 0.06em;
+}
+
+.movement-title .word {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.movement-title .ch {
+  display: inline-block;
+}
+
+/* Glass breathes — but never on `transform`. A CSS animation outranks inline
+   styles, so animating transform here would silently override both the physics
+   solver and the tilt handler, which write inline transforms to these very
+   elements. The light swells instead: the specular layer brightens and the
+   panel's shadow deepens, on long unequal periods so no two panels sync. */
+.glass-plate::after {
+  animation: breathe 13s var(--ease-mercury) infinite;
+}
+
+.tb-cell:nth-child(even) .tb-object::after,
+.wk-item:nth-child(even) .wk-card::after {
+  animation-duration: 17s;
+  animation-delay: -4s;
+}
+
+.ag-machine::after {
+  animation-duration: 19s;
+  animation-delay: -7s;
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    opacity: 0.55;
+    filter: none;
+  }
+  50% {
+    opacity: 0.78;
+    filter: brightness(1.05);
+  }
+}
+
+/* The floating fragments and motes lag behind a fast scroll, then catch up. */
+.hero-chip,
+.ambient-mote {
+  transform-origin: center;
+}
+
+.hero-plane {
+  transition: transform 900ms var(--ease-door);
+  transform: rotate(var(--plane-tilt, 0deg))
+    translateY(calc(var(--scroll-v) * -14px))
+    scaleY(calc(1 + var(--scroll-vabs) * 0.02));
+}
+
+.hero-plane-a {
+  --plane-tilt: -2.2deg;
+}
+
+.hero-plane-b {
+  --plane-tilt: 1.4deg;
+}
+
+.hero-plane-c {
+  --plane-tilt: -5deg;
+}
+
+/* Cards get a real surface normal so the tilt reads as depth, not shear. */
+.wk-item,
+.tb-cell {
+  perspective: 1400px;
+}
+
+.wk-card {
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+/* Buttons answer immediately and overshoot a hair on release. */
+.wk-hood,
+.tb-trigger,
+.tb-more,
+.ag-expand,
+.ag-run,
+.room-toggle {
+  transition: color 260ms var(--ease-door), transform 180ms var(--ease-settle),
+    gap 320ms var(--ease-door), border-color 320ms var(--ease-door);
+}
+
+.wk-hood:active,
+.tb-trigger:active,
+.ag-expand:active,
+.ag-run:active:not(:disabled) {
+  transform: scale(0.985);
+}
+
+/* Nav links draw a rule under themselves on approach. */
+.nav-list a {
+  position: relative;
+}
+
+.nav-list a::after {
+  content: "";
+  position: absolute;
+  left: 0.65rem;
+  right: 0.65rem;
+  bottom: 0.25rem;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right center;
+  transition: transform 420ms var(--ease-door);
+}
+
+.nav-list a:hover::after,
+.nav-list a[aria-current="true"]::after {
+  transform: scaleX(1);
+  transform-origin: left center;
+}
+
+/* The section index ticks over as its movement arrives. */
+.movement-index {
+  transition: color 500ms var(--ease-door), letter-spacing 700ms var(--ease-door);
+}
+
+.movement:hover .movement-index {
+  letter-spacing: 0.34em;
+}
+
+/* Technology chips lift out of the plate one at a time on approach. */
+.tb-tech,
+.wk-stack-item,
+.lab-cap {
+  transition: transform 420ms var(--ease-settle), border-color 320ms var(--ease-door),
+    color 320ms var(--ease-door), background 320ms var(--ease-door);
+}
+
+.tb-tech:hover,
+.wk-stack-item:hover {
+  transform: translateY(-3px) rotate(-0.8deg);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glass-plate::after,
+  .ticker-rail {
+    animation: none !important;
+  }
+  .hero-plane {
+    transform: rotate(var(--plane-tilt, 0deg));
+  }
+  .movement-title .ch {
+    transform: none !important;
+    filter: none !important;
+  }
 }

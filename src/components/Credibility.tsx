@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { NUMERALS } from "@/content/site";
-import { useGsapSetup, gsap, prefersReducedMotion } from "@/lib/motion";
+import { useGsapSetup, gsap, prefersReducedMotion, countUp } from "@/lib/motion";
 import { Movement } from "./Movement";
 import { SignalTrace } from "./Ornament";
 
@@ -14,6 +14,16 @@ import { SignalTrace } from "./Ornament";
 export function Credibility() {
   const ref = useRef<HTMLDivElement>(null);
   useGsapSetup();
+
+  // Numerals count up as they arrive. "AA" is left alone — a letter cannot
+  // count, and faking it would be noise.
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.querySelectorAll<HTMLElement>("[data-numeral]").forEach((n, i) => {
+      countUp(n, NUMERALS[i].value, el);
+    });
+  }, []);
 
   useEffect(() => {
     const el = ref.current;

@@ -167,7 +167,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body>{children}</body>
+      <body>
+        <noscript>
+          <style>{`.intro{display:none!important}[data-reveal]{opacity:1!important}`}</style>
+        </noscript>
+        {children}
+      </body>
     </html>
   );
 }

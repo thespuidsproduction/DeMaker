@@ -1,5 +1,8 @@
 import { TraceProvider } from "@/lib/traces";
 import { Ambient } from "@/components/Ambient";
+import { Intro } from "@/components/Intro";
+import { Lens } from "@/components/Lens";
+import { Ticker } from "@/components/Ticker";
 import { Nav } from "@/components/Nav";
 import { Hero } from "@/components/Hero";
 import { Manifesto } from "@/components/Manifesto";
@@ -38,14 +41,18 @@ export default function Page() {
       <div className="grain" aria-hidden="true" />
       <OpticalDefs />
       <Ambient />
+      <Lens />
+      <Intro />
 
       <Nav />
 
       <main id="main">
         <Hero />
+        <Ticker />
         <Manifesto />
         <Work />
         <Toolbox />
+        <Ticker reverse />
         <Credibility />
         <AgentLab />
         <Profile />

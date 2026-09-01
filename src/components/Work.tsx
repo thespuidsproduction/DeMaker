@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PROJECTS, type Project } from "@/content/site";
-import { trackSpecular, useGsapSetup, gsap, prefersReducedMotion } from "@/lib/motion";
+import { trackSpecular, useGsapSetup, gsap, prefersReducedMotion, tilt } from "@/lib/motion";
 import { useTraces } from "@/lib/traces";
 import { Movement } from "./Movement";
 import { TopologyPlate, SchemaPlate, CircuitTrace, Flourish } from "./Ornament";
@@ -28,9 +28,11 @@ export function Work() {
   useGsapSetup();
 
   useEffect(() => {
-    const cleanups = cardRefs.current
-      .filter((c): c is HTMLElement => Boolean(c))
-      .map(trackSpecular);
+    const cards = cardRefs.current.filter((c): c is HTMLElement => Boolean(c));
+    const cleanups = cards.flatMap((c) => {
+      const plate = c.querySelector<HTMLElement>(".wk-card");
+      return [trackSpecular(c), plate ? tilt(plate, 3.5) : () => {}];
+    });
     return () => cleanups.forEach((fn) => fn());
   }, []);
 
