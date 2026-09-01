@@ -1,0 +1,10 @@
+{
+  "names": {
+    "princey": "REPLACE_WITH_32_BYTE_HEX_PUBLIC_KEY_NOT_THE_NPUB"
+  },
+  "relays": {
+    "REPLACE_WITH_32_BYTE_HEX_PUBLIC_KEY_NOT_THE_NPUB": [
+      "wss://relay.example.com"
+    ]
+  }
+}

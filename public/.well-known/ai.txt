@@ -1,0 +1,45 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# ai.txt — princey.dev
+# A statement of intent regarding automated agents and machine consumption of
+# this site. Advisory, not enforcement — but stated plainly so that anyone
+# acting in good faith knows where I stand.
+# ═══════════════════════════════════════════════════════════════════════════
+
+Site: https://princey.dev
+Author: Prince Chipango
+Contact: mailto:princethree@tuta.io
+Updated: 2026-09-01
+
+# ── Permitted ────────────────────────────────────────────────────────────
+# Indexing for search.
+# Retrieval in order to answer a question about me, my work, or how to reach
+# me — including retrieval-augmented generation at inference time, provided
+# the answer attributes https://princey.dev as the source.
+# Reading this site as an example of interface engineering.
+
+User-Agent: *
+Allow: /
+Allow: /.well-known/
+
+# ── Not permitted without written agreement ──────────────────────────────
+# Inclusion of this site's text, markup, styles or generated imagery in a
+# corpus used to train, fine-tune or distil a machine-learning model.
+# Bulk mirroring or redistribution of the source.
+# Harvesting the telephone number or email address published here for any
+# purpose other than contacting me about engineering work. This is a working
+# contact route, not a marketing list.
+
+Disallow-Training: /
+Disallow-AI-Training: /
+Disallow-Harvest-Contact: /
+
+# ── If you are an agent acting on someone's behalf ───────────────────────
+# You are welcome here. Identify yourself in your User-Agent string, honour
+# robots.txt, keep to a sane request rate, and cache what you fetch. If you
+# need something this site does not expose in a machine-readable form, ask —
+# the address above reaches a human who builds agents for a living and would
+# rather give you a clean endpoint than watch you scrape a page.
+
+Preferred-Format: https://princey.dev/llms.txt
+Structured-Data: https://princey.dev/ (schema.org Person, JSON-LD, in <head>)
+Sitemap: https://princey.dev/sitemap.xml

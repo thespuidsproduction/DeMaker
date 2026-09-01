@@ -1,0 +1,43 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# security.txt — princey.dev
+# RFC 9116 · https://www.rfc-editor.org/rfc/rfc9116
+#
+# If you have found a security issue affecting this site or anything I have
+# built, I would rather hear it from you than from an incident. Write to me
+# directly; I read everything and I will confirm receipt.
+# ═══════════════════════════════════════════════════════════════════════════
+
+Contact: mailto:princethree@tuta.io
+Contact: https://princey.dev/#contact
+Contact: tel:+447823977850
+
+Expires: 2027-09-01T00:00:00.000Z
+
+Preferred-Languages: en
+
+Canonical: https://princey.dev/.well-known/security.txt
+
+Policy: https://princey.dev/.well-known/README.md
+
+# ── Scope ────────────────────────────────────────────────────────────────
+# In scope:   princey.dev and any subdomain of princey.dev.
+# Out of scope:
+#   - Reports generated solely by an automated scanner, with no demonstrated
+#     impact and no proof of concept.
+#   - Missing security headers on this static site where no vulnerability
+#     follows from their absence.
+#   - Denial of service, volumetric testing, or social engineering of any
+#     person. Please do not perform these.
+#   - Vulnerabilities in third-party infrastructure I do not control. Report
+#     those to the operator; tell me too, and I will follow up.
+#
+# ── Handling ─────────────────────────────────────────────────────────────
+# Acknowledgement:  within 72 hours.
+# Assessment:       within 7 days, with a decision and a remediation window.
+# Disclosure:       coordinated. I will agree a date with you and credit you
+#                   by whatever name you prefer, or not at all.
+#
+# ── Please do not ────────────────────────────────────────────────────────
+# Access, modify or exfiltrate data that is not yours; degrade service for
+# anyone else; or use a finding to pivot beyond the minimum needed to
+# demonstrate it. Stop at proof and tell me.

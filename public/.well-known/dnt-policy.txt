@@ -1,0 +1,39 @@
+Do Not Track Compliance Policy — princey.dev
+Version 1.0 · Effective 2026-09-01
+
+princey.dev honours the Do Not Track header. It does so trivially, because
+there is nothing here to opt out of.
+
+1. NO TRACKING OF ANY KIND
+   This site sets no analytics, no advertising identifiers, no fingerprinting
+   scripts, and no third-party tags. It does not build a profile of you, and
+   it has nothing to share with anyone because it collects nothing to share.
+
+2. COOKIES
+   This site sets no cookies.
+
+3. LOCAL STORAGE
+   One key, `atelier-theme`, records your colour-scheme preference. It never
+   leaves your browser, is never transmitted anywhere, and is readable only
+   by this origin. Clearing site data removes it and nothing else is lost.
+
+4. LOGS
+   The hosting provider may retain standard request logs (IP address, user
+   agent, path, timestamp) for operational and abuse-prevention purposes. I
+   do not query these logs to identify individuals, do not join them to any
+   other dataset, and do not retain them beyond the provider's own default
+   window.
+
+5. THIRD PARTIES
+   Typefaces are served self-hosted from this origin. No request made while
+   loading this site goes to an analytics, advertising or social platform.
+
+6. WHEN A DNT SIGNAL IS RECEIVED
+   No change in behaviour is required, because the behaviour it asks for is
+   already the only behaviour this site has.
+
+7. CHANGES
+   Any change to this policy will be published here with a new version
+   number and effective date.
+
+Contact: princethree@tuta.io

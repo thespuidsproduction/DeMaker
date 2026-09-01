@@ -1,0 +1,24 @@
+{
+  "subject": "https://princey.dev",
+  "aliases": ["acct:princey@princey.dev"],
+  "properties": {
+    "http://schema.org/name": "Prince Chipango"
+  },
+  "links": [
+    {
+      "rel": "lrdd",
+      "type": "application/jrd+json",
+      "template": "https://princey.dev/.well-known/webfinger?resource={uri}"
+    },
+    {
+      "rel": "describedby",
+      "type": "text/html",
+      "href": "https://princey.dev/"
+    },
+    {
+      "rel": "http://webfinger.net/rel/profile-page",
+      "type": "text/html",
+      "href": "https://princey.dev/"
+    }
+  ]
+}

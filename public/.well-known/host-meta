@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<XRD xmlns="http://docs.oasis-open.org/ns/xri/xrd-1.0">
+  <Subject>https://princey.dev</Subject>
+  <Alias>acct:princey@princey.dev</Alias>
+  <Property type="http://schema.org/name">Prince Chipango</Property>
+  <Link rel="lrdd" template="https://princey.dev/.well-known/webfinger?resource={uri}" type="application/jrd+json"/>
+  <Link rel="describedby" href="https://princey.dev/" type="text/html"/>
+  <Link rel="http://webfinger.net/rel/profile-page" href="https://princey.dev/" type="text/html"/>
+</XRD>

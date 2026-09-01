@@ -1,0 +1,50 @@
+                    ╔══════════════════════════════════════╗
+                    ║   /humans.txt — princey.dev          ║
+                    ║   The people behind this artifact.   ║
+                    ╚══════════════════════════════════════╝
+
+/* TEAM */
+
+    Engineer, designer, author:  Prince Chipango
+    Disciplines:                 Full-Stack Developer
+                                 Frontend Engineer
+                                 AI / Agentic Systems Developer
+    Location:                    Weston-super-Mare, United Kingdom
+    Contact:                     princethree [at] tuta.io
+    Site:                        https://princey.dev
+
+/* THANKS */
+
+    To the Swiss typographers, for the grid.
+    To the Victorian engravers, for the linework in the margins.
+    To everyone who has ever filed a reproducible bug report.
+
+/* SITE */
+
+    Language:        English (en-GB)
+    Doctype:         HTML5
+    Standards:       WCAG 2.2 AA target, RFC 9116, RFC 7033, RFC 6415
+    Components:      React 19, Next.js 16 (App Router), TypeScript
+    Styling:         Tailwind CSS v4, hand-authored design tokens
+    Motion:          GSAP + ScrollTrigger, Motion
+    Physics:         Rapier 2D (WASM), driving real DOM nodes
+    Typography:      Nunito — interface
+                     Amatic SC — handwritten annotation layer
+                     System monospace — laboratory metadata
+    Imagery:         No stock. Every diagram and ornament is hand-authored SVG.
+    Analytics:       None. No cookies, no trackers, no third-party tags.
+    Storage:         One localStorage key for your colour-scheme preference.
+
+/* PRINCIPLES */
+
+    The interface is the contract.
+    Constraints belong in the schema.
+    Motion must have mass.
+    Slow networks are the default.
+    AI is a systems discipline.
+    Legibility outlives cleverness.
+
+/* COLOPHON */
+
+    Built from the interface down to the infrastructure.
+    Still experimenting.

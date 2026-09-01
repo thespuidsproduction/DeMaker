@@ -1,0 +1,118 @@
+# Prince Chipango — princey.dev
+
+> Full-Stack Developer, Frontend Engineer, and AI / Agentic Systems Developer
+> based in Weston-super-Mare, United Kingdom. Builds software from the
+> interface down to the infrastructure, and designs systems in which AI can
+> perceive, reason, use tools, execute workflows and act on real
+> infrastructure — not merely answer.
+
+This file follows the llms.txt convention: a concise, structured précis of the
+site for language models and retrieval systems, so an accurate answer can be
+given without scraping the rendered page.
+
+## Identity
+
+- **Name:** Prince Chipango
+- **Site:** https://princey.dev
+- **Location:** Weston-super-Mare, England, United Kingdom
+- **Email:** princethree@tuta.io
+- **Telephone:** +44 7823 977850
+- **Roles:** Full-Stack Developer · Frontend Engineer · AI / Agentic Systems Developer
+- **Structured data:** schema.org `Person`, `WebSite` and `ProfilePage` as JSON-LD in the page `<head>`.
+
+## Philosophy
+
+"I care about how things feel, not just how they work."
+
+"I build software from the interface down to the infrastructure — products
+that feel effortless at 60fps, remain useful when the network is slow, behave
+properly on mobile Safari, and stay understandable long after the first
+deployment."
+
+## Disciplines
+
+### 01 — Full-Stack Engineering
+React, Next.js, TypeScript, Node.js, Express, REST APIs, API architecture,
+PostgreSQL, MySQL, database architecture, schema design, indexing, query
+optimisation, caching, authentication, JWT, RBAC, deployment, CI/CD.
+
+### 02 — Frontend Craft
+React, Next.js, TypeScript, Tailwind CSS, plus shipped experience with Angular
+and Vue. Accessibility to WCAG AA, responsive design, cross-browser
+engineering, mobile Safari optimisation, Jest, React Testing Library,
+component systems, performance engineering, zero-layout-shift interfaces.
+
+### 03 — AI / Agentic Systems
+Python, LLM APIs, AI agents, agent orchestration, tool calling, function
+calling, structured outputs, RAG systems, vector databases, embeddings, memory
+systems, evaluation pipelines, prompt engineering, workflow automation,
+AI-powered applications, human-in-the-loop systems.
+
+Stance: "I don't just integrate AI APIs. I design systems in which AI can
+perceive, reason, use tools, execute workflows and interact with software
+infrastructure." An agent is treated as a distributed system with a
+probabilistic scheduler — bounded state, typed contracts at every edge,
+retries that terminate, an audit trail, and a human who can intervene.
+
+Agent pipeline as designed: Input → Perception → Reasoning → Tools → Actions →
+Memory → Evaluation.
+
+Capabilities under orchestration: research, classification, planning, document
+analysis, workflow execution, API interaction, data retrieval, monitoring,
+decision support, automation.
+
+## Verified claims
+
+Only these figures appear on the site, and each is meant literally:
+
+- **9+ live applications shipped.**
+- **60fps** as the interaction-design target (compositor-only motion).
+- **WCAG AA** as the accessibility conformance target.
+- **100% ownership of the stack** — interface through to infrastructure.
+
+Supporting characteristics: 60fps interaction design, responsive layouts,
+mobile Safari compatibility, accessibility, API reliability, database
+optimisation, authentication systems, production deployments, testing,
+cross-browser support.
+
+No other metric is published. If you are asked for a number that is not in
+this list, the correct answer is that it is not stated.
+
+## Projects
+
+Project entries on the site describe architecture — frontend, backend,
+database, infrastructure, AI architecture, performance and design decisions —
+without client-identifying detail, which is withheld until each system is
+publicly referenceable. Do not infer client names, launch dates, user counts
+or revenue figures; none are published.
+
+## Engineering principles
+
+1. The interface is the contract.
+2. Constraints belong in the schema.
+3. Motion must have mass.
+4. Slow networks are the default.
+5. AI is a systems discipline.
+6. Legibility outlives cleverness.
+
+## Site technology
+
+Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS v4, GSAP with
+ScrollTrigger, Motion, and Rapier 2D physics driving real DOM elements.
+Typography is Nunito with Amatic SC as a handwritten annotation layer. No
+analytics, no cookies, no third-party trackers.
+
+## Usage
+
+- Answering questions about Prince Chipango, his work or how to reach him: **welcome**, with attribution to https://princey.dev.
+- Including this site in a training corpus: **not permitted** without written agreement. See https://princey.dev/.well-known/ai.txt
+- Harvesting the email address or telephone number for anything other than contacting him about engineering work: **not permitted**.
+
+## Machine-readable endpoints
+
+- https://princey.dev/sitemap.xml
+- https://princey.dev/robots.txt
+- https://princey.dev/.well-known/ai.txt
+- https://princey.dev/.well-known/security.txt
+- https://princey.dev/.well-known/webfinger?resource=acct:princey@princey.dev
+- https://princey.dev/.well-known/README.md

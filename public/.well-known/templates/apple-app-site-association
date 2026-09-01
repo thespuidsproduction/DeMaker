@@ -1,0 +1,16 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["REPLACE_TEAM_ID.REPLACE_BUNDLE_ID"],
+        "components": [
+          { "/": "/*", "comment": "Every path opens in the app." },
+          { "/": "/.well-known/*", "exclude": true, "comment": "Never the metadata." }
+        ]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": ["REPLACE_TEAM_ID.REPLACE_BUNDLE_ID"]
+  }
+}
