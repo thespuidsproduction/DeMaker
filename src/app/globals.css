@@ -3347,3 +3347,62 @@ svg {
     filter: none !important;
   }
 }
+
+/* ── The live address on a project ────────────────────────────────────── */
+
+.wk-where {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin: 1.1rem 0 0;
+}
+
+.wk-visit {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  color: var(--fg);
+  padding: 0.42rem 0.7rem;
+  border: 1px solid var(--rule-strong);
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--bg-veil) 45%, transparent);
+  transition: border-color 320ms var(--ease-door), color 320ms var(--ease-door),
+    background 320ms var(--ease-door), transform 420ms var(--ease-settle);
+}
+
+.wk-visit:hover {
+  border-color: var(--accent);
+  color: var(--accent-ink);
+  background: color-mix(in srgb, var(--accent) 9%, transparent);
+  transform: translateY(-2px);
+}
+
+.wk-visit-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--sage);
+  flex: none;
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--sage) 60%, transparent);
+  animation: ambient-breathe 3.2s var(--ease-mercury) infinite;
+}
+
+.wk-visit-arrow {
+  flex: none;
+  transition: transform 420ms var(--ease-door);
+}
+
+.wk-visit:hover .wk-visit-arrow {
+  transform: translate(2px, -2px);
+}
+
+.wk-where-note {
+  font-size: 0.625rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+}

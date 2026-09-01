@@ -170,7 +170,7 @@ export function Hero() {
   }, []);
 
   return (
-    <section ref={rootRef} id="identity" className="hero" aria-label="Prince Chipango — identity">
+    <section ref={rootRef} id="identity" className="hero" aria-label="Prince Chipango, identity">
       {/* The optical field: translucent planes carrying technical fragments. */}
       <div ref={fieldRef} className="hero-field" data-field aria-hidden="true">
         {/* Matter behind the glass. Without something to bend, a translucent
@@ -276,7 +276,7 @@ export function Hero() {
               <CircuitTrace className="hero-plate-trace" />
               <p className="t-meta hero-plate-foot">
                 <span>FIG. 01</span>
-                <span>—</span>
+                <span>/</span>
                 <span>PRINCIPLE OF OPERATION</span>
               </p>
             </div>

@@ -51,8 +51,8 @@ export function Manifesto() {
 
   const clauses = [
     "I build software from the interface",
-    "down to the infrastructure —",
-    "products that feel effortless at 60fps,",
+    "down to the infrastructure.",
+    "Products that feel effortless at 60fps,",
     "remain useful when the network is slow,",
     "behave properly on mobile Safari,",
     "and stay understandable long",

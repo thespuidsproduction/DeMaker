@@ -187,7 +187,7 @@ export function Channel() {
   return (
     <section ref={sectionRef} id="contact" className="movement ch" aria-labelledby="ch-heading">
       <div className="shell">
-        <span className="t-label ch-eyebrow">§ 08 — Contact</span>
+        <span className="t-label ch-eyebrow">§ 08 / Contact</span>
 
         <h2 id="ch-heading" className="ch-statement t-display">
           <span className="sr-only">Let&rsquo;s build something that should not exist yet.</span>
@@ -224,7 +224,7 @@ export function Channel() {
             {phase === "closed" ? (
               <div className="ch-closed">
                 <p className="ch-invite">
-                  No address is published here — not an email, not a number.
+                  No address is published here. Not an email, not a number.
                   Open a channel and it reaches me directly.
                 </p>
                 <button type="button" className="ch-open" onClick={open}>
@@ -322,8 +322,9 @@ export function Channel() {
 
                 {status === "offline" ? (
                   <p className="t-meta ch-offline">
-                    No delivery route is configured on this deployment. Set the
-                    channel environment variables and the console comes up ready.
+                    No delivery route is configured on this deployment yet. One
+                    environment variable turns the channel on. See .env.example
+                    for the options.
                   </p>
                 ) : null}
               </form>

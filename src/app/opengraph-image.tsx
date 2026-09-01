@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 import { SITE } from "@/content/site";
 
-export const alt = `${SITE.name} — Full-Stack Developer, Frontend Engineer, AI / Agentic Systems Developer`;
+export const alt = `${SITE.name}. Full-Stack Developer, Frontend Engineer, AI / Agentic Systems Developer`;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -48,7 +48,7 @@ export default function OpengraphImage() {
               textTransform: "uppercase",
             }}
           >
-            {SITE.domain} — Portfolio № 01
+            {SITE.domain} / Portfolio № 01
           </div>
           <div
             style={{

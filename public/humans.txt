@@ -1,5 +1,5 @@
                     ╔══════════════════════════════════════╗
-                    ║   /humans.txt — princey.dev          ║
+                    ║   /humans.txt / princey.dev          ║
                     ║   The people behind this artifact.   ║
                     ╚══════════════════════════════════════╝
 
@@ -11,7 +11,7 @@
                                  AI / Agentic Systems Developer
     Location:                    United Kingdom
     Contact:                     https://princey.dev/#contact
-                                 (no address is published — the channel
+                                 (no address is published, the channel
                                   resolves it server-side)
     Site:                        https://princey.dev
 
@@ -30,9 +30,9 @@
     Styling:         Tailwind CSS v4, hand-authored design tokens
     Motion:          GSAP + ScrollTrigger, Motion
     Physics:         Rapier 2D (WASM), driving real DOM nodes
-    Typography:      Nunito — interface
-                     Amatic SC — handwritten annotation layer
-                     System monospace — laboratory metadata
+    Typography:      Nunito, interface
+                     Amatic SC, handwritten annotation layer
+                     System monospace, laboratory metadata
     Imagery:         No stock. Every diagram and ornament is hand-authored SVG.
     Analytics:       None. No cookies, no trackers, no third-party tags.
     Storage:         One localStorage key for your colour-scheme preference,

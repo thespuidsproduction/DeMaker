@@ -83,51 +83,149 @@ function clientKey(req: Request): string {
    Two transports, chosen by whichever environment variables are present.
    Neither address nor key is ever echoed back to the client. */
 
+/**
+ * Transports, in the order they are tried. The first one whose environment
+ * variables are present wins. In every case the destination is resolved here,
+ * on the server, and never reaches the browser.
+ */
+type Transport = {
+  id: string;
+  ready: () => boolean;
+  send: (p: Payload) => Promise<boolean>;
+};
+
+const body = (p: Payload) =>
+  [`From: ${p.name}`, `Reply to: ${p.replyTo}`, `Meta: ${p.meta}`, "", p.message].join("\n");
+
+const TRANSPORTS: Transport[] = [
+  {
+    // Best deliverability, and the sender domain is one you own. Free tier is
+    // 3,000 emails a month. Requires a verified domain.
+    id: "resend",
+    ready: () => Boolean(process.env.RESEND_API_KEY && process.env.CONTACT_TO),
+    send: async (p) => {
+      const res = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          from: process.env.CONTACT_FROM || "princey.dev <channel@princey.dev>",
+          to: [process.env.CONTACT_TO],
+          reply_to: p.replyTo,
+          subject: `princey.dev channel message from ${p.name}`,
+          text: body(p),
+        }),
+      });
+      return res.ok;
+    },
+  },
+  {
+    // Free, no domain to verify, one access key by email. 250 a month.
+    id: "web3forms",
+    ready: () => Boolean(process.env.WEB3FORMS_KEY),
+    send: async (p) => {
+      const res = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({
+          access_key: process.env.WEB3FORMS_KEY,
+          subject: `princey.dev channel message from ${p.name}`,
+          from_name: p.name,
+          email: p.replyTo,
+          message: body(p),
+        }),
+      });
+      return res.ok;
+    },
+  },
+  {
+    // Free tier is 50 submissions a month. The form id hides the destination.
+    id: "formspree",
+    ready: () => Boolean(process.env.FORMSPREE_ID),
+    send: async (p) => {
+      const res = await fetch(`https://formspree.io/f/${process.env.FORMSPREE_ID}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ name: p.name, email: p.replyTo, message: p.message, meta: p.meta }),
+      });
+      return res.ok;
+    },
+  },
+  {
+    // Free, unlimited, and it lands on a phone in about a second. No email
+    // deliverability to worry about at all.
+    id: "telegram",
+    ready: () => Boolean(process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_CHAT_ID),
+    send: async (p) => {
+      const res = await fetch(
+        `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            chat_id: process.env.TELEGRAM_CHAT_ID,
+            text: `princey.dev channel\n\n${body(p)}`,
+            disable_web_page_preview: true,
+          }),
+        },
+      );
+      return res.ok;
+    },
+  },
+  {
+    // Free, unlimited, no account at all: set CONTACT_TO and confirm the first
+    // message. Because this call is made server side, the address still never
+    // reaches the browser.
+    id: "formsubmit",
+    ready: () => Boolean(process.env.CONTACT_TO),
+    send: async (p) => {
+      const res = await fetch(
+        `https://formsubmit.co/ajax/${encodeURIComponent(process.env.CONTACT_TO!)}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify({
+            _subject: `princey.dev channel message from ${p.name}`,
+            _template: "table",
+            _captcha: "false",
+            Name: p.name,
+            "Reply to": p.replyTo,
+            Message: p.message,
+            Meta: p.meta,
+          }),
+        },
+      );
+      return res.ok;
+    },
+  },
+  {
+    // Anything that accepts JSON: a Discord or Slack webhook, an automation
+    // runner, your own endpoint.
+    id: "webhook",
+    ready: () => Boolean(process.env.CONTACT_WEBHOOK_URL),
+    send: async (p) => {
+      const res = await fetch(process.env.CONTACT_WEBHOOK_URL!, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ source: "princey.dev", ...p }),
+      });
+      return res.ok;
+    },
+  },
+];
+
 type Payload = { name: string; replyTo: string; message: string; meta: string };
 
-function configured(): boolean {
-  return Boolean(
-    (process.env.RESEND_API_KEY && process.env.CONTACT_TO) || process.env.CONTACT_WEBHOOK_URL,
-  );
-}
+const active = () => TRANSPORTS.find((t) => t.ready()) ?? null;
+
+const configured = () => active() !== null;
 
 async function deliver(p: Payload): Promise<boolean> {
-  const text = [
-    `From:    ${p.name}`,
-    `Reply to: ${p.replyTo}`,
-    `Meta:    ${p.meta}`,
-    "",
-    p.message,
-  ].join("\n");
-
-  if (process.env.RESEND_API_KEY && process.env.CONTACT_TO) {
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from: process.env.CONTACT_FROM || "princey.dev <channel@princey.dev>",
-        to: [process.env.CONTACT_TO],
-        reply_to: p.replyTo,
-        subject: `princey.dev — channel message from ${p.name}`,
-        text,
-      }),
-    });
-    return res.ok;
-  }
-
-  if (process.env.CONTACT_WEBHOOK_URL) {
-    const res = await fetch(process.env.CONTACT_WEBHOOK_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ source: "princey.dev", ...p }),
-    });
-    return res.ok;
-  }
-
-  return false;
+  const t = active();
+  if (!t) return false;
+  return t.send(p);
 }
 
 /* ── Status ───────────────────────────────────────────────────────────────

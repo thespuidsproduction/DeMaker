@@ -21,13 +21,13 @@ const amatic = Amatic_SC({
   weight: ["400", "700"],
 });
 
-const description = `${SITE.name} — Full-Stack Developer, Frontend Engineer and AI / Agentic Systems Developer in ${SITE.location}. ${SITE.philosophy}`;
+const description = `${SITE.name}. Full-Stack Developer, Frontend Engineer and AI / Agentic Systems Developer in ${SITE.location}. ${SITE.philosophy}`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE.url),
   title: {
-    default: `${SITE.name} — Full-Stack, Frontend & AI / Agentic Systems`,
-    template: `%s — ${SITE.name}`,
+    default: `${SITE.name} / Full-Stack, Frontend & AI / Agentic Systems`,
+    template: `%s / ${SITE.name}`,
   },
   description,
   applicationName: SITE.domain,
@@ -57,7 +57,7 @@ export const metadata: Metadata = {
     type: "profile",
     url: SITE.url,
     siteName: SITE.domain,
-    title: `${SITE.name} — Full-Stack, Frontend & AI / Agentic Systems`,
+    title: `${SITE.name} / Full-Stack, Frontend & AI / Agentic Systems`,
     description,
     locale: "en_GB",
     firstName: "Prince",
@@ -66,7 +66,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: `${SITE.name} — Full-Stack, Frontend & AI / Agentic Systems`,
+    title: `${SITE.name} / Full-Stack, Frontend & AI / Agentic Systems`,
     description: SITE.philosophy,
   },
   robots: {
@@ -139,7 +139,7 @@ const jsonLd = {
       "@type": "WebSite",
       "@id": `${SITE.url}/#website`,
       url: SITE.url,
-      name: `${SITE.name} — ${SITE.domain}`,
+      name: `${SITE.name} / ${SITE.domain}`,
       description,
       inLanguage: "en-GB",
       publisher: { "@id": `${SITE.url}/#person` },
@@ -148,7 +148,7 @@ const jsonLd = {
       "@type": "ProfilePage",
       "@id": `${SITE.url}/#profilepage`,
       url: SITE.url,
-      name: `${SITE.name} — Portfolio`,
+      name: `${SITE.name} / Portfolio`,
       isPartOf: { "@id": `${SITE.url}/#website` },
       about: { "@id": `${SITE.url}/#person` },
       inLanguage: "en-GB",

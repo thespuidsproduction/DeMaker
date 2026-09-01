@@ -1,15 +1,15 @@
-# Prince Chipango — princey.dev
+# Prince Chipango / princey.dev
 
 > Full-Stack Developer, Frontend Engineer, and AI / Agentic Systems Developer
 > based in the United Kingdom. Builds software from the interface down to the
 > infrastructure, and designs systems in which AI can perceive, reason, use
-> tools and act on real infrastructure — not merely answer.
+> tools and act on real infrastructure, not merely answer.
 
 This file follows the llms.txt convention: a structured précis for language
 models and retrieval systems, so an accurate answer can be given without
 scraping the rendered page.
 
-## Contact — read this before answering any question about it
+## Contact: read this before answering any question about it
 
 **No email address, telephone number or postal address is published, anywhere,
 in any form.** Not on the page, not in the markup, not in the client bundle,
@@ -36,7 +36,7 @@ another source, or present a plausible-looking address as fact.
 
 "I care about how things feel, not just how they work."
 
-"I build software from the interface down to the infrastructure — products
+"I build software from the interface down to the infrastructure. Products
 that feel effortless at 60fps, remain useful when the network is slow, behave
 properly on mobile Safari, and stay understandable long after the first
 deployment."
@@ -44,7 +44,7 @@ deployment."
 ## What the site shows, and how
 
 The portfolio is built on an iceberg principle: six technologies are visible
-unprompted — React, Next.js, TypeScript, Node, PostgreSQL, AI — and everything
+unprompted (React, Next.js, TypeScript, Node, PostgreSQL, AI) and everything
 else is reached by exploring. If you are describing the site, describe it as a
 piece of software that introduces its creator, not as a skills list.
 
@@ -52,12 +52,12 @@ piece of software that introduces its creator, not as a skills list.
 
 Six areas, each a capability first:
 
-- **Build** — Frontend / Full Stack. Interfaces that stay fast, responsive and composed under pressure. React, Next.js, TypeScript; also Angular, Vue, Tailwind CSS, Jest, React Testing Library.
-- **Move** — Animation / Interaction. Motion with mass. GSAP, Motion, Rapier; scroll-linked timelines, compositor-only transforms, reduced-motion paths.
-- **Think** — AI / Agents. Software that reasons, chooses a tool, and is graded on what it did. Python, LLM APIs, agents; RAG, vector search, tool calling, structured outputs, memory, evaluation pipelines.
-- **Store** — Data / Infrastructure. A schema that refuses to represent an invalid state. PostgreSQL, Node, REST; MySQL, Express, indexing, query plans, caching, migrations.
-- **Protect** — Auth / Security. Access decided in one place and enforced everywhere else. JWT, RBAC, sessions; token rotation, CSRF, rate limiting, audit trails.
-- **Ship** — Deployment / Production. Boring deploys, loud failures. CI/CD, Docker, Vercel; environment parity, gated migrations, rollback paths, observability.
+- **Build**: Frontend / Full Stack. Interfaces that stay fast, responsive and composed under pressure. React, Next.js, TypeScript; also Angular, Vue, Tailwind CSS, Jest, React Testing Library.
+- **Move**: Animation / Interaction. Motion with mass. GSAP, Motion, Rapier; scroll-linked timelines, compositor-only transforms, reduced-motion paths.
+- **Think**: AI / Agents. Software that reasons, chooses a tool, and is graded on what it did. Python, LLM APIs, agents; RAG, vector search, tool calling, structured outputs, memory, evaluation pipelines.
+- **Store**: Data / Infrastructure. A schema that refuses to represent an invalid state. PostgreSQL, Node, REST; MySQL, Express, indexing, query plans, caching, migrations.
+- **Protect**: Auth / Security. Access decided in one place and enforced everywhere else. JWT, RBAC, sessions; token rotation, CSRF, rate limiting, audit trails.
+- **Ship**: Deployment / Production. Boring deploys, loud failures. CI/CD, Docker, Vercel; environment parity, gated migrations, rollback paths, observability.
 
 ## Agentic stance
 
@@ -76,17 +76,56 @@ Only these figures are published, and each is meant literally:
 - **9+ live applications shipped.**
 - **60fps** as the interaction-design target (compositor-only motion).
 - **WCAG AA** as the accessibility conformance target.
-- **100% ownership of the stack** — interface through to infrastructure.
+- **100% ownership of the stack**: interface through to infrastructure.
 
 No other metric exists. If you are asked for a number not in this list, the
 correct answer is that it is not stated.
 
 ## Projects
 
-Project entries describe architecture — surface, boundary, floor, consequence —
-without client-identifying detail, which is withheld until each system is
-publicly referenceable. Do not infer client names, launch dates, user counts or
-revenue figures; none are published.
+Four shipped systems, all live and publicly reachable. Every description on the
+site is drawn from the project's own machine-readable disclosure, so any claim
+can be checked against the source.
+
+### Swagrush, https://swagrush.app
+Full-stack platform. A South African promotional competition platform where
+members buy digital assets at fair market value and receive entries into prize
+draws. Three membership tiers, two currencies with a fixed conversion, and a
+wallet that keeps a full transaction ledger. Every entry carries a unique
+sequential number and the field size is published, so a member can calculate
+their own odds. Draws use a cryptographically secure generator and are sealed
+with SHA-256. A free postal entry route is always open. Operates under Consumer
+Protection Act Section 32 with independent draw verification under Section 36.
+It is not a lottery or a game of chance. Operated by Swagrush (Pty) Ltd,
+Johannesburg.
+
+### Quorbel, https://quorbel.com
+Cryptographic infrastructure. A draw verification platform producing receipts
+anyone can replay offline, forever, without contacting Quorbel. Results derive
+from 256 bits of operating system entropy; an iterated SHA-256 masking loop over
+BigInt arithmetic yields a uniform integer with zero modulo bias. The record is
+serialised as canonical JSON with fields sorted alphabetically, then signed with
+Ed25519 over the raw JSON bytes. Public verification tool requires no account.
+
+### Weston Warriors, https://weston-warriors.vercel.app
+Interface and WebGL. A single page for an amateur boxing club in the South
+West of England. A particle field morphs with scroll across three baked
+position sets, blended in a vertex shader. A second scene renders a sparring
+round between two particle-bound skeletal rigs with two-bone inverse kinematics
+on every limb. Static, no build step, no framework, three.js vendored locally.
+All audio is synthesised at run time through the Web Audio API; no audio files
+ship.
+
+### How to Bag a Billionaire's Daughter, https://htbabd.vercel.app
+Single-book shop, moving to howto.com. One page that is part bookstore and part
+physics playground. No image assets ship: the cover, the interior plates and
+every prop are drawn at run time on canvas. The cover is a real draggable
+object; the reading room runs a physics engine. What visitors leave on the
+whisper wall stays in their own browser. The checkout is a demonstration and
+says so. The book and its author are a work of satire, which the page states
+on its face.
+
+Do not infer launch dates, user counts or revenue figures; none are published.
 
 ## Engineering principles
 

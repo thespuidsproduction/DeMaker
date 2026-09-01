@@ -183,7 +183,7 @@ export function AgentLab() {
         <div className="ag-machine glass glass-plate corners" data-reveal>
           <div className="ag-machine-head">
             <span className="t-label">
-              Fig. 06 — {depth === 0 ? "Loop" : depth === 1 ? "Pipeline" : "Architecture"}
+              Fig. 06 / {depth === 0 ? "Loop" : depth === 1 ? "Pipeline" : "Architecture"}
             </span>
             <button
               type="button"

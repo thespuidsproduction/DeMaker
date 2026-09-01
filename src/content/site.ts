@@ -30,7 +30,7 @@ export const SITE = {
   country: "GB",
   philosophy: "I care about how things feel, not just how they work.",
   manifesto:
-    "I build software from the interface down to the infrastructure — products that feel effortless at 60fps, remain useful when the network is slow, behave properly on mobile Safari, and stay understandable long after the first deployment.",
+    "I build software from the interface down to the infrastructure. Products that feel effortless at 60fps, remain useful when the network is slow, behave properly on mobile Safari, and stay understandable long after the first deployment.",
   signature: ["Build it beautifully.", "Make it behave."] as const,
   footnote: "Still experimenting.",
 } as const;
@@ -159,9 +159,12 @@ export const TOOLBOX: Facet[] = [
 
 /* ═══════════════════════════════════════════════════════════════════════════
    WHAT I BUILD
-   The projects carry the skillset. Surface is beautiful; depth is technical.
-   `reveals` are the names that only exist once the hood is open — they are
-   recorded as traces and resurface later in the margins.
+   Four shipped systems, each publicly reachable. Every fact below is sourced
+   from the project's own machine-readable disclosure (llms.txt, security.txt)
+   or its live pages. Nothing here is estimated.
+
+   `reveals` are the names that only exist once the hood is open. They become
+   the traces that resurface later in the margins.
    ═══════════════════════════════════════════════════════════════════════════ */
 
 export type Project = {
@@ -170,93 +173,141 @@ export type Project = {
   kind: string;
   /** The surface. One line. Nothing technical. */
   line: string;
+  /** Where it lives. */
+  href: string;
+  /** How the link should read. */
+  hrefLabel: string;
+  /** A second address, where the project has one. */
+  note?: string;
   /** Named only under the hood. */
   reveals: string[];
   /** The blueprint. Four entries, never more. */
   strata: { label: string; body: string }[];
   /** The engineer's note on the blueprint. */
-  note: string;
-  href?: string;
+  handNote: string;
+  /** Which engraved plate stands in for the system. */
+  plate: "schema" | "seal" | "topology" | "botanical";
 };
 
 export const PROJECTS: Project[] = [
   {
     index: "01",
-    name: "The Ledger",
-    kind: "Full-stack system",
-    line: "Money moves. Nothing is ever quietly wrong.",
-    reveals: ["JWT", "RBAC", "REST API", "PostgreSQL", "Audit trail"],
+    name: "Swagrush",
+    plate: "schema",
+    kind: "Full-stack platform",
+    line: "You can count the field and work out your own odds before you enter.",
+    href: "https://swagrush.app",
+    hrefLabel: "swagrush.app",
+    note: "Swagrush (Pty) Ltd, Johannesburg",
+    reveals: ["Next.js", "PostgreSQL", "JWT", "RBAC", "Ledger", "SHA-256"],
     strata: [
       {
         label: "Surface",
-        body: "Server components on the read path, optimistic mutations reconciled on the client. The screen never claims something happened before it did.",
+        body: "A digital asset library and a competition floor in one product, across three membership tiers. Every entry carries a unique sequential number and the field size is published, so a member can calculate their own probability rather than take one on trust.",
       },
       {
         label: "Boundary",
-        body: "Typed request and response contracts. Validation at the edge, never buried in a handler. Roles resolved once, enforced on every route.",
+        body: "Two currencies with a fixed conversion, and a wallet that keeps a full transaction ledger rather than a running total. Only credits earned through real purchases convert. Access is restricted to one country and enforced at the platform level, not in the interface.",
       },
       {
         label: "Floor",
-        body: "Normalised core with covering indexes on the two hot reads. Constraint-first: the invariants live where the database can refuse them.",
+        body: "Draws come from a cryptographically secure generator and are sealed with SHA-256. A free postal entry route is always open, and postal entries are assigned numbers equivalent to paid ones, so the two are indistinguishable in the draw.",
       },
       {
         label: "Consequence",
-        body: "Every destructive action is reversible or confirmed. The audit trail is append-only, so history cannot be edited into a better story.",
+        body: "Built to a regulatory shape, not decorated with one. It sits under Consumer Protection Act Section 32 as a promotional competition, with independent verification of draws under Section 36. The compliance constraints are the architecture.",
       },
     ],
-    note: "the schema is the argument",
+    handNote: "the ledger is the product",
   },
   {
     index: "02",
-    name: "Kinetic Surface",
-    kind: "Interface system",
-    line: "It responds before you finish reaching for it.",
-    reveals: ["GSAP", "Motion", "Rapier", "Zero-CLS", "React Testing Library"],
+    name: "Quorbel",
+    plate: "seal",
+    kind: "Cryptographic infrastructure",
+    line: "Anyone can replay the draw and check it themselves. Offline. Forever.",
+    href: "https://quorbel.com",
+    hrefLabel: "quorbel.com",
+    reveals: ["Ed25519", "SHA-256", "CSPRNG", "Canonical JSON", "BigInt"],
     strata: [
       {
         label: "Surface",
-        body: "A component system built to be inherited: predictable props, and every state — loading, empty, error, focus — drawn before the happy path.",
-      },
-      {
-        label: "Motion",
-        body: "Transform and opacity only. Physics runs in a real solver and writes nothing but transforms, so layout is never touched and frames are never dropped.",
-      },
-      {
-        label: "Floor",
-        body: "Read models shaped to the interface rather than the interface bent around the tables. One round trip renders a screen.",
-      },
-      {
-        label: "Consequence",
-        body: "Zero cumulative layout shift by construction. The keyboard path is verified before a hover state is drawn, and reduced motion is a real path, not a switch that disables the site.",
-      },
-    ],
-    note: "60fps is a promise, not a benchmark",
-  },
-  {
-    index: "03",
-    name: "The Workshop",
-    kind: "Agentic system",
-    line: "You describe the outcome. It does the work and shows you how.",
-    reveals: ["Python", "Agents", "Tool calling", "RAG", "Vector search"],
-    strata: [
-      {
-        label: "Surface",
-        body: "A laboratory notebook rather than a chat window: run history, intermediate reasoning, tool traces, and an explicit gate before anything irreversible.",
+        body: "A verification tool that needs no account. Paste a receipt and the page replays the whole derivation in front of you. There is also a step by step simulator of the masking loop, because a claim you cannot watch happen is just a claim.",
       },
       {
         label: "Boundary",
-        body: "Every tool is a typed function with a schema. The model is handed capabilities, never an unbounded shell.",
+        body: "Results derive from 256 bits of operating system entropy, the same source used for TLS handshakes. An iterated SHA-256 masking loop over BigInt arithmetic lands a uniform integer in the operator's range with zero modulo bias.",
       },
       {
         label: "Floor",
-        body: "Run state and audit in Postgres, retrieval in a vector store. Embeddings are versioned with the chunking strategy that produced them.",
+        body: "The whole record, inputs and entropy consumed and result, is serialised as canonical JSON with fields sorted alphabetically, hashed, then signed with Ed25519. The signature covers the raw JSON bytes rather than the hash, so there is no second preimage to argue about.",
       },
       {
         label: "Consequence",
-        body: "Retrieval is budgeted; context is a resource, not a dumping ground. Failure is a first-class state with a legible explanation, never a silent retry.",
+        body: "The receipt is self contained. Verification never contacts Quorbel, which means the platform going away does not invalidate a single past draw. Trust is measured, not asserted.",
       },
     ],
-    note: "graded on the trace, not the vibe",
+    handNote: "verify, then trust",
+  },
+  {
+    index: "03",
+    name: "Weston Warriors",
+    plate: "topology",
+    kind: "Interface / WebGL",
+    line: "A boxing club rendered as particles, from a crumbling colosseum into a ring.",
+    href: "https://weston-warriors.vercel.app",
+    hrefLabel: "weston-warriors.vercel.app",
+    note: "Amateur boxing club",
+    reveals: ["three.js", "WebGL", "Vertex shaders", "Two-bone IK", "Web Audio"],
+    strata: [
+      {
+        label: "Surface",
+        body: "One page, one idea: untamed grit resolving into tamed mastery. A particle field morphs with scroll through three baked position sets, blended in a vertex shader rather than swapped.",
+      },
+      {
+        label: "Boundary",
+        body: "A second scene renders a sparring round between two particle bound skeletal rigs, with two-bone inverse kinematics on every limb, so the two fighters genuinely move in different styles instead of playing the same clip.",
+      },
+      {
+        label: "Floor",
+        body: "Static single page. No build step and no framework, with three.js vendored locally rather than pulled from a CDN at run time. Nothing between the source and the browser.",
+      },
+      {
+        label: "Consequence",
+        body: "Every sound is synthesised at run time through the Web Audio API. No audio files ship at all, and each landed punch is placed in the stereo field where it happened.",
+      },
+    ],
+    handNote: "no audio files shipped",
+  },
+  {
+    index: "04",
+    name: "How to Bag a Billionaire's Daughter",
+    plate: "botanical",
+    kind: "Single-book shop",
+    line: "One book, one author, zero clarity, sold from inside a physics playground.",
+    href: "https://htbabd.vercel.app",
+    hrefLabel: "htbabd.vercel.app",
+    note: "moving to howto.com",
+    reveals: ["Three.js", "Rapier", "GSAP", "Canvas", "Local-only state"],
+    strata: [
+      {
+        label: "Surface",
+        body: "A bookshop for exactly one title, built as a single page. The cover is a real object you can drag and throw, and it comes back. Where 3D is unavailable a drawn cover takes its place rather than a blank frame.",
+      },
+      {
+        label: "Boundary",
+        body: "No image assets ship. The cover, the interior plates and every prop are drawn at run time on canvas, which is why the whole shop weighs almost nothing and never waits on a picture.",
+      },
+      {
+        label: "Floor",
+        body: "A reading room running a genuine physics engine: click to detonate, drag to relocate. The whisper wall keeps what visitors leave in their own browser, and nothing is transmitted anywhere.",
+      },
+      {
+        label: "Consequence",
+        body: "Editions that are not finished say so plainly and point at one that is. The checkout is a demonstration and says that too, on its face, rather than taking details it has no use for.",
+      },
+    ],
+    handNote: "it is a place where a book lives",
   },
 ];
 

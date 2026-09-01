@@ -182,6 +182,38 @@ export function BotanicalDiagram({ className, ...rest }: OrnProps) {
   );
 }
 
+/** A cryptographic seal: concentric rings, a signature band, a checked centre. */
+export function SealPlate({ className, ...rest }: OrnProps) {
+  const ticks = Array.from({ length: 32 }, (_, i) => i * 11.25);
+  return (
+    <svg viewBox="0 0 160 160" className={className} aria-hidden="true" fill="none" {...rest}>
+      <circle className={base} cx="80" cy="80" r="76" />
+      <circle className={base} cx="80" cy="80" r="66" strokeDasharray="1 5" />
+      <circle className={base} cx="80" cy="80" r="46" />
+      <circle className={base} cx="80" cy="80" r="20" />
+      {ticks.map((a) => (
+        <line
+          key={a}
+          className={base}
+          x1="80"
+          y1="46"
+          x2="80"
+          y2={a % 45 === 0 ? 36 : 41}
+          transform={`rotate(${a} 80 80)`}
+        />
+      ))}
+      {/* A signature band: the same shape never repeats. */}
+      <path
+        className={base}
+        d="M60 80h4l3-7 4 14 3-9 4 5 3-3h6l3-6 4 12 3-8 4 4 3-2h6"
+      />
+      <path className={base} d="M80 4v14M80 142v14M4 80h14M142 80h14" />
+      <path className="engraved-fill" d="M80 22l3 12-3 3-3-3z" opacity="0.5" />
+      <circle className="engraved-fill" cx="80" cy="80" r="2" />
+    </svg>
+  );
+}
+
 /** A thin engraved rule used to separate movements. */
 export function EngravedRule({ className, ...rest }: OrnProps) {
   return (

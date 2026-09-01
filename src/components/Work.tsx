@@ -5,9 +5,21 @@ import { PROJECTS, type Project } from "@/content/site";
 import { trackSpecular, useGsapSetup, gsap, prefersReducedMotion, tilt } from "@/lib/motion";
 import { useTraces } from "@/lib/traces";
 import { Movement } from "./Movement";
-import { TopologyPlate, SchemaPlate, CircuitTrace, Flourish } from "./Ornament";
+import {
+  TopologyPlate,
+  SchemaPlate,
+  SealPlate,
+  BotanicalDiagram,
+  Flourish,
+} from "./Ornament";
 
-const PLATES = [SchemaPlate, TopologyPlate, CircuitTrace];
+/** Each system gets the drawing that belongs to it, not the next in a cycle. */
+const PLATES = {
+  schema: SchemaPlate,
+  seal: SealPlate,
+  topology: TopologyPlate,
+  botanical: BotanicalDiagram,
+} as const;
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
@@ -75,11 +87,9 @@ export function Work() {
         { opacity: 0, x: -8 },
         { opacity: 1, x: 0, duration: 0.5, stagger: 0.055, ease: "power3.out", delay: 0.3 },
       );
-      gsap.fromTo(
-        el.querySelector("[data-blueprint]"),
-        { opacity: 0 },
-        { opacity: 1, duration: 0.5, ease: "power2.out" },
-      );
+      // The drafting paper is driven by the `wk-item-open` class, not by a
+      // tween. Animating it here would write an inline opacity that survives
+      // closing the hood, leaving the blueprint grid switched on for good.
     },
     [openIndex, leave],
   );
@@ -88,7 +98,7 @@ export function Work() {
     <Movement id="work" index="§ 03" title="What I Build" aside="look closer">
       <ol className="wk">
         {PROJECTS.map((p, i) => {
-          const Plate = PLATES[i % PLATES.length];
+          const Plate = PLATES[p.plate];
           const isOpen = openIndex === p.index;
           const panelId = `wk-hood-${p.index}`;
           return (
@@ -138,6 +148,30 @@ export function Work() {
                   <h3 className="wk-title">{p.name}</h3>
                   <p className="wk-line">{p.line}</p>
 
+                  <p className="wk-where">
+                    <a
+                      className="wk-visit"
+                      href={p.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <span className="wk-visit-dot" aria-hidden="true" />
+                      {p.hrefLabel}
+                      <span className="sr-only"> (opens in a new tab)</span>
+                      <svg
+                        className="wk-visit-arrow"
+                        viewBox="0 0 12 12"
+                        width="12"
+                        height="12"
+                        aria-hidden="true"
+                        fill="none"
+                      >
+                        <path d="M2 10L10 2M4.5 2H10v5.5" className="engraved" strokeWidth="1.2" />
+                      </svg>
+                    </a>
+                    {p.note ? <span className="t-meta wk-where-note">{p.note}</span> : null}
+                  </p>
+
                   <button
                     type="button"
                     className="t-label wk-hood"
@@ -174,7 +208,7 @@ export function Work() {
                     </dl>
 
                     <p className="t-hand wk-note" aria-hidden="true">
-                      {p.note}
+                      {p.handNote}
                     </p>
                   </div>
                 </div>
@@ -185,8 +219,9 @@ export function Work() {
       </ol>
 
       <p className="t-meta wk-footnote" data-reveal>
-        Client-identifying detail is withheld until each system is publicly
-        referenceable. Architecture is described exactly as built.
+        Every system above is live and reachable. Each description is drawn from
+        the project&rsquo;s own machine-readable disclosure, so anything claimed
+        here can be checked against the source.
       </p>
     </Movement>
   );

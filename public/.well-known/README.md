@@ -1,4 +1,4 @@
-# `/.well-known` — princey.dev
+# `/.well-known` for princey.dev
 
 An index of every document published under this path, what it is for, whether
 it currently carries real data, and how to activate the ones that do not.
@@ -15,12 +15,12 @@ answer; a fabricated key is a lie that verification tooling will act on.
 
 | Path | Standard | Status |
 | --- | --- | --- |
-| [`security.txt`](./security.txt) | [RFC 9116](https://www.rfc-editor.org/rfc/rfc9116) | **Real.** Web contact route, scope, disclosure handling and expiry. No `mailto:` — see below. |
+| [`security.txt`](./security.txt) | [RFC 9116](https://www.rfc-editor.org/rfc/rfc9116) | **Real.** Web contact route, scope, disclosure handling and expiry. No `mailto:`, see below. |
 | [`ai.txt`](./ai.txt) | de-facto | **Real.** What automated agents and model builders may and may not do with this site. |
 | [`dnt-policy.txt`](./dnt-policy.txt) | EFF DNT Policy 1.0 | **Real.** There is nothing to opt out of; this says so precisely. |
 | [`gpc.json`](./gpc.json) | [Global Privacy Control](https://globalprivacycontrol.github.io/gpc-spec/) | **Real.** GPC is honoured. No data is sold or shared. |
 | [`host-meta`](./host-meta) · [`host-meta.json`](./host-meta.json) | [RFC 6415](https://www.rfc-editor.org/rfc/rfc6415) | **Real.** XRD and JRD host metadata, pointing at the WebFinger endpoint. |
-| `webfinger` | [RFC 7033](https://www.rfc-editor.org/rfc/rfc7033) | **Real.** Dynamic endpoint — see below. |
+| `webfinger` | [RFC 7033](https://www.rfc-editor.org/rfc/rfc7033) | **Real.** Dynamic endpoint, see below. |
 | `change-password` | [W3C change-password-url](https://w3c.github.io/webappsec-change-password-url/) | **Real.** 307 to `/#contact`; this site has no accounts, so the honest destination is a way to reach a human. |
 | [`traffic-advice`](./traffic-advice) | Chrome Private Prefetch Proxy | **Real.** Prefetching is permitted at full fraction. |
 | [`funding-manifest-urls`](./funding-manifest-urls) | [FLOSS/fund](https://floss.fund/funding-manifest/) | **Real.** States that no funding manifest is published. |
@@ -46,7 +46,7 @@ impossible to miss.
 | Template | Activate by |
 | --- | --- |
 | `templates/assetlinks.json` | Replace `package_name` with the Android application ID and the fingerprint with the uppercase, colon-separated SHA-256 of the **release** signing certificate (`keytool -list -v -keystore …`). Copy over `../assetlinks.json`. |
-| `templates/apple-app-site-association` | Replace `REPLACE_TEAM_ID.REPLACE_BUNDLE_ID` with the App ID. Copy over `../apple-app-site-association`. Serve as `application/json` with **no** file extension — already configured in `next.config.ts`. |
+| `templates/apple-app-site-association` | Replace `REPLACE_TEAM_ID.REPLACE_BUNDLE_ID` with the App ID. Copy over `../apple-app-site-association`. Serve as `application/json` with **no** file extension, already configured in `next.config.ts`. |
 | `templates/did.json` | Generate an Ed25519 key pair, put the multibase-encoded **public** key in `publicKeyMultibase`, and copy to `../did.json` to become `did:web:princey.dev`. Never put the private key in this repository. |
 | `templates/nostr.json` | Insert the 32-byte **hex** public key (not the bech32 `npub`) under `names.princey`, and list your relays. Copy over `../nostr.json`. |
 | `templates/atproto-did` | Put the account's `did:plc:…` on a single line and copy to `../atproto-did` to verify a Bluesky handle. |
@@ -96,4 +96,4 @@ cross-origin verifiers can read them.
 
 ---
 
-Maintained by Prince Chipango — https://princey.dev/#contact
+Maintained by Prince Chipango. https://princey.dev/#contact

@@ -1,4 +1,4 @@
-Do Not Track Compliance Policy — princey.dev
+Do Not Track Compliance Policy / princey.dev
 Version 1.0 · Effective 2026-09-01
 
 princey.dev honours the Do Not Track header. It does so trivially, because

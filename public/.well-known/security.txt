@@ -1,5 +1,5 @@
 # ═══════════════════════════════════════════════════════════════════════════
-# security.txt — princey.dev
+# security.txt / princey.dev
 # RFC 9116 · https://www.rfc-editor.org/rfc/rfc9116
 #
 # If you have found a security issue affecting this site or anything I have

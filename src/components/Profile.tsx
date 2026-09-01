@@ -41,14 +41,14 @@ export function Profile() {
               <br />
               {SITE.signature[1]}
             </p>
-            <span className="t-meta pf-hand-caption">marginalia — undated</span>
+            <span className="t-meta pf-hand-caption">marginalia, undated</span>
           </div>
         </div>
 
         <EngravedRule className="pf-rule" />
 
         <p className="t-body pf-bio">
-          I work across the whole surface of a product — the interface someone
+          I work across the whole surface of a product: the interface someone
           touches, the API it speaks to, the schema underneath, the pipeline that
           ships it, and the agentic layer that lets software act rather than
           merely answer. Not three jobs. One system, and the seams between them

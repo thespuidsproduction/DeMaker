@@ -140,7 +140,7 @@ export function Marginalia({
       <span className="t-hand marginalia-text">
         {prefix} {t.label}
         <br />
-        <span className="marginalia-from">— in {t.from}</span>
+        <span className="marginalia-from">in {t.from}</span>
       </span>
     </aside>
   );
