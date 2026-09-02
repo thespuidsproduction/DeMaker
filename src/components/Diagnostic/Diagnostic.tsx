@@ -1,50 +1,73 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAnomaly, useSystem, type AnomalyChannel } from '../../system/SystemProvider';
 import { useRaf } from '../../system/hooks';
+import { contradict } from '../../system/lexicon';
 import { pad } from '../../system/rng';
+import { skeyed } from '../../system/session';
 import './Diagnostic.css';
 
 export type Row = readonly [string, string];
 
 /**
- * A block of telemetry. When its anomaly channel fires, exactly one row
- * shifts two pixels and returns. Not every observer will see it happen.
+ * A block of telemetry, and one of the places the system is willing to be
+ * caught out. Addressed on its channel it will move a row two pixels, hold
+ * that displacement for far longer than a displacement should last, or
+ * report the opposite of what it has been reporting and then go back to
+ * reporting it. It never comments on any of this afterwards.
  */
 export function DiagnosticText({
   rows, channel, emphasise, className, id,
 }: {
   rows: readonly Row[];
   channel?: AnomalyChannel;
-  /** Index of the row permitted to use the accent. At most one. */
   emphasise?: number;
   className?: string;
   id?: string;
 }) {
-  const pulse = useAnomaly(channel ?? 'signal');
+  const { n, kind } = useAnomaly(channel ?? 'signal');
   const [shifted, setShifted] = useState(-1);
+  const [flipped, setFlipped] = useState(-1);
   const armed = useRef(false);
 
   useEffect(() => {
     if (!channel || !armed.current) { armed.current = true; return; }
-    const row = pulse % rows.length;
-    setShifted(row);
-    const t = window.setTimeout(() => setShifted(-1), 190);
-    return () => window.clearTimeout(t);
-  }, [pulse, channel, rows.length]);
+    const row = Math.floor(skeyed(`diag/${channel}/${n}`, 0, rows.length));
+    const timers: number[] = [];
+
+    if (kind === 'flip') {
+      setFlipped(row);
+      // Long enough to be read, short enough to be doubted afterwards.
+      timers.push(window.setTimeout(() => setFlipped(-1), 1900));
+    } else if (kind === 'shift' || kind === 'relocate') {
+      setShifted(row);
+      timers.push(window.setTimeout(() => setShifted(-1), 190));
+    } else if (kind === 'linger') {
+      setShifted(row);
+      timers.push(window.setTimeout(() => setShifted(-1), 6200));
+    }
+    // 'open' and 'withdraw' mean nothing to a readout. It stays as it is.
+
+    return () => timers.forEach(clearTimeout);
+  }, [n, kind, channel, rows.length]);
 
   return (
     <dl className={`vx-diag${className ? ` ${className}` : ''}`} id={id}>
       {rows.map(([k, v], i) => (
         <div className="vx-diag__row" key={k}>
           <dt className="vx-diag__k">{k}</dt>
-          <dd className="vx-diag__v" data-shift={shifted === i ? 1 : 0} data-emph={emphasise === i ? 1 : 0}>{v}</dd>
+          <dd
+            className="vx-diag__v"
+            data-shift={shifted === i ? 1 : 0}
+            data-emph={emphasise === i ? 1 : 0}
+          >
+            {flipped === i ? contradict(v) : v}
+          </dd>
         </div>
       ))}
     </dl>
   );
 }
 
-/** A statement. It is not a heading and must never be treated as one. */
 export function Statement({
   children, tone = 'plain',
 }: { children: string; tone?: 'plain' | 'quiet' | 'ox' }) {

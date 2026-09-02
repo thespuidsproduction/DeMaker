@@ -44,6 +44,44 @@
 
 .vx-bay__body { padding: clamp(28px, 6vw, 84px) 0 clamp(56px, 12vw, 190px); }
 
+/* --- ESCALATION -------------------------------------------------------
+   What a bay stops providing, in order: the auxiliary field, the visible
+   title, the ordinal, and finally its alignment to the measure. Nothing
+   below is a decoration — each step removes a piece of ordinary interface
+   that the observer had been relying on to know where they were. */
+
+/* Level 2: the rule above the bay stops being continuous. */
+.vx-bay-el[data-level="2"] > .vx-bay__head { border-top-style: dashed; }
+
+/* Level 3: the header keeps its rule and gives up its name. */
+.vx-bay-el[data-level="3"] > .vx-bay__head {
+  border-top-color: var(--vx-line);
+  padding: 20px 0 10px;
+}
+
+/* Level 4: no ordinal, no title, no rule across the measure — a single
+   short mark where a header used to be, and the body no longer begins
+   where the previous bay's body began. */
+.vx-bay-el[data-level="4"] > .vx-bay__head { border-top: 0; padding-top: 34px; }
+.vx-bay-el[data-level="4"] { padding-left: calc(var(--rail) + var(--grid-margin) * 2 + 34px); }
+@media (max-width: 860px) {
+  .vx-bay-el[data-level="4"] { padding-left: calc(var(--grid-margin) + 13px); }
+}
+
+.vx-bay__mark {
+  display: block;
+  width: 34px; height: 1px;
+  background: var(--vx-mute);
+  position: relative;
+}
+.vx-bay__mark::after {
+  content: '';
+  position: absolute;
+  right: 0; top: -3px;
+  width: 1px; height: 7px;
+  background: var(--vx-mute);
+}
+
 /* Silence. A bay of nothing between the loud ones. It carries a single
    hairline positioned off-centre by thirteen pixels. */
 .vx-silence {

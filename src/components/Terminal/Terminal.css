@@ -44,21 +44,34 @@
 .vx-term__log::-webkit-scrollbar { width: 2px; }
 .vx-term__log::-webkit-scrollbar-thumb { background: var(--vx-edge); }
 
+/* Everything said to VRAXXIS is filed, the way everything else here is
+   filed: given a number in a column, in the order it arrived. There is no
+   command prompt, because this is not a shell — it is a register that
+   happens to answer. The number is the only thing that precedes an input,
+   and the answer is filed underneath it. */
+.vx-term__line { display: grid; grid-template-columns: 44px 1fr; gap: 10px; }
+.vx-term__ord { color: var(--vx-mute); font-variant-numeric: tabular-nums; }
 .vx-term__echo { color: var(--vx-bright); }
-.vx-term__echo::before { content: '> '; color: var(--vx-mute); }
 .vx-term__out { color: var(--vx-read); white-space: pre-wrap; }
 .vx-term__out[data-tone="ox"] { color: var(--vx-ox); }
-.vx-term__gap { height: 10px; }
 
 .vx-term__form {
   display: grid;
-  grid-template-columns: 16px 1fr auto;
-  gap: 8px;
+  grid-template-columns: 44px 1fr auto;
+  gap: 10px;
   align-items: center;
   border-top: 1px solid var(--vx-line);
   padding: 10px 13px;
 }
-.vx-term__caret { color: var(--vx-mute); font-family: var(--vx-mono); font-size: var(--t-small); }
+/* The number the next input will be filed under, shown before it is made.
+   It does not blink, because nothing here is waiting for you. */
+.vx-term__next {
+  color: var(--vx-mute);
+  font-family: var(--vx-mono);
+  font-size: var(--t-small);
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
+}
 
 .vx-term__input {
   width: 100%;

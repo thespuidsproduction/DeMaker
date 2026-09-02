@@ -1,15 +1,21 @@
 import { useEffect, useRef, useState } from 'react';
 import { useInView, useRaf } from '../../system/hooks';
 import { useSystem } from '../../system/SystemProvider';
-import { keyed } from '../../system/rng';
+import { skeyed, soccurs } from '../../system/session';
 import './NullSpace.css';
 
-/** Fixed positions, generated once. Nothing here is placed at random. */
-const OBJECTS = Array.from({ length: 22 }, (_, i) => ({
-  x: keyed(`null:x:${i}`, 6, 94),
-  y: keyed(`null:y:${i}`, 8, 92),
-  w: keyed(`null:w:${i}`, 0, 1) < 0.3 ? 13 : 1,
-  h: keyed(`null:h:${i}`, 0, 1) < 0.3 ? 1 : 7,
+/**
+ * The field is arranged once per visit and then does not move. What is
+ * standing here, and how many of them there are, is different every time
+ * anybody arrives — so nobody can return to a thing they found before and
+ * confirm that they found it.
+ */
+const COUNT = 14 + Math.floor(skeyed('null/population', 0, 13));
+const OBJECTS = Array.from({ length: COUNT }, (_, i) => ({
+  x: skeyed(`null/x/${i}`, 6, 94),
+  y: skeyed(`null/y/${i}`, 8, 92),
+  w: soccurs(`null/wide/${i}`, 0.3) ? 13 : 1,
+  h: soccurs(`null/wide/${i}`, 0.3) ? 1 : 7,
 }));
 
 /**

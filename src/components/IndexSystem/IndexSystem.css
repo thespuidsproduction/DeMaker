@@ -46,6 +46,19 @@
 .vx-index__btn[data-sealed="1"] { color: var(--vx-mute); }
 .vx-index__btn[data-sealed="1"]:hover { color: var(--vx-read); background: transparent; }
 
+/* A seal that has been lifted without being asked. The row barely marks it;
+   what changed is in the panel, and only for a few seconds. */
+.vx-index__btn[data-lifted="1"] .vx-index__id { color: var(--vx-ox); }
+.vx-index__btn[data-lifted="1"] .vx-index__name { color: var(--vx-clear); }
+
+/* WITHDRAWN. The register has stopped noticing the pointer. It has not
+   stopped working: every row still opens on click, on focus and on Enter,
+   and the focus ring is untouched. Only the hover response is gone. */
+.vx-index[data-withdrawn="1"] .vx-index__btn:hover {
+  color: var(--vx-read);
+  background: transparent;
+}
+
 /* Confidence, drawn as a measure rather than printed as a number. */
 .vx-index__bar { height: 1px; background: var(--vx-edge); position: relative; }
 .vx-index__bar span { position: absolute; left: 0; top: 0; height: 1px; background: var(--vx-read); transition: width var(--dur-move) var(--ease-mech); }

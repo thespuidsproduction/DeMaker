@@ -4,6 +4,7 @@ import { useSystem, useUptime } from '../../system/SystemProvider';
 import { ENTITY_READOUT } from '../../system/lexicon';
 import { DiagnosticText, Statement, type Row } from '../Diagnostic/Diagnostic';
 import { pad } from '../../system/rng';
+import { spick } from '../../system/session';
 import './Hero.css';
 
 /**
@@ -58,12 +59,22 @@ export function Hero() {
         </div>
 
         <div className="vx-hero__say">
-          <Statement>THIS IS NOT THE ENTRY</Statement>
+          {/* Three statements can stand here. Which one does is settled
+              before the visit begins, and none of the three is the entry. */}
+          <Statement>{spick('hero/say', [
+            'THIS IS NOT THE ENTRY',
+            'THERE WAS NEVER AN ENTRY',
+            'YOU HAVE ARRIVED EARLY',
+          ] as const)}</Statement>
         </div>
       </div>
 
       <span className="vx-hero__spine vx-micro" aria-hidden="true">
-        FACE A / EXPOSED — REMAINDER NOT SURFACED
+        {spick('hero/spine', [
+          'FACE A / EXPOSED — REMAINDER NOT SURFACED',
+          'FACE A / EXPOSED — TWO FACES ARE UNACCOUNTED FOR',
+          'FACE A / THE REMAINDER IS NOT BELOW',
+        ] as const)}
       </span>
     </div>
   );

@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { useCoarsePointer, useRaf } from '../../system/hooks';
-import { useSystem } from '../../system/SystemProvider';
+import { useAnomaly, useSystem } from '../../system/SystemProvider';
 import { STILLNESS_LINES } from '../../system/lexicon';
 import { pad } from '../../system/rng';
 import './TraceLayer.css';
 
 interface Mark { x: number; y: number; t: number; label: string | null; }
 
-const LIFE = 2600;      // ms a mark survives
+const LIFE = 2600;      // ms a mark survives, ordinarily
 const MAX = 110;        // hard ceiling on retained marks
 const MIN_STEP = 17;    // px between samples — sparse on purpose
 
@@ -19,7 +19,16 @@ const MIN_STEP = 17;    // px between samples — sparse on purpose
  */
 export function TraceLayer() {
   const { reduced } = useSystem();
+  const { n, kind } = useAnomaly('signal');
   const coarse = useCoarsePointer();
+  /**
+   * Retention is ordinarily 2600 ms. In an observant temper the layer
+   * keeps movement for four times that, which is long enough for a path
+   * to accumulate into a legible shape before it goes — the interface
+   * having, briefly, taken more of an interest than it usually does.
+   */
+  const life = useRef(LIFE);
+  const armedTrace = useRef(false);
   const canvas = useRef<HTMLCanvasElement>(null);
   const marks = useRef<Mark[]>([]);
   const count = useRef(0);
@@ -52,6 +61,14 @@ export function TraceLayer() {
     window.addEventListener('pointermove', onMove, { passive: true });
     return () => { timers.forEach(clearTimeout); window.removeEventListener('pointermove', onMove); };
   }, [coarse, reduced]);
+
+  useEffect(() => {
+    if (!armedTrace.current) { armedTrace.current = true; return; }
+    if (kind !== 'linger') return;
+    life.current = LIFE * 4;
+    const t = window.setTimeout(() => { life.current = LIFE; }, 21000);
+    return () => window.clearTimeout(t);
+  }, [n, kind]);
 
   // --- sampling --------------------------------------------------------
   useEffect(() => {
@@ -104,7 +121,7 @@ export function TraceLayer() {
 
     // Retire dead marks before deciding whether there is anything to draw.
     const live = marks.current;
-    while (live.length && now - live[0].t > LIFE) { live.shift(); dirty.current = true; }
+    while (live.length && now - live[0].t > life.current) { live.shift(); dirty.current = true; }
     if (!dirty.current && live.length === 0) return;
 
     const ctx = c.getContext('2d');
@@ -120,7 +137,7 @@ export function TraceLayer() {
 
     for (let i = 0; i < live.length; i++) {
       const m = live[i];
-      const age = (now - m.t) / LIFE;
+      const age = (now - m.t) / life.current;
       if (age >= 1) continue;
       const a = (1 - age) * (1 - age);
 

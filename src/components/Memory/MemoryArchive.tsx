@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { MEMORY_FRAGMENTS } from '../../system/lexicon';
 import { useRaf, useMedia } from '../../system/hooks';
-import { useSystem } from '../../system/SystemProvider';
+import { useAnomaly, useSystem } from '../../system/SystemProvider';
+import { skeyed } from '../../system/session';
 import { Plate } from './plates';
 import './MemoryArchive.css';
 
@@ -13,6 +14,7 @@ import './MemoryArchive.css';
  */
 export function MemoryArchive({ visits }: { visits: number }) {
   const { reduced } = useSystem();
+  const { n, kind } = useAnomaly('memory');
   const stacked = useMedia('(max-width: 860px)');
   const track = useRef<HTMLUListElement>(null);
   const cells = useRef<(HTMLElement | null)[]>([]);
@@ -31,6 +33,29 @@ export function MemoryArchive({ visits }: { visits: number }) {
       c.style.transform = `translate3d(0, ${(p * lag).toFixed(1)}px, 0)`;
     });
   }, !reduced && !stacked);
+
+  /**
+   * The archive rearranges itself. Not while anybody is reading it — the
+   * track never moves under a pointer or a finger, only when the runtime
+   * decides, and only by an amount that reads as a shelf having been
+   * pushed rather than as a carousel advancing.
+   */
+  const armedMem = useRef(false);
+  useEffect(() => {
+    if (!armedMem.current) { armedMem.current = true; return; }
+    const el = track.current;
+    if (!el || reduced) return;
+    if (kind === 'relocate') {
+      el.scrollTo({ left: el.scrollLeft + skeyed(`mem/push/${n}`, -190, 260), behavior: 'smooth' });
+    } else if (kind === 'shift') {
+      const i = Math.floor(skeyed(`mem/cell/${n}`, 0, cells.current.length));
+      const c = cells.current[i];
+      if (c) {
+        c.style.transform = 'translate3d(0, 13px, 0)';
+        window.setTimeout(() => { c.style.transform = ''; }, 4200);
+      }
+    }
+  }, [n, kind, reduced]);
 
   // A returning observer finds the archive already scrolled. Nothing
   // scrolled it, and the position it holds is not the one it was left at.

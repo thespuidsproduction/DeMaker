@@ -1,6 +1,7 @@
 import { useSystem, useUptime } from '../../system/SystemProvider';
 import { DiagnosticText, type Row } from '../Diagnostic/Diagnostic';
 import { pad } from '../../system/rng';
+import { SESSION_TAG } from '../../system/session';
 import './Terminus.css';
 
 /**
@@ -18,6 +19,9 @@ export function Terminus() {
     ['SESSION', pad(uptime, 6)],
     ['OBSERVERS', pad(observers, 2)],
     ['NOTED', pad(discoveries.size, 2)],
+    /* The reference is NONE and the visit has an identifier. Both readings
+       are correct and the terminus does not reconcile them. */
+    ['THIS VISIT', SESSION_TAG],
   ];
 
   return (

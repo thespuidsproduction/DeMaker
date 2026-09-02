@@ -9,7 +9,9 @@ import { TraceBay } from './components/Trace/TraceBay';
 import { CoordinateSystem, Statement } from './components/Diagnostic/Diagnostic';
 import { AnomalyLayer } from './components/Anomaly/AnomalyLayer';
 import { VraxxisNavigation } from './components/Navigation/Navigation';
-import { Bay, Silence } from './components/Shell/Bay';
+import { Bay } from './components/Shell/Bay';
+import { Residue } from './components/Shell/Residue';
+import { spick } from './system/session';
 import { Hero } from './components/Hero/Hero';
 import { IndexSystem } from './components/IndexSystem/IndexSystem';
 import { ObjectVX } from './components/ObjectVX/ObjectVX';
@@ -21,7 +23,6 @@ import './components/Shell/Shell.css';
 
 const ORDER: SectionId[] = ['entry', 'trace', 'index', 'object', 'memory', 'null', 'terminal'];
 
-/** Which region currently holds the viewport. Used only by the rail. */
 function useActiveRegion(ready: boolean): SectionId | null {
   const [active, setActive] = useState<SectionId | null>(null);
 
@@ -50,13 +51,22 @@ function useActiveRegion(ready: boolean): SectionId | null {
   return active;
 }
 
+/**
+ * THE DESCENT.
+ *
+ * The order is not a table of contents. It is a gradient: dense, then
+ * empty, then dense, then empty for longer, and each bay is ranked by how
+ * far down it sits. A bay presents itself at the lesser of its own rank
+ * and how far the observer has actually gone, so the surface stays
+ * comprehensible and the floor does not.
+ *
+ * The fields between the bays are not spacing. Some of them contain things.
+ */
 function Surface() {
   const { visits } = useSystem();
   const [ready, setReady] = useState(false);
   const active = useActiveRegion(ready);
 
-  // The document is inert until the check completes. Scrolling behind the
-  // boot field would let an observer arrive before being admitted.
   useEffect(() => {
     document.documentElement.style.overflow = ready ? '' : 'hidden';
     return () => { document.documentElement.style.overflow = ''; };
@@ -78,41 +88,50 @@ function Surface() {
       <VraxxisNavigation active={active} />
 
       <main className="vx-shell" id="vx-main">
-        <Bay id="entry" ord="01" title="ENTRY" aux="FACE A">
+        <Bay id="entry" rank={0} ord="01" title="ENTRY" aux="FACE A">
           <Hero />
         </Bay>
 
-        <Silence note="NO SECTION BEGINS HERE" />
+        <Residue id="f1" scale="short" ord={0} />
 
-        <Bay id="trace" ord="02" title="TRACE" aux="RETAINED 2600 MS">
+        <Bay id="trace" rank={1} ord="02" title="TRACE" aux="RETAINED 2600 MS">
           <TraceBay />
         </Bay>
 
-        <Bay id="index" ord="02.7" title="INDEX" aux="13 ENTRIES">
+        <Bay id="index" rank={2} ord="02.7" title="INDEX" aux="13 ENTRIES">
           <IndexSystem visits={v('index')} />
         </Bay>
 
-        <Silence note="VX / VX / VX" />
+        <Residue id="f2" scale="tall" ord={1} />
 
-        <Bay id="object" ord="04" title="OBJECT" aux="VX-000">
+        <Bay id="object" rank={3} ord="04" title="OBJECT" aux="VX-000">
           <ObjectVX visits={v('object')} />
         </Bay>
 
-        <Bay id="memory" ord="03" title="MEMORY" aux="RECOVERED 0">
+        <Bay id="memory" rank={3} ord="03" title="MEMORY" aux="RECOVERED 0">
           <MemoryArchive visits={v('memory')} />
         </Bay>
 
-        <Bay id="null" ord="06" title="NULL" aux="—">
+        <Residue id="f3" scale="void" ord={2} />
+
+        <Bay id="null" rank={4} ord="06" title="NULL" aux="—">
           <NullSpace />
         </Bay>
 
         <div className="vx-bay" style={{ padding: 'clamp(60px, 12vh, 150px) var(--grid-margin)' }}>
-          <Statement tone="ox">YOU HAVE ARRIVED EARLY</Statement>
+          <Statement tone="ox">{spick('descent/say', [
+            'THE SYSTEM IS NOT BROKEN',
+            'PLEASE IGNORE OBJECT 07',
+            'REFERENCE LOST',
+            'VX / VX / VX',
+          ] as const)}</Statement>
         </div>
 
-        <Bay id="terminal" ord="/\/\" title="REMNANT" aux="NO PRIVILEGES">
+        <Bay id="terminal" rank={4} ord={'/\\/\\'} title="REMNANT" aux="NO PRIVILEGES">
           <Terminal />
         </Bay>
+
+        <Residue id="f4" scale="tall" ord={3} />
       </main>
 
       <Terminus />

@@ -74,7 +74,39 @@
 
 /* The label swaps text on hover. The width is not reserved, so the column
    moves. This is the intended behaviour. */
-.vx-nav__label { display: block; }
+.vx-nav__label { display: block; min-height: 1.2em; }
+
+/* --- THE RAIL GIVES UP ITS NAMES --------------------------------------
+   Below the surface the coordinates stop printing their destinations. The
+   pointer and the keyboard both bring a name back, so the column is never
+   unusable — only unreadable at rest, which is a different problem and the
+   one intended. On a coarse pointer this never happens: a phone has no
+   hover with which to recover a name. */
+.vx-nav__label[data-shown="0"]::after {
+  content: '';
+  display: inline-block;
+  width: 26px; height: 1px;
+  background: var(--vx-line-3);
+  vertical-align: 0.35em;
+}
+
+.vx-nav__tick {
+  display: inline-block;
+  height: 1px;
+  background: var(--vx-mute);
+  vertical-align: 0.3em;
+}
+
+/* A coordinate the system has lent out. It looks like every other node.
+   It simply resolves, for as long as that lasts. */
+.vx-nav__btn[data-lent="1"] { color: var(--vx-clear); }
+.vx-nav__btn[data-lent="1"] .vx-nav__ord { color: var(--vx-ox); }
+
+/* Displacement. Thirteen pixels, held for a few seconds, then returned. */
+.vx-nav__btn[data-displaced="1"] { transform: translateX(13px); }
+
+/* At the deepest level the rail loses its own boundary. */
+.vx-nav[data-level="4"] { border-right-color: transparent; }
 
 .vx-nav__foot {
   margin-top: auto;

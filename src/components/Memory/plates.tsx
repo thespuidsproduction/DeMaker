@@ -1,4 +1,5 @@
 import { keyed } from '../../system/rng';
+import { skeyed } from '../../system/session';
 import type { MemoryFragment } from '../../system/lexicon';
 
 /**
@@ -8,7 +9,11 @@ import type { MemoryFragment } from '../../system/lexicon';
  * aperture, a lattice, or nothing at all.
  */
 export function Plate({ kind, seed }: { kind: MemoryFragment['plate']; seed: string }) {
+  /* Structure is fixed to the fragment — a plate is recognisably itself on
+     every visit. Wear is drawn from the session, so which parts of it have
+     failed to survive is different each time anybody opens the archive. */
   const k = (n: number, a = 0, b = 1) => keyed(`${seed}:${n}`, a, b);
+  const wear = (n: number, a = 0, b = 1) => skeyed(`${seed}:wear:${n}`, a, b);
 
   const common = {
     viewBox: '0 0 200 140',
@@ -35,7 +40,7 @@ export function Plate({ kind, seed }: { kind: MemoryFragment['plate']; seed: str
         <rect width="200" height="140" fill="#050505" />
         {Array.from({ length: 46 }, (_, i) => {
           const y = 2 + i * 3;
-          const drop = k(i, 0, 1) < 0.18;
+          const drop = wear(i, 0, 1) < 0.18;
           if (drop) return null;
           const w = 40 + k(i + 100, 0, 158);
           const x = k(i + 200, 0, 200 - w);
@@ -71,7 +76,7 @@ export function Plate({ kind, seed }: { kind: MemoryFragment['plate']; seed: str
         {Array.from({ length: 64 }, (_, i) => {
           const x = k(i, 6, 194);
           const y = k(i + 300, 6, 134);
-          const s = k(i + 600, 0, 1) < 0.1 ? 3 : 1.6;
+          const s = wear(i + 600, 0, 1) < 0.1 ? 3 : 1.6;
           return (
             <g key={i} stroke={i % 17 === 0 ? '#C05A22' : '#3A3A3A'} strokeWidth="1">
               <line x1={x - s} y1={y} x2={x + s} y2={y} />
@@ -107,11 +112,11 @@ export function Plate({ kind, seed }: { kind: MemoryFragment['plate']; seed: str
       <rect width="200" height="140" fill="#050505" />
       {Array.from({ length: 21 }, (_, i) => {
         const x = i * 10;
-        return k(i, 0, 1) < 0.22 ? null : <rect key={`v${i}`} x={x} y="0" width="1" height="140" fill="#161616" />;
+        return wear(i, 0, 1) < 0.22 ? null : <rect key={`v${i}`} x={x} y="0" width="1" height="140" fill="#161616" />;
       })}
       {Array.from({ length: 15 }, (_, i) => {
         const y = i * 10;
-        return k(i + 90, 0, 1) < 0.22 ? null : <rect key={`h${i}`} x="0" y={y} width="200" height="1" fill="#161616" />;
+        return wear(i + 90, 0, 1) < 0.22 ? null : <rect key={`h${i}`} x="0" y={y} width="200" height="1" fill="#161616" />;
       })}
       <rect x="70" y="40" width="60" height="60" fill="none" stroke="#3A3A3A" strokeWidth="1" />
       <rect x="77" y="47" width="60" height="60" fill="none" stroke="#1E1E1E" strokeWidth="1" />

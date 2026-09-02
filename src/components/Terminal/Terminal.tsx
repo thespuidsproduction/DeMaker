@@ -2,9 +2,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSystem } from '../../system/SystemProvider';
 import { Statement } from '../Diagnostic/Diagnostic';
 import { run, type Session } from './commands';
+import { pad } from '../../system/rng';
 import './Terminal.css';
 
-interface Entry { id: number; kind: 'echo' | 'out'; text: string; tone?: 'plain' | 'ox'; }
+interface Entry { id: number; kind: 'echo' | 'out'; text: string; tone?: 'plain' | 'ox'; ord?: string; }
 
 const OPENING: string[] = [
   'REMNANT CONSOLE / VX',
@@ -20,6 +21,7 @@ export function Terminal() {
   const [value, setValue] = useState('');
   const [history, setHistory] = useState<string[]>([]);
   const [cursor, setCursor] = useState(-1);
+  const [filed, setFiled] = useState(0);
   const nextId = useRef(OPENING.length);
   const logEl = useRef<HTMLDivElement>(null);
 
@@ -60,8 +62,10 @@ export function Terminal() {
     };
 
     const reply = run(input, session);
+    const ord = pad(filed + 1, 4);
+    setFiled((f) => f + 1);
     push([
-      { kind: 'echo', text: input || ' ' },
+      { kind: 'echo', text: input || ' ', ord },
       ...reply.lines.map((text) => ({ kind: 'out' as const, text, tone: reply.tone })),
     ]);
   };
@@ -93,14 +97,17 @@ export function Terminal() {
         {/* Output is announced as it arrives, in order. */}
         <div className="vx-term__log" ref={logEl} role="log" aria-live="polite" aria-label="Console output">
           {log.map((e) => (
-            <div key={e.id} className={e.kind === 'echo' ? 'vx-term__echo' : 'vx-term__out'} data-tone={e.tone ?? 'plain'}>
-              {e.text}
+            <div key={e.id} className="vx-term__line">
+              <span className="vx-term__ord" aria-hidden="true">{e.ord ?? ''}</span>
+              <span className={e.kind === 'echo' ? 'vx-term__echo' : 'vx-term__out'} data-tone={e.tone ?? 'plain'}>
+                {e.text}
+              </span>
             </div>
           ))}
         </div>
 
         <form className="vx-term__form" onSubmit={submit}>
-          <span className="vx-term__caret" aria-hidden="true">&gt;</span>
+          <span className="vx-term__next" aria-hidden="true">{pad(filed + 1, 4)}</span>
           <label className="vx-sr" htmlFor="vx-term-input">Console input. This console is fictional and performs no operations.</label>
           <input
             id="vx-term-input"

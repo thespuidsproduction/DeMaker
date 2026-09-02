@@ -5,29 +5,69 @@ import {
 import { Presence } from './audio';
 import { useReducedMotion } from './hooks';
 import type { SectionId } from './lexicon';
+import { SESSION, skeyed, spick } from './session';
 
 /**
- * The VRAXXIS runtime.
+ * THE VRAXXIS RUNTIME
  *
- * One source of truth for the things the interface claims to know about
- * itself: how many observers there are, which regions have been entered
- * and how often, what has been discovered, whether the presence is audible,
- * and when the next anomaly is permitted to occur.
+ * Three things are kept here, and they are separate on purpose.
+ *
+ *   TEMPERAMENT  — what kind of thing the system is inclined to do.
+ *   RHYTHM       — when it is inclined to do anything at all.
+ *   DEPTH        — how far in the observer has gone, and therefore how much
+ *                  of the ordinary interface it is still willing to provide.
+ *
+ * No component decides on its own to misbehave. A component declares which
+ * channel it listens on, and acts only when the runtime addresses it. That
+ * is the difference between an interface with a presence and a page with
+ * effects scattered through it.
  */
 
 export type AnomalyChannel =
-  | 'nav' | 'hero' | 'index' | 'object' | 'memory' | 'terminus' | 'statement' | 'signal';
+  | 'nav' | 'hero' | 'index' | 'object' | 'memory' | 'terminus' | 'statement' | 'signal' | 'residue';
 
-const CHANNELS: AnomalyChannel[] = ['nav', 'hero', 'index', 'object', 'memory', 'terminus', 'statement', 'signal'];
+const CHANNELS: AnomalyChannel[] = ['nav', 'hero', 'index', 'object', 'memory', 'terminus', 'statement', 'signal', 'residue'];
 
-export type Discovery = 'internal' | 'persistent-observer' | 'null-found' | 'dimensions' | 'sealed';
+/**
+ * What the system does when it acts. Never more than one of these at a time,
+ * and never twice in a row in the same place.
+ */
+export type AnomalyKind =
+  | 'shift'      // something is a few pixels from where it was
+  | 'flip'       // a reading contradicts itself, then does not
+  | 'open'       // something that was closed is briefly not
+  | 'withdraw'   // something stops answering for a while
+  | 'linger'     // something outstays the duration it was given
+  | 'relocate';  // an object is simply elsewhere
+
+/**
+ * TEMPERAMENT.
+ *
+ * Not a mood indicator, not a character, and never named anywhere in the
+ * interface. It exists only to bias which kind of thing happens next, so
+ * that a run of events reads as one disposition rather than as a shuffle.
+ */
+export type Temper = 'indifferent' | 'observant' | 'impatient' | 'contradictory' | 'accommodating';
+
+const KIND_BY_TEMPER: Record<Temper, readonly AnomalyKind[]> = {
+  indifferent:   ['withdraw', 'withdraw', 'shift'],
+  observant:     ['linger', 'shift', 'linger'],
+  impatient:     ['relocate', 'shift', 'relocate'],
+  contradictory: ['flip', 'flip', 'shift'],
+  accommodating: ['open', 'linger', 'open'],
+};
+
+/** Temperaments the session may settle into unprompted, in its own order. */
+const DRIFT: readonly Temper[] = ['indifferent', 'observant', 'contradictory', 'accommodating', 'indifferent', 'observant'];
+
+export type Discovery = 'internal' | 'persistent-observer' | 'null-found' | 'dimensions' | 'sealed' | 'depth';
+
+export interface AnomalyEvent { n: number; kind: AnomalyKind; }
 
 interface SystemValue {
-  /** Starts at 1. The observer is not told who the second one is. */
   observers: number;
   addObserver: () => void;
 
-  /** Visit counts per region. Revisiting a region changes what is in it. */
   visits: Record<string, number>;
   enterRegion: (id: SectionId) => void;
 
@@ -39,28 +79,23 @@ interface SystemValue {
   click: (intensity?: number) => void;
   tone: (freq?: number, dur?: number) => void;
 
-  /** Broadcast anomaly ticks. A component re-renders only when its own channel fires. */
-  subscribeAnomaly: (ch: AnomalyChannel, fn: () => void) => () => void;
-  provokeAnomaly: (ch: AnomalyChannel) => void;
+  subscribeAnomaly: (ch: AnomalyChannel, fn: (e: AnomalyEvent) => void) => () => void;
 
-  reduced: boolean;
+  /** Current inclination. Read it to bias behaviour; never print it. */
+  temper: Temper;
 
   /**
-   * Session clock, in whole seconds, for callers that need it at the moment
-   * they act rather than continuously. Reading it never causes a render.
-   * Components that display the clock use `useUptime` instead.
+   * How far in the observer is, 0 to 4. Rises with the furthest point
+   * reached and never falls — you do not get shallower by scrolling back.
+   * Regions consult it to decide how much ordinary interface to withhold.
    */
+  depth: number;
+
+  reduced: boolean;
   uptimeRef: { readonly current: number };
 }
 
 const SystemContext = createContext<SystemValue | null>(null);
-
-/**
- * The clock is deliberately kept out of the main context. Putting a value
- * that changes every second next to values that change once an hour would
- * re-render the entire interface sixty times a minute to animate one
- * counter, which is precisely the kind of thing this build refuses to do.
- */
 const UptimeContext = createContext(0);
 
 export function SystemProvider({ children }: { children: ReactNode }) {
@@ -71,6 +106,8 @@ export function SystemProvider({ children }: { children: ReactNode }) {
   const [discoveries, setDiscoveries] = useState<ReadonlySet<Discovery>>(() => new Set());
   const [audioOn, setAudioOn] = useState(false);
   const [uptime, setUptime] = useState(0);
+  const [temper, setTemper] = useState<Temper>(() => spick('temper/first', DRIFT));
+  const [depth, setDepth] = useState(0);
 
   const presence = useRef<Presence | null>(null);
   if (presence.current === null) presence.current = new Presence();
@@ -91,7 +128,7 @@ export function SystemProvider({ children }: { children: ReactNode }) {
     setDiscoveries((s) => (s.has(d) ? s : new Set(s).add(d)));
   }, []);
 
-  // --- PRESENCE --------------------------------------------------------
+  // --- PRESENCE (AUDIBLE) ----------------------------------------------
   const toggleAudio = useCallback(() => {
     setAudioOn((on) => {
       const next = !on;
@@ -104,7 +141,6 @@ export function SystemProvider({ children }: { children: ReactNode }) {
   const click = useCallback((i = 1) => presence.current?.click(i), []);
   const tone = useCallback((f = 220, d = 0.16) => presence.current?.tone(f, d), []);
 
-  // Suspend the bed when the tab is not being observed.
   useEffect(() => {
     const onVis = () => {
       if (!audioOn) return;
@@ -115,60 +151,159 @@ export function SystemProvider({ children }: { children: ReactNode }) {
     return () => document.removeEventListener('visibilitychange', onVis);
   }, [audioOn]);
 
-  // --- UPTIME ----------------------------------------------------------
-  const uptimeRef = useRef(0);
-  uptimeRef.current = uptime;
   useEffect(() => {
     const id = window.setInterval(() => setUptime((t) => t + 1), 1000);
     return () => window.clearInterval(id);
   }, []);
+  const uptimeRef = useRef(0);
+  uptimeRef.current = uptime;
 
-  // --- ANOMALY SCHEDULER -----------------------------------------------
-  // Rare by construction. If an observer can predict the next one, or
-  // notices them arriving in a rhythm, the effect is already dead.
-  const subs = useRef(new Map<AnomalyChannel, Set<() => void>>());
+  // --- DEPTH -----------------------------------------------------------
+  // Measured from the furthest point reached, not the current one. The
+  // interface does not restore what it has already stopped offering.
+  const reached = useRef(0);
+  useEffect(() => {
+    let frame = 0;
+    const read = () => {
+      frame = 0;
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      if (max <= 0) return;
+      const p = window.scrollY / max;
+      if (p > reached.current) {
+        reached.current = p;
+        const next = p > 0.88 ? 4 : p > 0.66 ? 3 : p > 0.42 ? 2 : p > 0.16 ? 1 : 0;
+        setDepth((d) => (next > d ? next : d));
+      }
+    };
+    const onScroll = () => { if (!frame) frame = requestAnimationFrame(read); };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    read();
+    return () => { window.removeEventListener('scroll', onScroll); cancelAnimationFrame(frame); };
+  }, []);
 
-  const subscribeAnomaly = useCallback((ch: AnomalyChannel, fn: () => void) => {
+  useEffect(() => { if (depth >= 3) discover('depth'); }, [depth, discover]);
+
+  // --- ATTENTION -------------------------------------------------------
+  // A decaying count of how much the observer has been doing. Nothing is
+  // stored, nothing is sent; it exists for the length of one visit and
+  // informs exactly one decision.
+  const attention = useRef(0);
+  const lastInput = useRef(performance.now());
+  useEffect(() => {
+    const bump = (w: number) => () => {
+      attention.current = Math.min(attention.current + w, 40);
+      lastInput.current = performance.now();
+    };
+    const move = bump(0.35), act = bump(4);
+    window.addEventListener('pointermove', move, { passive: true });
+    window.addEventListener('pointerdown', act, { passive: true });
+    window.addEventListener('keydown', act, { passive: true });
+    window.addEventListener('wheel', bump(0.6), { passive: true });
+    const decay = window.setInterval(() => { attention.current *= 0.78; }, 2000);
+    return () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerdown', act);
+      window.removeEventListener('keydown', act);
+      window.clearInterval(decay);
+      window.clearInterval(decay);
+    };
+  }, []);
+
+  // --- TEMPERAMENT -----------------------------------------------------
+  // Settles for the better part of a minute at a time. Two of the five are
+  // reactions to the observer; the rest are the session's own drift.
+  const temperStep = useRef(0);
+  useEffect(() => {
+    if (reduced) return;
+    let timer = 0;
+    const settle = () => {
+      const hold = 38000 + skeyed(`temper/hold/${temperStep.current}`, 0, 34000);
+      timer = window.setTimeout(() => {
+        const idleFor = performance.now() - lastInput.current;
+        const next: Temper =
+          idleFor > 26000 ? 'impatient'
+          : attention.current > 22 ? 'observant'
+          : DRIFT[temperStep.current % DRIFT.length];
+        temperStep.current += 1;
+        setTemper(next);
+        settle();
+      }, hold);
+    };
+    settle();
+    return () => window.clearTimeout(timer);
+  }, [reduced]);
+
+  // --- RHYTHM ----------------------------------------------------------
+  // The system has a pulse of its own and the observer is not in it.
+  //
+  // Events do not arrive evenly. The session alternates between long rests
+  // in which nothing whatsoever happens and short clusters in which two to
+  // four things happen close together. An even scatter reads as a timer; a
+  // rest followed by a cluster reads as something deciding to act.
+  const subs = useRef(new Map<AnomalyChannel, Set<(e: AnomalyEvent) => void>>());
+  const count = useRef(0);
+  const lastChannel = useRef<AnomalyChannel | null>(null);
+  const temperRef = useRef(temper);
+  temperRef.current = temper;
+
+  const subscribeAnomaly = useCallback((ch: AnomalyChannel, fn: (e: AnomalyEvent) => void) => {
     const map = subs.current;
     if (!map.has(ch)) map.set(ch, new Set());
     map.get(ch)!.add(fn);
     return () => { map.get(ch)?.delete(fn); };
   }, []);
 
-  const provokeAnomaly = useCallback((ch: AnomalyChannel) => {
-    subs.current.get(ch)?.forEach((fn) => fn());
+  const strike = useCallback(() => {
+    if (document.hidden) return;
+    const live = CHANNELS.filter((c) => (subs.current.get(c)?.size ?? 0) > 0 && c !== lastChannel.current);
+    if (!live.length) return;
+    const n = (count.current += 1);
+    const ch = live[Math.floor(skeyed(`strike/where/${n}`, 0, live.length))];
+    lastChannel.current = ch;
+    const kinds = KIND_BY_TEMPER[temperRef.current];
+    const kind = kinds[Math.floor(skeyed(`strike/what/${n}`, 0, kinds.length))];
+    subs.current.get(ch)?.forEach((fn) => fn({ n, kind }));
   }, []);
 
   useEffect(() => {
     if (reduced) return;
-    let timer = 0;
-    const schedule = () => {
-      // 14–41 seconds. Never a round number, never twice the same gap.
-      const wait = 14000 + Math.random() * 27000;
-      timer = window.setTimeout(() => {
-        if (!document.hidden) {
-          const live = CHANNELS.filter((c) => (subs.current.get(c)?.size ?? 0) > 0);
-          if (live.length) provokeAnomaly(live[(Math.random() * live.length) | 0]);
+    let timers: number[] = [];
+    let phrase = 0;
+
+    const beat = () => {
+      const p = phrase++;
+      // Rests are long. Long enough that the observer stops expecting
+      // anything, which is the only state in which a cluster registers.
+      const rest = 34000 + skeyed(`beat/rest/${p}`, 0, 62000);
+      // Every third or fourth phrase is a cluster instead of a single event.
+      const burst = skeyed(`beat/burst/${p}`) < 0.34 ? 2 + Math.floor(skeyed(`beat/size/${p}`, 0, 3)) : 1;
+
+      timers.push(window.setTimeout(() => {
+        for (let i = 0; i < burst; i++) {
+          timers.push(window.setTimeout(strike, i * (1400 + skeyed(`beat/gap/${p}/${i}`, 0, 2600))));
         }
-        schedule();
-      }, wait);
+        beat();
+      }, rest));
     };
-    schedule();
-    return () => window.clearTimeout(timer);
-  }, [reduced, provokeAnomaly]);
+
+    // The first event of a visit comes early enough to be noticed and late
+    // enough not to look like part of the loading sequence.
+    timers.push(window.setTimeout(() => { strike(); beat(); }, 17000 + skeyed('beat/first', 0, 11000)));
+
+    return () => { timers.forEach(clearTimeout); timers = []; };
+  }, [reduced, strike]);
 
   const value = useMemo<SystemValue>(() => ({
     observers, addObserver,
     visits, enterRegion,
     discoveries, discover,
     audioOn, toggleAudio, click, tone,
-    subscribeAnomaly, provokeAnomaly,
+    subscribeAnomaly,
+    temper, depth,
     reduced, uptimeRef,
   }), [observers, addObserver, visits, enterRegion, discoveries, discover,
-       audioOn, toggleAudio, click, tone, subscribeAnomaly, provokeAnomaly, reduced]);
+       audioOn, toggleAudio, click, tone, subscribeAnomaly, temper, depth, reduced]);
 
-  // `children` keeps its identity across clock ticks, so the tick re-renders
-  // only the components that actually read the clock.
   return (
     <SystemContext.Provider value={value}>
       <UptimeContext.Provider value={uptime}>{children}</UptimeContext.Provider>
@@ -176,7 +311,6 @@ export function SystemProvider({ children }: { children: ReactNode }) {
   );
 }
 
-/** Subscribes to the session clock. Re-renders once per second, by design. */
 export function useUptime(): number {
   return useContext(UptimeContext);
 }
@@ -188,12 +322,16 @@ export function useSystem(): SystemValue {
 }
 
 /**
- * Subscribe to one anomaly channel. Returns a counter that increments when
- * the channel fires; components key their brief misbehaviour off it.
+ * Listen on one channel. Returns the last event addressed to it — a counter
+ * and the kind of thing the system was inclined to do. A component that
+ * receives a kind it has no answer for should do nothing at all.
  */
-export function useAnomaly(ch: AnomalyChannel): number {
+export function useAnomaly(ch: AnomalyChannel): AnomalyEvent {
   const { subscribeAnomaly } = useSystem();
-  const [n, setN] = useState(0);
-  useEffect(() => subscribeAnomaly(ch, () => setN((v) => v + 1)), [ch, subscribeAnomaly]);
-  return n;
+  const [e, setE] = useState<AnomalyEvent>({ n: 0, kind: 'shift' });
+  useEffect(() => subscribeAnomaly(ch, setE), [ch, subscribeAnomaly]);
+  return e;
 }
+
+/** The session identity, for anything that wants to print it at itself. */
+export { SESSION };

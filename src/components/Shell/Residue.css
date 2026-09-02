@@ -1,0 +1,71 @@
+/* RESIDUE
+   An empty black field is not unused space. Some of these fields are
+   withholding something and some of them genuinely contain nothing, and
+   which is which is decided once per visit and never disclosed.
+
+   Everything here is at or below the threshold of casual notice. If an
+   observer can see it without looking for it, it is too loud. */
+
+.vx-residue {
+  position: relative;
+  overflow: hidden;
+}
+.vx-residue[data-scale="short"] { height: clamp(160px, 30vh, 340px); }
+.vx-residue[data-scale="tall"]  { height: clamp(260px, 62vh, 720px); }
+.vx-residue[data-scale="void"]  { height: clamp(420px, 96vh, 1000px); }
+
+/* A boundary. Forty pixels of hairline, at a position no rule justifies. */
+.vx-residue__bound {
+  position: absolute;
+  width: 40px; height: 1px;
+  background: var(--vx-line-2);
+}
+.vx-residue__bound[data-axis="v"] { width: 1px; height: 40px; }
+
+/* One pixel. Genuinely one pixel. */
+.vx-residue__pixel {
+  position: absolute;
+  width: 1px; height: 1px;
+  background: var(--vx-read);
+  opacity: 0.55;
+  transition: transform 900ms var(--ease-drag);
+}
+
+/* A number that is counting something. It is accurate and it is not a
+   measurement of anything. */
+.vx-residue__count {
+  position: absolute;
+  font-family: var(--vx-mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.18em;
+  color: #4E4E4E;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  user-select: none;
+}
+
+/* Something that is present for six hundred milliseconds, once per visit,
+   at a moment chosen before the visit began. Most observers see it out of
+   the corner of an eye and cannot get it back. */
+.vx-residue__flash {
+  position: absolute;
+  font-family: var(--vx-mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--vx-mute);
+  white-space: nowrap;
+  opacity: 0;
+}
+.vx-residue__flash[data-on="1"] { opacity: 1; }
+.vx-residue__flash[data-on="1"][data-ox="1"] { color: var(--vx-ox); }
+
+/* At the deepest levels the field stops being empty and starts being
+   ruled — a faint frame around nothing at all. */
+.vx-residue[data-deep="1"]::before {
+  content: '';
+  position: absolute;
+  inset: 22% 14% 22% 24%;
+  border: 1px solid rgba(255,255,255,0.035);
+  border-right-width: 0;
+}

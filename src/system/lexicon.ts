@@ -72,6 +72,13 @@ export interface IndexEntry {
   /** Redacted rows cannot be opened. The system declines without apology. */
   sealed?: boolean;
   fragments: readonly (readonly [string, string])[];
+  /**
+   * What is under a seal. The register never shows this on request. In an
+   * accommodating temper it shows it unasked, for a few seconds, and then
+   * closes and refuses again as though it had not. What is underneath
+   * explains nothing, which is the point of having looked.
+   */
+  beneath?: readonly (readonly [string, string])[];
 }
 
 export const INDEX_ENTRIES: readonly IndexEntry[] = [
@@ -86,6 +93,7 @@ export const INDEX_ENTRIES: readonly IndexEntry[] = [
   {
     id: '0003', name: '█████', sealed: true,
     fragments: [['last observed', '█████'], ['mass', '█████'], ['origin', '█████'], ['confidence', '██%']],
+    beneath: [['designation', 'withheld by 0003'], ['mass', 'equal to the register'], ['origin', 'this row'], ['confidence', 'not applicable']],
   },
   {
     id: '0004', name: 'MEMORY',
@@ -102,6 +110,7 @@ export const INDEX_ENTRIES: readonly IndexEntry[] = [
   {
     id: '0007', name: '[REMOVED]', sealed: true,
     fragments: [['last observed', 'prior to removal'], ['mass', 'redistributed'], ['origin', 'see 0007'], ['confidence', '—']],
+    beneath: [['removed by', '0007'], ['removed from', 'this register'], ['what remains', 'the number'], ['confidence', '100%']],
   },
   {
     id: '0008', name: 'OBSERVER',
@@ -149,6 +158,61 @@ export const MEMORY_FRAGMENTS: readonly MemoryFragment[] = [
   { ord: 'MEMORY 06', date: '████/██/██', location: 'REFUSED', status: 'HELD', plate: 'lattice' },
   { ord: 'MEMORY 07', date: '████████', location: 'SEE 0007', status: '[REMOVED]', plate: 'absent', note: 'PLEASE IGNORE OBJECT 07' },
   { ord: 'MEMORY 08', date: '00:00:00', location: 'ORIGIN', status: 'RECOVERED', plate: 'field', note: 'NOTHING WAS RESTORED' },
+] as const;
+
+/**
+ * CONTRADICTION.
+ *
+ * When the system is in a contradictory temper it briefly reports the
+ * opposite of what it has been reporting, then reports the original again
+ * and never refers to it. The opposites are written out rather than
+ * generated, because "NOT NON-CRITICAL" is a bug and "CRITICAL" is a
+ * statement.
+ */
+const OPPOSITE: Record<string, string> = {
+  UNRESOLVED: 'RESOLVED',
+  RESOLVED: 'UNRESOLVED',
+  FAILED: 'WITHDRAWN',
+  'NON-CRITICAL': 'CRITICAL',
+  OBSERVING: 'OBSERVED',
+  ACTIVE: 'DORMANT',
+  'ACTIVE / HANDLED': 'HANDLED',
+  UNKNOWN: 'ESTABLISHED',
+  'UNKNOWN (REVISED)': 'REVISED',
+  NONE: 'ONE',
+  NOWHERE: 'SOMEWHERE',
+  VRAXXIS: 'NOT VRAXXIS',
+  NO: 'NOT YET',
+  '0.0.0?': '0.0.0',
+  '2600 MS': '2600 MS',
+};
+
+export const contradict = (value: string): string => {
+  const hit = OPPOSITE[value.toUpperCase()];
+  if (hit) return hit;
+  // A number contradicts itself by being a different number.
+  if (/^[0-9\s/.]+$/.test(value)) return value.replace(/\d/, (d) => String((Number(d) + 4) % 10));
+  return value.startsWith('NOT ') ? value.slice(4) : `NOT ${value}`;
+};
+
+/**
+ * What an empty field says on the one occasion it says anything. Six
+ * hundred milliseconds, once per visit, and not repeated on request.
+ * None of these are hints and none of them lead anywhere.
+ */
+export const RESIDUE_FRAGMENTS = [
+  'STILL HERE',
+  'NOT AN OMISSION',
+  'THIS AREA IS ACCOUNTED FOR',
+  'MEASURED',
+  'NOTHING IS MISSING',
+  'YOU LOOKED',
+  'FIELD 07',
+  'HELD EMPTY',
+  'CHECKED',
+  'NO CONTENTS RECORDED',
+  'SOMETHING WAS HERE',
+  'THE SPACE IS THE ENTRY',
 ] as const;
 
 /** Idle escalation. Clinical. Not a jump scare. */

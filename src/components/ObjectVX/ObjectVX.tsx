@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useInView, useRaf, useSize } from '../../system/hooks';
-import { useSystem } from '../../system/SystemProvider';
+import { useAnomaly, useSystem } from '../../system/SystemProvider';
+import { skeyed } from '../../system/session';
 import { DiagnosticText, type Row } from '../Diagnostic/Diagnostic';
 import {
   DETACHED, INNER, INNER_EDGES, OUTER, OUTER_EDGES, STRUTS,
@@ -18,6 +19,7 @@ const MAX_DEPTH = 7;
  */
 export function ObjectVX({ visits }: { visits: number }) {
   const { observers, addObserver, click, reduced } = useSystem();
+  const { n, kind } = useAnomaly('object');
   const [hostRef, size] = useSize<HTMLDivElement>();
   const [viewRef, inView] = useInView<HTMLDivElement>({ rootMargin: '30% 0px', threshold: 0 });
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -47,6 +49,25 @@ export function ObjectVX({ visits }: { visits: number }) {
     click(0.6 + Math.min(n, 7) * 0.05);
     if (n === 7 && observers === 1) addObserver();
   };
+
+  /**
+   * What the object does when the runtime addresses it. Nobody is touching
+   * it and it moves anyway; a layer nobody opened is open. The manifest is
+   * not updated to mention either, because as far as the manifest is
+   * concerned nothing has occurred.
+   */
+  const armedObj = useRef(false);
+  useEffect(() => {
+    if (!armedObj.current) { armedObj.current = true; return; }
+    if (kind === 'relocate') {
+      rot.current.ry += skeyed(`vx/turn/${n}`, 0.7, 2.4);
+      rot.current.rx = -0.34 + skeyed(`vx/tilt/${n}`, -0.22, 0.22);
+    } else if (kind === 'shift') {
+      rot.current.vy += 0.018;
+    } else if (kind === 'open') {
+      setDepth((d) => Math.min(d + 1, MAX_DEPTH));
+    }
+  }, [n, kind]);
 
   // A returning observer finds it already turned, at an angle nobody set.
   useEffect(() => {

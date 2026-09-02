@@ -111,6 +111,39 @@ canvas { display: block; }
   .vx-bay { padding-left: var(--grid-margin); }
 }
 
+/* --- COARSE POINTERS --------------------------------------------------
+   VRAXXIS is set at the density of a technical document, and a finger is
+   not a pointer. Rather than inflate the type on touch — which would
+   dismantle the composition — the small controls keep their exact
+   appearance and grow an invisible hit area around themselves. What the
+   observer sees is unchanged; what they can hit is a great deal larger. */
+
+@media (pointer: coarse) {
+  .vx-nav__toggle,
+  .vx-null__aid,
+  .vx-term__send,
+  .vx-obj__stage .vx-nav__toggle {
+    position: relative;
+  }
+  .vx-nav__toggle::after,
+  .vx-null__aid::after,
+  .vx-term__send::after {
+    content: '';
+    position: absolute;
+    inset: -15px -12px;
+  }
+
+  /* A text field is the one place where the control itself should grow. */
+  .vx-term__input { padding: 11px 0; }
+  .vx-term__form { padding: 6px 13px; }
+
+  /* Register rows carry the most traffic on a phone. */
+  .vx-index__btn { padding: 15px 0; }
+
+  /* The archive's plates are the target, not the labels beneath them. */
+  .vx-mem__plate { min-height: 148px; }
+}
+
 /* --- REDUCED MOTION ---------------------------------------------------
    Motion is a language here, so we do not merely shorten it — we remove
    the parts that move without consent and keep the parts that inform. */
