@@ -71,6 +71,9 @@ src/
     SystemProvider.tsx         the runtime — temperament, rhythm, depth,
                                observers, region visits, discoveries, audio
     session.ts                 the per-visit seed everything variable hangs off
+    cases.ts                   the day-derived case generator, figures, signatures
+    casebook.ts                what one observer holds, kept in this browser
+    relay.ts                   the declared boundary a backend would attach to
     hooks.ts                   one shared rAF driver, pointer/size/visibility,
                                idle staging, transient latches
     rng.ts                     seeded determinism (xmur3 + mulberry32)
@@ -87,6 +90,7 @@ src/
     Memory/        the archive; plates.tsx generates every image as SVG
     NullSpace/     the quiet region
     Terminal/      REMNANT — a console that controls nothing
+    Cases/         the board, the case, its four marks, the submission
     Diagnostic/    DiagnosticText, Statement, SignalIndicator, CoordinateSystem
     Shell/Residue  fields of nothing, some of which are withholding something
     Anomaly/       idle notices, resize notices, the hidden sequence
@@ -94,6 +98,64 @@ src/
     Grid/          the 12-column substrate, revealed with `g`
     Terminus/      the thing where a footer would be
 ```
+
+### CASES — the part that changes without anybody touching it
+
+VRAXXIS opens one case a day and seals it five days later.
+
+**The date is the shared state.** Everything in a case — its designation,
+its classification, the withheld note under it, the act it is watching for,
+and its figure — is derived from the day index. Two people on opposite sides
+of the world open `VX-032` on the same day, see the same anomaly, and can
+check each other's work. There is no server in that arrangement and there is
+nothing to go down. **Sealing is permanent:** the generator is keyed to a day
+that does not come round again, so a case nobody resolved is a case nobody
+will ever resolve. Discoveries here are genuinely perishable, which is the
+whole reason for dating them.
+
+**Four marks, unequally weighted**, so a partial resolution reports an
+awkward figure — 73%, not 75% — and the number does not tell you which
+quarter is missing.
+
+| Mark | Weight | How it is taken |
+|---|---|---|
+| TRACE | 22 | An act performed inside the artefact — opening a named register entry, reaching depth seven on VX-000, sweeping the NULL field, catching a residue flash, declining the check, entering one word at the REMNANT. Which act varies by case. |
+| FIGURE | 31 | A real problem with a real answer: a second-order sequence with a term withheld, coordinates that plot a character on a 5×7 grid, a shift cipher whose offset is printed above it, or a question the register can answer. |
+| WINDOW | 20 | Available on the day the case opens and never again. Miss it and the case caps at 80. |
+| SECOND | 27 | Cannot be taken alone. |
+
+**The second mark is the collaboration, and it is real.** An observer holding
+the trace and figure marks is issued a signature: a short code carrying the
+case number and a checksum, derived from a random per-browser id and nothing
+identifying. The fourth mark is granted for entering a signature that is
+valid for the case **and is not your own.** So a case cannot be resolved
+by one person: somebody else has to have done the work and then handed you
+the result. VRAXXIS has no way of putting the two of you in touch — that is
+left, deliberately, to the world outside it. Verified end to end: two
+observers each reached 73% independently, and one signature took the other
+to RESOLVED; own signatures, forgeries, malformed input and signatures
+issued against a different case are all refused with distinct answers.
+
+Acts are recorded rather than merely broadcast, so somebody who swept the
+field last week does not have to sweep it again for a case that opens today.
+
+**What is not invented.** The sketch this was built from wanted a row reading
+`VX-033 — 4 OBSERVERS`. Without a backend that number would be a lie, and
+inventing a crowd to make a page feel busy is the one dishonesty this build
+will not commit. The interface asks `system/relay.ts` for the count, gets
+nothing, and prints `OBSERVERS UNCOUNTED`, which is accurate. A filed anomaly
+says `HELD. NOT TRANSMITTED.` for the same reason.
+
+`Relay` is a three-method interface with a local implementation that reaches
+nothing and returns null. Installing a real one via `attachRelay()` is the
+only change required: every reading that says UNCOUNTED becomes a number, and
+HELD becomes TRANSMITTED. Nothing else in VRAXXIS depends on one, no network
+code ships, and the artefact still works with the cable out — which was
+always the rule.
+
+The casebook (`system/casebook.ts`) lives in this browser. No account, no
+identifier that means anything anywhere else, and an export so an observer
+can take their own record away.
 
 ### The three things that make it feel occupied
 
@@ -191,6 +253,7 @@ feel a rhythm, the effect is already dead.
 | the wordmark, seven times | it notices |
 | VX-000, seven times | a second observer |
 | REMNANT console | `help` lists what it recognises; everything else is accepted |
+| `today` `cases` `case` `sig` | the board, from the console |
 | — | it has no prompt: inputs are *filed* under an ordinal, as the register files everything |
 | `AUDIO: OFF` | synthesised presence, off until asked |
 

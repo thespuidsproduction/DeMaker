@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useInView, useRaf, useSize } from '../../system/hooks';
 import { useAnomaly, useSystem } from '../../system/SystemProvider';
 import { skeyed } from '../../system/session';
+import { witness } from '../../system/casebook';
 import { DiagnosticText, type Row } from '../Diagnostic/Diagnostic';
 import {
   DETACHED, INNER, INNER_EDGES, OUTER, OUTER_EDGES, STRUTS,
@@ -45,7 +46,11 @@ export function ObjectVX({ visits }: { visits: number }) {
   const interrogate = () => {
     const n = hits + 1;
     setHits(n);
-    setDepth((d) => Math.min(d + 1, MAX_DEPTH));
+    setDepth((d) => {
+      const next = Math.min(d + 1, MAX_DEPTH);
+      if (next >= MAX_DEPTH) witness('depth');
+      return next;
+    });
     click(0.6 + Math.min(n, 7) * 0.05);
     if (n === 7 && observers === 1) addObserver();
   };

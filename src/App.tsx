@@ -14,6 +14,7 @@ import { Residue } from './components/Shell/Residue';
 import { spick } from './system/session';
 import { Hero } from './components/Hero/Hero';
 import { IndexSystem } from './components/IndexSystem/IndexSystem';
+import { CaseSystem } from './components/Cases/CaseSystem';
 import { ObjectVX } from './components/ObjectVX/ObjectVX';
 import { MemoryArchive } from './components/Memory/MemoryArchive';
 import { NullSpace } from './components/NullSpace/NullSpace';
@@ -21,7 +22,7 @@ import { Terminal } from './components/Terminal/Terminal';
 import { Terminus } from './components/Terminus/Terminus';
 import './components/Shell/Shell.css';
 
-const ORDER: SectionId[] = ['entry', 'trace', 'index', 'object', 'memory', 'null', 'terminal'];
+const ORDER: SectionId[] = ['entry', 'trace', 'index', 'cases', 'object', 'memory', 'null', 'terminal'];
 
 function useActiveRegion(ready: boolean): SectionId | null {
   const [active, setActive] = useState<SectionId | null>(null);
@@ -100,6 +101,10 @@ function Surface() {
 
         <Bay id="index" rank={2} ord="02.7" title="INDEX" aux="13 ENTRIES">
           <IndexSystem visits={v('index')} />
+        </Bay>
+
+        <Bay id="cases" rank={2} ord="05" title="CASES" aux="OPEN">
+          <CaseSystem />
         </Bay>
 
         <Residue id="f2" scale="tall" ord={1} />

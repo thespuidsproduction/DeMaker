@@ -3,6 +3,7 @@ import { INDEX_ENTRIES, type IndexEntry } from '../../system/lexicon';
 import { useAnomaly, useSystem } from '../../system/SystemProvider';
 import { keyed } from '../../system/rng';
 import { skeyed } from '../../system/session';
+import { witness } from '../../system/casebook';
 import './IndexSystem.css';
 
 function confidenceOf(e: IndexEntry): number {
@@ -93,6 +94,9 @@ export function IndexSystem({ visits }: { visits: number }) {
   const interrogate = (e: IndexEntry) => {
     click(e.sealed && unsealed !== e.id ? 0.35 : 0.8);
     setOpen((cur) => (cur === e.id ? null : e.id));
+    // Opening a record is an act. Cases watching for it take their mark
+    // from the record of the act, not from being present when it happened.
+    witness('register', e.id);
   };
 
   const fragments = showingBeneath ? entry!.beneath! : entry?.fragments ?? [];

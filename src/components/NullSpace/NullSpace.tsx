@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useInView, useRaf } from '../../system/hooks';
 import { useSystem } from '../../system/SystemProvider';
 import { skeyed, soccurs } from '../../system/session';
+import { witness } from '../../system/casebook';
 import './NullSpace.css';
 
 /**
@@ -79,6 +80,7 @@ export function NullSpace() {
       announced.current = true;
       setFound(1);
       discover('null-found');
+      witness('field');
       tone(58, 0.9);
       window.setTimeout(() => setFound(2), 5200);
     }
@@ -120,6 +122,7 @@ export function NullSpace() {
             announced.current = true;
             setFound(1);
             discover('null-found');
+            witness('field');
             window.setTimeout(() => setFound(2), 5200);
           }
         }}

@@ -37,7 +37,7 @@ export const STATEMENTS = [
   'PLEASE IGNORE OBJECT 07',
 ] as const;
 
-export type SectionId = 'entry' | 'trace' | 'index' | 'object' | 'memory' | 'null' | 'terminal' | 'end';
+export type SectionId = 'entry' | 'trace' | 'index' | 'cases' | 'object' | 'memory' | 'null' | 'terminal' | 'end';
 
 /**
  * Navigation as coordinates. The numbering column is authoritative and
@@ -59,6 +59,9 @@ export const NAV: readonly NavNode[] = [
   { ord: '02.7', label: 'INDEX',   target: 'index',    drift: ['INDEX', 'INDEXED', 'IN DEX'] },
   { ord: '04',   label: 'OBJECT',  target: 'object',   drift: ['OBJECT', 'OBJECTED', 'OBJECT'] },
   { ord: '∞',    label: 'VRAXX',   target: null, inert: true, drift: ['VRAXX', 'VRAXXIS', 'VRAX', 'VRAXX'] },
+  /* 05 was absent from this column from the beginning. It is the only
+     region that changes on its own, and it is where the absence went. */
+  { ord: '05',   label: 'CASES',   target: 'cases',    drift: ['CASES', 'CASE', 'CASES'] },
   { ord: '03',   label: 'MEMORY',  target: 'memory',   drift: ['MEMORY', 'MEMORY', 'MEMOR'] },
   { ord: '06',   label: 'NULL',    target: 'null',     drift: ['NULL', 'NOT NULL', 'NULL?', 'NULL'] },
   { ord: '/\\/\\', label: 'REMNANT', target: 'terminal', drift: ['REMNANT', 'REMNANT', 'REMNANTS'] },

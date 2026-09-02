@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useSystem } from '../../system/SystemProvider';
 import { BOOT_SEQUENCE } from '../../system/lexicon';
 import { pad } from '../../system/rng';
+import { witness } from '../../system/casebook';
 import './Boot.css';
 
 type Mech = 'idle' | 'build' | 'collapse' | 'turn' | 'leave';
@@ -81,6 +82,7 @@ export function Boot({ onComplete }: { onComplete: () => void }) {
     // The check can be declined. Declining is not treated as a failure.
     const skip = () => {
       timers.current.forEach(clearTimeout);
+      witness('check');
       finish();
     };
     const onKey = (e: KeyboardEvent) => {
@@ -142,7 +144,7 @@ export function Boot({ onComplete }: { onComplete: () => void }) {
       <button
         type="button"
         className="vx-boot__abort vx-micro"
-        onClick={() => { timers.current.forEach(clearTimeout); setDone(true); window.setTimeout(() => complete.current(), 400); }}
+        onClick={() => { timers.current.forEach(clearTimeout); witness('check'); setDone(true); window.setTimeout(() => complete.current(), 400); }}
       >
         DECLINE CHECK
       </button>

@@ -1,5 +1,7 @@
 import { INDEX_ENTRIES, STATEMENTS } from '../../system/lexicon';
-import { pick } from '../../system/rng';
+import { pad, pick } from '../../system/rng';
+import { dayIndex, openCases, resolutionOf, signatureFor, untilNextOpening } from '../../system/cases';
+import { marksFor, observerId, witness } from '../../system/casebook';
 
 /**
  * The terminal is fictional and does nothing. It reads no files, runs no
@@ -27,6 +29,7 @@ const COMMANDS: Record<string, (arg: string, s: Session) => Reply> = {
     lines: [
       'RECOGNISED: HELP INDEX LIST TRACE OBSERVE WHO WHERE WHEN',
       'NULL VRAXX OBJECT MEMORY DEPTH STATUS AUDIO CLEAR EXIT',
+      'CASES CASE TODAY SIG',
       'HELP IS NOT ASSISTANCE. IT IS A LIST.',
     ],
   }),
@@ -92,12 +95,66 @@ const COMMANDS: Record<string, (arg: string, s: Session) => Reply> = {
   vx: (_a, s) => ({
     lines: s.discoveries.has('internal') ? ['VX / INTERNAL'] : ['VX'],
   }),
+
+  cases: (_a, s) => {
+    s.goto('cases');
+    const open = openCases();
+    return {
+      lines: [
+        `${open.length} CASES OPEN`,
+        ...open.map((c) => {
+          const pct = resolutionOf(marksFor(c.n));
+          return `  ${c.designation}  ${pct === 0 ? 'UNKNOWN' : pct === 100 ? 'RESOLVED' : `${pad(pct, 3)}% RESOLVED`}`;
+        }),
+        'RESOLUTION IS YOURS ALONE. NOBODY ELSE IS COUNTED.',
+      ],
+    };
+  },
+
+  case: (arg) => {
+    const n = parseInt(arg.replace(/\D/g, ''), 10);
+    const open = openCases();
+    const c = open.find((x) => x.n === n) ?? open[0];
+    if (!c) return { lines: ['NO CASE'] };
+    const held = marksFor(c.n);
+    return {
+      lines: [
+        `${c.designation} / ${c.classification}`,
+        c.note,
+        `MARKS HELD ${held.length} OF 4`,
+        c.witness.instruction,
+      ],
+    };
+  },
+
+  today: () => {
+    const ms = untilNextOpening();
+    return {
+      lines: [
+        `VX-${pad(dayIndex(), 3)} OPENED TODAY`,
+        `THE NEXT ONE OPENS IN ${Math.floor(ms / 3600000)}H ${Math.floor((ms % 3600000) / 60000)}M`,
+        'WHAT DOES NOT GET RESOLVED GETS SEALED',
+      ],
+    };
+  },
+
+  sig: (arg) => {
+    const n = parseInt(arg.replace(/\D/g, ''), 10);
+    const c = openCases().find((x) => x.n === n) ?? openCases()[0];
+    if (!c) return { lines: ['NO CASE'] };
+    const held = marksFor(c.n);
+    if (!held.includes('trace') || !held.includes('figure')) {
+      return { lines: ['SIGNATURE WITHHELD', 'TWO MARKS ARE REQUIRED BEFORE ONE IS ISSUED'] };
+    }
+    return { lines: [`${c.designation}`, signatureFor(c.n, observerId()), 'IT IS OF NO USE TO YOU'] };
+  },
 };
 
 /** Aliases the system chose not to document. */
 const ALIAS: Record<string, string> = {
   '?': 'help', ls: 'list', dir: 'list', man: 'help',
   reset: 'clear', cls: 'clear', quit: 'exit', me: 'who',
+  open: 'today', board: 'cases', signature: 'sig',
 };
 
 let nonsenseCount = 0;
@@ -109,7 +166,11 @@ export function run(input: string, session: Session): Reply {
   const [head, ...rest] = raw.toLowerCase().split(/\s+/);
   const name = ALIAS[head] ?? head;
   const fn = COMMANDS[name];
-  if (fn) return fn(rest.join(' '), session);
+  if (fn) {
+    // A word entered here is an act. Some cases are watching for one.
+    witness('console', name);
+    return fn(rest.join(' '), session);
+  }
 
   // Nothing is an error here. Input is received and filed.
   nonsenseCount += 1;

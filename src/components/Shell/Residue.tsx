@@ -4,6 +4,7 @@ import { useAnomaly, useSystem } from '../../system/SystemProvider';
 import { RESIDUE_FRAGMENTS } from '../../system/lexicon';
 import { pad } from '../../system/rng';
 import { skeyed, soccurs, spick } from '../../system/session';
+import { witness } from '../../system/casebook';
 import './Residue.css';
 
 /**
@@ -79,6 +80,8 @@ export function Residue({
     const at = 3200 + skeyed(`${id}/when`, 0, 26000);
     const show = window.setTimeout(() => {
       setFlash(true);
+      // Catching one of these is an act, whether or not anybody was looking.
+      witness('residue');
       window.setTimeout(() => setFlash(false), 620);
     }, at);
     return () => window.clearTimeout(show);
