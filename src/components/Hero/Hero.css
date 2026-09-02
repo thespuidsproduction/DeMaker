@@ -1,0 +1,111 @@
+/* ENTRY
+   There is no headline. The name is present at a size that cannot be
+   contained, split across the viewport, and it moves at a different rate
+   from everything else — so that on the way down it reads less like
+   typography and more like two exposed faces of one buried object. */
+
+.vx-hero {
+  position: relative;
+  min-height: clamp(560px, 96svh, 1000px);
+  padding-top: clamp(40px, 9vh, 120px);
+  overflow: clip;
+}
+
+.vx-hero__mark {
+  position: relative;
+  height: clamp(200px, 38vh, 460px);
+  pointer-events: none;
+  user-select: none;
+}
+
+.vx-hero__part {
+  position: absolute;
+  font-family: var(--vx-grotesk);
+  font-weight: 600;
+  font-size: clamp(96px, 23vw, 340px);
+  line-height: 0.78;
+  letter-spacing: -0.045em;
+  color: var(--vx-bright);
+  white-space: nowrap;
+  will-change: transform;
+}
+
+/* VRA leaves through the left edge. It is not centred, contained or
+   balanced, and the amount by which it overhangs is fixed at 0.18em. */
+.vx-hero__part--a {
+  top: 0;
+  left: -0.18em;
+}
+
+/* XXIS is lower, further right, and set in the plate grey rather than the
+   bright — the two halves are lit by different things. */
+.vx-hero__part--b {
+  top: clamp(96px, 21vh, 260px);
+  right: -0.14em;
+  color: var(--vx-mute);
+  -webkit-text-stroke: 0;
+}
+
+/* A third instance, almost invisible, offset seven pixels from the first.
+   Most observers register it as a printing fault. */
+.vx-hero__ghost {
+  position: absolute;
+  top: 7px; left: calc(-0.18em + 7px);
+  font-family: var(--vx-grotesk);
+  font-weight: 600;
+  font-size: clamp(96px, 23vw, 340px);
+  line-height: 0.78;
+  letter-spacing: -0.045em;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(255,255,255,0.05);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.vx-hero__grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: var(--grid-gutter);
+  margin-top: clamp(40px, 9vh, 110px);
+  align-items: start;
+}
+@media (max-width: 860px) { .vx-hero__grid { grid-template-columns: repeat(6, 1fr); } }
+
+/* The readout occupies columns 1–4. Correctly. */
+.vx-hero__readout { grid-column: 1 / span 4; }
+@media (max-width: 860px) { .vx-hero__readout { grid-column: 1 / span 6; } }
+
+/* The statement occupies columns 6–10, then is pushed 13px out of the grid
+   it was assigned. It is the only object in this bay that is wrong. */
+.vx-hero__say {
+  grid-column: 6 / span 5;
+  /* Held below the descending half of the wordmark: the two are allowed to
+     share a column, not a line. */
+  margin-top: clamp(48px, 11vh, 140px);
+  transform: translateX(13px);
+  padding-left: 18px;
+}
+@media (max-width: 860px) {
+  .vx-hero__say { grid-column: 1 / span 6; margin-top: 40px; transform: translateX(7px); }
+}
+
+/* Vertical metadata pinned to the right edge of the entry bay. */
+.vx-hero__spine {
+  position: absolute;
+  right: -6px;
+  top: 42%;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  letter-spacing: 0.5em;
+  color: var(--vx-mute);
+  white-space: nowrap;
+}
+@media (max-width: 1099px) { .vx-hero__spine { display: none; } }
+
+.vx-hero__depth {
+  margin-top: 28px;
+  display: flex;
+  gap: 22px;
+  flex-wrap: wrap;
+  color: var(--vx-mute);
+}

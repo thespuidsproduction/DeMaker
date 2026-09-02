@@ -1,0 +1,108 @@
+/* THE CHECK
+   Before the interface is shown, something decides whether the visitor is
+   permitted to perceive it. The outcome is never stated. */
+
+.vx-boot {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-boot);
+  background: var(--vx-void);
+  display: grid;
+  place-items: center;
+  transition: opacity 700ms var(--ease-mech);
+}
+.vx-boot[data-phase="clear"] { opacity: 0; pointer-events: none; }
+
+.vx-boot__stack {
+  position: relative;
+  width: min(560px, 82vw);
+  height: 200px;
+  display: grid;
+  place-items: center;
+}
+
+.vx-boot__line {
+  position: absolute;
+  font-family: var(--vx-mono);
+  font-size: var(--t-small);
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--vx-read);
+  white-space: nowrap;
+  opacity: 0;
+}
+.vx-boot__line[data-on="1"] { opacity: 1; }
+
+/* The second line is the name. It is given weight the others are denied. */
+.vx-boot__line[data-weight="name"] {
+  font-family: var(--vx-grotesk);
+  font-size: clamp(28px, 7vw, 52px);
+  font-weight: 500;
+  letter-spacing: 0.24em;
+  color: var(--vx-bright);
+}
+
+/* The fourth line is the only one that reports a result. */
+.vx-boot__line[data-weight="verdict"] { color: var(--vx-ox); letter-spacing: 0.4em; }
+
+/* --- THE MECHANISM ---------------------------------------------------
+   Not a spinner. A line assembles itself horizontally, fails, reassembles
+   on the other axis, and leaves. Nothing indicates progress, because
+   nothing is progressing. */
+
+.vx-boot__mech { position: absolute; inset: 0; display: grid; place-items: center; }
+
+.vx-boot__bar {
+  position: absolute;
+  background: var(--vx-clear);
+  transform-origin: 50% 50%;
+}
+.vx-boot__bar--h {
+  width: min(420px, 62vw); height: 1px;
+  transform: scaleX(0);
+  transition: transform 900ms var(--ease-drag);
+}
+.vx-boot__bar--v {
+  width: 1px; height: 132px;
+  transform: scaleY(0);
+  transition: transform 760ms var(--ease-drag);
+}
+.vx-boot[data-mech="build"]   .vx-boot__bar--h { transform: scaleX(1); }
+.vx-boot[data-mech="collapse"] .vx-boot__bar--h { transform: scaleX(0); transition-duration: 300ms; transition-timing-function: var(--ease-snap); }
+.vx-boot[data-mech="collapse"] .vx-boot__bar--v,
+.vx-boot[data-mech="turn"]    .vx-boot__bar--v { transform: scaleY(1); }
+.vx-boot[data-mech="leave"]   .vx-boot__bar--v { transform: scaleY(0); transition-duration: 380ms; }
+
+/* Tick marks that appear along the assembling line. Six of them.
+   Five are evenly spaced. */
+.vx-boot__ticks { position: absolute; width: min(420px, 62vw); height: 9px; }
+.vx-boot__tick {
+  position: absolute; top: 0; width: 1px; height: 100%;
+  background: var(--vx-edge);
+  opacity: 0;
+  transition: opacity 200ms linear;
+}
+.vx-boot[data-mech="build"] .vx-boot__tick,
+.vx-boot[data-mech="collapse"] .vx-boot__tick { opacity: 1; }
+
+.vx-boot__readout {
+  position: absolute;
+  left: var(--grid-margin);
+  bottom: var(--grid-margin);
+  color: var(--vx-mute);
+  display: grid;
+  gap: 3px;
+}
+
+.vx-boot__abort {
+  position: absolute;
+  right: var(--grid-margin);
+  bottom: var(--grid-margin);
+  color: var(--vx-mute);
+  border-bottom: 1px solid transparent;
+  transition: color var(--dur-react) linear, border-color var(--dur-react) linear;
+}
+.vx-boot__abort:hover, .vx-boot__abort:focus-visible {
+  color: var(--vx-clear);
+  border-bottom-color: var(--vx-edge);
+}

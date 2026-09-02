@@ -1,0 +1,29 @@
+/* TRACE
+   The interface retains movement for slightly longer than movement lasts.
+   This is not a cursor trail. Nothing follows the pointer; the pointer
+   leaves marks, and the marks are cleared by something else. */
+
+.vx-trace {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-trace);
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+.vx-stillness {
+  position: fixed;
+  z-index: var(--z-trace);
+  pointer-events: none;
+  font-family: var(--vx-mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--vx-mute);
+  white-space: nowrap;
+  transform: translate(14px, -18px);
+  opacity: 0;
+  transition: opacity 900ms linear;
+}
+.vx-stillness[data-on="1"] { opacity: 1; }
+.vx-stillness[data-stage="2"] { color: var(--vx-read); }

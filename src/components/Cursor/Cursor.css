@@ -1,0 +1,62 @@
+/* THE POINTER
+   Replaced, not decorated. It stays small, it stays sharp, and it never
+   lags behind the hardware pointer by more than a frame or two. */
+
+.vx-cursor {
+  position: fixed;
+  top: 0; left: 0;
+  z-index: var(--z-cursor);
+  pointer-events: none;
+  will-change: transform;
+  contain: layout style;
+}
+
+.vx-cursor__mark {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-family: var(--vx-mono);
+  font-size: 10px;
+  line-height: 1;
+  letter-spacing: 0;
+  color: var(--vx-bright);
+  transition: color var(--dur-react) linear;
+}
+
+/* Default state: a 7px reticle, not a dot. */
+.vx-cursor__reticle {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 7px; height: 7px;
+  transition: width 180ms var(--ease-mech), height 180ms var(--ease-mech), opacity 120ms linear;
+}
+.vx-cursor__reticle::before,
+.vx-cursor__reticle::after {
+  content: '';
+  position: absolute;
+  background: var(--vx-bright);
+}
+.vx-cursor__reticle::before { left: 50%; top: 0; width: 1px; height: 100%; transform: translateX(-50%); }
+.vx-cursor__reticle::after  { top: 50%; left: 0; height: 1px; width: 100%; transform: translateY(-50%); }
+
+.vx-cursor[data-mode="glyph"] .vx-cursor__reticle { opacity: 0; }
+.vx-cursor[data-mode="reticle"] .vx-cursor__mark { opacity: 0; }
+
+/* On sealed things the pointer is refused, and admits it. */
+.vx-cursor[data-mode="glyph"][data-glyph="×"] .vx-cursor__mark { color: var(--vx-ox); }
+
+/* A coordinate readout trailing the pointer at a fixed offset.
+   It is 13px away, which is one of the permitted wrong amounts. */
+.vx-cursor__coord {
+  position: absolute;
+  left: 13px; top: 9px;
+  font-family: var(--vx-mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.08em;
+  color: var(--vx-mute);
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 200ms linear;
+}
+.vx-cursor[data-coord="1"] .vx-cursor__coord { opacity: 1; }
+
+.vx-cursor[data-down="1"] .vx-cursor__reticle { width: 13px; height: 13px; }

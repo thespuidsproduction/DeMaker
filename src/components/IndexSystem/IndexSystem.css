@@ -1,0 +1,110 @@
+/* INDEX
+   A register of thirteen entities. It is set as a real list and reads as a
+   ledger. Interrogating a row does not produce a tooltip — it produces
+   fragments, in a separate part of the bay, arriving out of order. */
+
+.vx-index {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: calc(var(--grid-gutter) * 2);
+  align-items: start;
+}
+@media (max-width: 1000px) { .vx-index { grid-template-columns: 1fr; gap: 0; } }
+
+.vx-index__list { border-top: 1px solid var(--vx-line-2); }
+
+.vx-index__row { position: relative; }
+
+.vx-index__btn {
+  display: grid;
+  grid-template-columns: 62px 1fr 54px;
+  gap: var(--grid-gutter);
+  align-items: center;
+  width: 100%;
+  padding: 11px 0;
+  text-align: left;
+  border-bottom: 1px solid var(--vx-line);
+  font-family: var(--vx-mono);
+  font-size: var(--t-base);
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--vx-read);
+  transition: color var(--dur-react) linear, background-color var(--dur-react) linear, transform 110ms var(--ease-snap);
+}
+.vx-index__btn:hover, .vx-index__btn:focus-visible {
+  color: var(--vx-bright);
+  background: var(--vx-plate);
+}
+/* Interrogation compresses the row rather than lifting it. */
+.vx-index__btn[data-open="1"] { color: var(--vx-bright); transform: scaleY(0.94); transform-origin: left center; }
+
+.vx-index__id { color: var(--vx-mute); font-size: var(--t-small); font-variant-numeric: tabular-nums; }
+.vx-index__btn[data-open="1"] .vx-index__id { color: var(--vx-ox); }
+
+.vx-index__name { letter-spacing: 0.16em; }
+
+.vx-index__btn[data-sealed="1"] { color: var(--vx-mute); }
+.vx-index__btn[data-sealed="1"]:hover { color: var(--vx-read); background: transparent; }
+
+/* Confidence, drawn as a measure rather than printed as a number. */
+.vx-index__bar { height: 1px; background: var(--vx-edge); position: relative; }
+.vx-index__bar span { position: absolute; left: 0; top: 0; height: 1px; background: var(--vx-read); transition: width var(--dur-move) var(--ease-mech); }
+
+/* Rows the register has misfiled. The displacement is 13px, always. */
+.vx-index__row[data-displaced="1"] .vx-index__btn { transform: translateX(13px); }
+
+/* --- FRAGMENTS -------------------------------------------------------
+   Not a tooltip. A panel that fills with disconnected lines, each arriving
+   on its own delay and each set at its own indent. */
+
+.vx-index__frag {
+  position: sticky;
+  top: 96px;
+  min-height: 210px;
+  border-top: 1px solid var(--vx-line-2);
+  padding-top: 14px;
+}
+@media (max-width: 1000px) {
+  .vx-index__frag { position: static; min-height: 130px; margin-top: 28px; }
+}
+
+.vx-index__frag-head {
+  font-family: var(--vx-mono);
+  font-size: var(--t-small);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--vx-clear);
+  min-height: 1.4em;
+}
+
+.vx-index__frag-list { margin-top: 18px; display: grid; gap: 9px; }
+
+.vx-index__frag-line {
+  font-family: var(--vx-mono);
+  font-size: var(--t-meta);
+  letter-spacing: 0.14em;
+  color: var(--vx-mute);
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 260ms linear, transform 260ms var(--ease-mech);
+}
+.vx-index__frag-line[data-on="1"] { opacity: 1; transform: none; }
+.vx-index__frag-line b { font-weight: 400; color: var(--vx-clear); }
+
+/* Each fragment sits at a different indent. The indents are 0, 7, 21, 13. */
+.vx-index__frag-line:nth-child(1) { margin-left: 0; }
+.vx-index__frag-line:nth-child(2) { margin-left: 7px; }
+.vx-index__frag-line:nth-child(3) { margin-left: 21px; }
+.vx-index__frag-line:nth-child(4) { margin-left: 13px; }
+
+.vx-index__refusal { color: var(--vx-ox); }
+
+.vx-index__count {
+  margin-top: 34px;
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  color: var(--vx-mute);
+  border-top: 1px solid var(--vx-line);
+  padding-top: 10px;
+}

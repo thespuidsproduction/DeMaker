@@ -1,0 +1,69 @@
+/* NULL
+   The quietest region. After the density of the index and the object, the
+   contrast is the content: one word, a field of black, and a small number
+   of things that are only present while somebody is looking near them. */
+
+.vx-null {
+  position: relative;
+  min-height: min(96svh, 820px);
+  background: var(--vx-void);
+  border-top: 1px solid var(--vx-line);
+  border-bottom: 1px solid var(--vx-line);
+  margin-left: calc(var(--grid-margin) * -1);
+  margin-right: calc(var(--grid-margin) * -1);
+  overflow: hidden;
+  touch-action: pan-y;
+}
+
+.vx-null__word {
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--vx-mono);
+  font-size: var(--t-small);
+  letter-spacing: 0.6em;
+  color: var(--vx-mute);
+  text-indent: 0.6em;
+}
+
+.vx-null__obj {
+  position: absolute;
+  opacity: 0;
+  will-change: opacity;
+  pointer-events: none;
+}
+.vx-null__obj i {
+  display: block;
+  background: var(--vx-read);
+}
+
+.vx-null__found {
+  position: absolute;
+  left: 50%;
+  top: calc(50% + 54px);
+  transform: translateX(-50%);
+  font-family: var(--vx-mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.26em;
+  color: var(--vx-mute);
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 2200ms linear;
+  text-align: center;
+}
+.vx-null__found[data-on="1"] { opacity: 1; }
+.vx-null__found[data-on="2"] { opacity: 0; transition-duration: 3400ms; }
+
+.vx-null__aid {
+  position: absolute;
+  left: 50%;
+  bottom: 26px;
+  transform: translateX(-50%);
+  font-family: var(--vx-mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.22em;
+  color: var(--vx-mute);
+  border-bottom: 1px solid transparent;
+  transition: color var(--dur-react) linear;
+}
+.vx-null__aid:hover, .vx-null__aid:focus-visible { color: var(--vx-mute); border-bottom-color: var(--vx-line-2); }

@@ -1,0 +1,49 @@
+/* The TRACE bay is the densest thing in VRAXXIS — the overload against
+   which NULL is measured. It reports the pointer continuously and keeps a
+   short ledger of where it has been, none of which is stored anywhere or
+   sent anywhere. */
+
+.vx-tracebay {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: var(--grid-gutter);
+  align-items: start;
+}
+@media (max-width: 860px) { .vx-tracebay { grid-template-columns: repeat(6, 1fr); } }
+
+.vx-tracebay__live { grid-column: 1 / span 3; }
+.vx-tracebay__ledger { grid-column: 5 / span 4; }
+.vx-tracebay__say { grid-column: 10 / span 3; transform: translateY(7px); }
+@media (max-width: 860px) {
+  .vx-tracebay__live { grid-column: 1 / span 6; }
+  .vx-tracebay__ledger { grid-column: 1 / span 6; margin-top: 34px; }
+  .vx-tracebay__say { grid-column: 1 / span 6; margin-top: 34px; transform: none; }
+}
+
+.vx-tracebay__big {
+  font-family: var(--vx-mono);
+  font-size: clamp(26px, 4.6vw, 58px);
+  letter-spacing: -0.02em;
+  color: var(--vx-bright);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.05;
+}
+.vx-tracebay__big span { color: var(--vx-mute); }
+
+.vx-tracebay__ledger ol {
+  border-top: 1px solid var(--vx-line);
+  font-family: var(--vx-mono);
+  font-size: var(--t-meta);
+  letter-spacing: 0.1em;
+  color: var(--vx-mute);
+  font-variant-numeric: tabular-nums;
+}
+.vx-tracebay__ledger li {
+  display: grid;
+  grid-template-columns: 30px 1fr auto;
+  gap: 12px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--vx-line);
+}
+.vx-tracebay__ledger li:first-child { color: var(--vx-clear); }
+.vx-tracebay__ledger li span:first-child { color: var(--vx-mute); }

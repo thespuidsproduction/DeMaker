@@ -1,0 +1,47 @@
+/* THE SUBSTRATE
+   Twelve columns, mathematically exact, drawn at the threshold of
+   visibility. The grid is never wrong. Everything placed on it may be. */
+
+.vx-grid {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-grid);
+  pointer-events: none;
+  padding-left: calc(var(--rail) + var(--grid-margin) * 2);
+  padding-right: calc(var(--grid-margin) + var(--rail-r));
+  display: grid;
+  grid-template-columns: repeat(var(--grid-cols), 1fr);
+  gap: var(--grid-gutter);
+  opacity: 0;
+  transition: opacity 900ms var(--ease-mech);
+}
+.vx-grid[data-visible="1"] { opacity: 1; }
+
+@media (max-width: 860px) {
+  .vx-grid { padding-left: var(--grid-margin); }
+}
+
+.vx-grid__col { border-left: 1px solid var(--vx-line); }
+.vx-grid__col:last-child { border-right: 1px solid var(--vx-line); }
+
+/* The seventh column is drawn slightly brighter than the other eleven.
+   No reason is given anywhere in the interface. */
+.vx-grid__col[data-c="7"] { border-left-color: var(--vx-line-2); }
+
+/* Registration marks at the four corners, as on a plate that expects to be
+   aligned against something else. */
+.vx-reg {
+  position: fixed;
+  width: 9px; height: 9px;
+  z-index: var(--z-grid);
+  pointer-events: none;
+  opacity: 0.5;
+}
+.vx-reg::before, .vx-reg::after { content: ''; position: absolute; background: var(--vx-edge); }
+.vx-reg::before { left: 0; top: 4px; width: 100%; height: 1px; }
+.vx-reg::after  { top: 0; left: 4px; height: 100%; width: 1px; }
+.vx-reg--tl { top: 10px; left: 10px; }
+.vx-reg--tr { top: 10px; right: 10px; }
+.vx-reg--bl { bottom: 10px; left: 10px; }
+/* The fourth mark is 7px out of position. */
+.vx-reg--br { bottom: 3px; right: 10px; }

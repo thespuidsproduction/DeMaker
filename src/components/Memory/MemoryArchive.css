@@ -1,0 +1,102 @@
+/* MEMORY
+   An archive that has recovered nothing. The fragments are laid on a
+   horizontal track inside a vertically scrolling document — the one place
+   in VRAXXIS where the axis of travel changes. The track is a real
+   scroll container: wheel, trackpad, touch, arrow keys and the tab key all
+   move it, because confusing perception is permitted and breaking
+   navigation is not. */
+
+.vx-mem { position: relative; }
+
+.vx-mem__track {
+  display: flex;
+  gap: var(--grid-gutter);
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 8px 0 34px;
+  margin-right: calc(var(--grid-margin) * -1);
+  scrollbar-width: thin;
+  scroll-snap-type: x proximity;
+  overscroll-behavior-x: contain;
+}
+.vx-mem__track::-webkit-scrollbar { height: 1px; }
+.vx-mem__track::-webkit-scrollbar-thumb { background: var(--vx-edge); }
+.vx-mem__track::-webkit-scrollbar-track { background: transparent; }
+
+@media (max-width: 860px) {
+  /* On a small screen the archive turns ninety degrees and becomes a
+     column, because a horizontal track on a phone is a trap. */
+  .vx-mem__track {
+    flex-direction: column;
+    overflow-x: hidden;
+    overflow-y: visible;
+    margin-right: 0;
+    gap: 34px;
+  }
+}
+
+.vx-mem__cell {
+  flex: 0 0 auto;
+  width: clamp(210px, 24vw, 310px);
+  scroll-snap-align: start;
+  will-change: transform;
+}
+@media (max-width: 860px) { .vx-mem__cell { width: 100%; } }
+
+/* The cells do not sit on one baseline. Each is dropped by a fixed amount
+   from a set of four, so the track reads as shelved rather than laid out. */
+.vx-mem__cell[data-drop="0"] { margin-top: 0; }
+.vx-mem__cell[data-drop="1"] { margin-top: 42px; }
+.vx-mem__cell[data-drop="2"] { margin-top: 13px; }
+.vx-mem__cell[data-drop="3"] { margin-top: 67px; }
+@media (max-width: 860px) { .vx-mem__cell[data-drop] { margin-top: 0; } }
+
+.vx-mem__plate {
+  position: relative;
+  aspect-ratio: 200 / 140;
+  border: 1px solid var(--vx-line-2);
+  background: var(--vx-sub);
+  overflow: hidden;
+}
+
+.vx-mem__unavailable {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--vx-mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.2em;
+  color: var(--vx-mute);
+  background: rgba(0,0,0,0.55);
+  opacity: 0;
+  transition: opacity var(--dur-react) linear;
+}
+.vx-mem__cell:hover .vx-mem__unavailable,
+.vx-mem__cell:focus-within .vx-mem__unavailable { opacity: 1; }
+
+.vx-mem__ord {
+  margin-top: 12px;
+  font-family: var(--vx-mono);
+  font-size: var(--t-small);
+  letter-spacing: 0.2em;
+  color: var(--vx-clear);
+  text-transform: uppercase;
+}
+
+.vx-mem__rows { margin-top: 10px; display: grid; gap: 5px; }
+.vx-mem__row { display: grid; grid-template-columns: 62px 1fr; gap: 10px; align-items: baseline; }
+.vx-mem__row dt { font-family: var(--vx-mono); font-size: var(--t-micro); letter-spacing: 0.18em; color: var(--vx-mute); text-transform: uppercase; }
+.vx-mem__row dd { font-family: var(--vx-mono); font-size: var(--t-meta); letter-spacing: 0.1em; color: var(--vx-read); text-transform: uppercase; }
+.vx-mem__row dd[data-block="1"] { color: var(--vx-mute); letter-spacing: 0; }
+
+.vx-mem__note { margin-top: 12px; color: var(--vx-ox); }
+
+.vx-mem__rule {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  border-top: 1px solid var(--vx-line);
+  padding-top: 10px;
+  color: var(--vx-mute);
+}

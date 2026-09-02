@@ -1,0 +1,173 @@
+/* NAVIGATION
+   Not a menu. A column of coordinates, some of which resolve.
+   The ordinal column is authoritative and demonstrably incorrect. */
+
+.vx-nav {
+  position: fixed;
+  left: 0; top: 0;
+  height: 100vh;
+  width: calc(var(--rail) + var(--grid-margin));
+  padding: 22px 0 22px var(--grid-margin);
+  z-index: var(--z-nav);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  border-right: 1px solid var(--vx-line);
+  background: linear-gradient(to right, var(--vx-void) 60%, transparent);
+}
+@media (max-width: 860px) { .vx-nav { display: none; } }
+
+.vx-nav__mark {
+  font-family: var(--vx-grotesk);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.34em;
+  color: var(--vx-bright);
+  text-align: left;
+  transition: letter-spacing var(--dur-move) var(--ease-mech);
+}
+.vx-nav__mark:hover { letter-spacing: 0.5em; }
+.vx-nav__mark[data-looking="1"] { color: var(--vx-ox); }
+
+.vx-nav__list { display: flex; flex-direction: column; gap: 1px; margin-top: 8px; }
+
+.vx-nav__item { position: relative; }
+
+.vx-nav__btn {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: 8px;
+  align-items: baseline;
+  width: 100%;
+  padding: 5px 0;
+  text-align: left;
+  font-family: var(--vx-mono);
+  font-size: var(--t-small);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--vx-read);
+  transition: color var(--dur-react) linear, transform var(--dur-instant) var(--ease-snap);
+}
+.vx-nav__btn:hover, .vx-nav__btn:focus-visible { color: var(--vx-clear); }
+
+/* Hovering displaces the node three pixels. It does not glow, grow or fade. */
+.vx-nav__btn:hover { transform: translateX(3px); }
+
+.vx-nav__btn[data-active="1"] { color: var(--vx-bright); }
+.vx-nav__btn[data-active="1"]::before {
+  content: '';
+  position: absolute;
+  left: calc(var(--grid-margin) * -1);
+  top: 50%;
+  width: 7px; height: 1px;
+  background: var(--vx-ox);
+  transform: translateY(-50%);
+}
+
+/* Inert nodes are dimmer, and their ordinal is set in the accent-free grey.
+   They are focusable. Operating them produces a reclassification, not a move. */
+.vx-nav__btn[data-inert="1"] { color: var(--vx-mute); }
+.vx-nav__btn[data-inert="1"]:hover { color: var(--vx-read); }
+
+.vx-nav__ord { color: var(--vx-mute); font-variant-numeric: tabular-nums; }
+.vx-nav__btn[data-active="1"] .vx-nav__ord { color: var(--vx-read); }
+
+/* The label swaps text on hover. The width is not reserved, so the column
+   moves. This is the intended behaviour. */
+.vx-nav__label { display: block; }
+
+.vx-nav__foot {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  align-items: flex-start;
+}
+
+.vx-nav__toggle {
+  font-family: var(--vx-mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--vx-mute);
+  border-bottom: 1px solid var(--vx-line-2);
+  padding-bottom: 2px;
+  transition: color var(--dur-react) linear, border-color var(--dur-react) linear;
+}
+.vx-nav__toggle:hover { color: var(--vx-clear); border-color: var(--vx-line-3); }
+.vx-nav__toggle[data-on="1"] { color: var(--vx-ox); border-color: var(--vx-ox-dim); }
+
+/* --- MOBILE MANIFESTATION --------------------------------------------
+   The rail does not shrink. It is replaced by a single mark, and the index
+   of coordinates becomes a full field the observer must open. */
+
+.vx-nav-m { display: none; }
+@media (max-width: 860px) {
+  .vx-nav-m { display: block; }
+
+  .vx-nav-m__open {
+    position: fixed;
+    top: 12px; right: 12px;
+    z-index: var(--z-nav);
+    width: 40px; height: 40px;
+    display: grid;
+    place-items: center;
+    background: var(--vx-void);
+    border: 1px solid var(--vx-line-2);
+    font-family: var(--vx-mono);
+    font-size: 13px;
+    color: var(--vx-clear);
+    letter-spacing: 0;
+  }
+
+  .vx-nav-m__field {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-overlay);
+    background: var(--vx-void);
+    padding: 64px var(--grid-margin) var(--grid-margin);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    transform: translateY(-100%);
+    /* Hidden rather than merely moved: a closed field must not be reachable
+       by the tab key, and aria-hidden alone would not achieve that. */
+    visibility: hidden;
+    transition: transform 460ms var(--ease-drag), visibility 0s linear 460ms;
+    overflow-y: auto;
+  }
+  .vx-nav-m__field[data-open="1"] {
+    transform: none;
+    visibility: visible;
+    transition: transform 460ms var(--ease-drag), visibility 0s linear 0s;
+  }
+
+  .vx-nav-m__btn {
+    display: grid;
+    grid-template-columns: 52px 1fr;
+    align-items: baseline;
+    gap: 12px;
+    width: 100%;
+    padding: 14px 0;
+    text-align: left;
+    border-bottom: 1px solid var(--vx-line);
+    font-family: var(--vx-mono);
+    font-size: var(--t-lift);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--vx-clear);
+  }
+  .vx-nav-m__btn[data-inert="1"] { color: var(--vx-mute); }
+  .vx-nav-m__btn .vx-nav__ord { font-size: var(--t-small); }
+
+  .vx-nav-m__close {
+    position: absolute;
+    top: 12px; right: 12px;
+    width: 40px; height: 40px;
+    display: grid; place-items: center;
+    font-family: var(--vx-mono);
+    color: var(--vx-clear);
+    border: 1px solid var(--vx-line-2);
+  }
+  .vx-nav-m__meta { margin-top: auto; padding-top: 28px; color: var(--vx-mute); display: grid; gap: 6px; }
+}

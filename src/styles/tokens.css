@@ -1,0 +1,93 @@
+/* VRAXXIS / SUBSTRATE
+   Every value here is fixed by decree. Nothing is arbitrary.
+   Where a value looks wrong, it is wrong on purpose. */
+
+:root {
+  /* --- SURFACE ------------------------------------------------------ */
+  --vx-void:      #000000;
+  --vx-sub:       #050505;
+  --vx-plate:     #090909;
+  --vx-plate-2:   #111111;
+  --vx-raise:     #181818;
+  --vx-edge:      #2A2A2A;
+
+  /* --- INK ----------------------------------------------------------
+     Rule of the build: --vx-edge and the hairline tokens are STRUCTURAL.
+     They draw rules, ticks, marks and borders, and they are never used to
+     set type. The dimmest ink is --vx-mute, which is held at a contrast
+     ratio that clears WCAG AA on the void at any size — the interface is
+     allowed to be incomprehensible, not illegible. */
+  --vx-mute:      #7A7A7A;  /* 4.83:1 on #000 */
+  --vx-read:      #A0A0A0;
+  --vx-clear:     #D6D6D6;
+  --vx-bright:    #F2F2F2;
+
+  /* --- THE ACCENT --------------------------------------------------- */
+  /* Oxidised. Appears roughly four times per screen. Not decoration.
+     Held at 4.75:1 on the void — the accent carries real words (FAILED,
+     END: NO) and the focus ring, so it has to be readable, not merely
+     atmospheric. A darker rust looked better and could not be read. */
+  --vx-ox:        #C05A22;
+  --vx-ox-dim:    #6E2C13;
+
+  /* --- HAIRLINES ---------------------------------------------------- */
+  --vx-line:      rgba(255, 255, 255, 0.07);
+  --vx-line-2:    rgba(255, 255, 255, 0.12);
+  --vx-line-3:    rgba(255, 255, 255, 0.22);
+
+  /* --- TYPE --------------------------------------------------------- */
+  --vx-grotesk: "Helvetica Neue", Helvetica, "Inter", "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+  --vx-mono: ui-monospace, "SF Mono", SFMono-Regular, "JetBrains Mono", "Roboto Mono", Menlo, Consolas, monospace;
+
+  /* Metadata scale. Deliberately below comfortable reading size. */
+  --t-micro:  9px;
+  --t-meta:   10px;
+  --t-small:  11px;
+  --t-base:   13px;
+  --t-lift:   16px;
+
+  /* --- ARCHITECTURAL GRID ------------------------------------------- */
+  /* 12 columns. The grid is correct. The contents are not. */
+  --grid-cols: 12;
+  --grid-gutter: 20px;
+  --grid-margin: clamp(16px, 4vw, 72px);
+  /* Left rail: the coordinate column. Right rail: space reserved for the
+     document ruler, so that no content is ever measured on top of. */
+  --rail: 148px;
+  --rail-r: 0px;
+
+  /* --- DEVIATION CONSTANTS ------------------------------------------ */
+  /* These are the only permitted amounts by which an object may be wrong. */
+  --dev-a: 7px;
+  --dev-b: 13px;
+  --dev-c: 3px;
+
+  /* --- MOTION ------------------------------------------------------- */
+  --ease-mech: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-snap: cubic-bezier(0.9, 0, 0.1, 1);
+  --ease-drag: cubic-bezier(0.4, 0, 0.02, 1);
+  --dur-instant: 70ms;
+  --dur-react: 160ms;
+  --dur-move: 520ms;
+  --dur-long: 1400ms;
+
+  --z-grid: 1;
+  --z-content: 10;
+  --z-trace: 60;
+  --z-nav: 70;
+  --z-overlay: 90;
+  --z-boot: 100;
+  --z-cursor: 120;
+}
+
+@media (min-width: 1100px) {
+  :root { --rail-r: 62px; }
+}
+
+@media (max-width: 860px) {
+  :root {
+    --grid-cols: 6;
+    --grid-gutter: 12px;
+    --rail: 0px;
+  }
+}

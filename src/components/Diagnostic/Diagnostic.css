@@ -1,0 +1,128 @@
+/* DIAGNOSTIC TYPOGRAPHY
+   Everything the interface says about itself is set as telemetry: a label
+   in the mute grey, a value in the clear grey, a hairline between them.
+   Nothing is ever phrased as a benefit. */
+
+.vx-diag { display: grid; gap: 0; }
+
+.vx-diag__row {
+  display: grid;
+  grid-template-columns: minmax(96px, 190px) 1fr;
+  gap: var(--grid-gutter);
+  align-items: baseline;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--vx-line);
+}
+.vx-diag__row:first-child { border-top: 1px solid var(--vx-line); }
+
+.vx-diag__k {
+  font-family: var(--vx-mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--vx-mute);
+}
+.vx-diag__v {
+  font-family: var(--vx-mono);
+  font-size: var(--t-small);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--vx-clear);
+  font-variant-numeric: tabular-nums;
+  transition: transform var(--dur-instant) linear, color var(--dur-react) linear;
+}
+.vx-diag__v[data-shift="1"] { transform: translateX(2px); color: var(--vx-bright); }
+.vx-diag__v[data-emph="1"] { color: var(--vx-ox); }
+
+/* --- STATEMENTS ------------------------------------------------------
+   One per screen height at most. Never explained, never linked, never
+   given a heading. They are set at reading size and given more space than
+   anything around them, which is the only thing that marks them. */
+
+.vx-statement {
+  font-family: var(--vx-grotesk);
+  font-size: clamp(15px, 1.6vw, 21px);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  line-height: 1.25;
+  color: var(--vx-clear);
+  max-width: 34ch;
+  position: relative;
+}
+.vx-statement[data-tone="quiet"] { color: var(--vx-mute); }
+.vx-statement[data-tone="ox"] { color: var(--vx-ox); }
+.vx-statement::before {
+  content: '';
+  position: absolute;
+  left: -18px; top: 0.62em;
+  width: 9px; height: 1px;
+  background: currentColor;
+  opacity: 0.45;
+}
+
+/* --- SIGNAL ----------------------------------------------------------- */
+
+.vx-signal {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--vx-mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--vx-mute);
+}
+.vx-signal__dot {
+  width: 5px; height: 5px;
+  background: var(--vx-edge);
+  animation: vx-signal-pulse 4.3s steps(1, end) infinite;
+}
+.vx-signal[data-state="active"] .vx-signal__dot { background: var(--vx-read); }
+.vx-signal[data-state="fault"] .vx-signal__dot { background: var(--vx-ox); animation-duration: 1.1s; }
+@keyframes vx-signal-pulse {
+  0%, 82% { opacity: 1; }
+  83%, 100% { opacity: 0.15; }
+}
+
+/* --- EDGE COORDINATES -------------------------------------------------
+   Rulers on the outer margins. They measure the document, which is not a
+   thing that needs measuring. */
+
+.vx-coords {
+  position: fixed;
+  right: 0; top: 0;
+  height: 100vh;
+  width: 26px;
+  z-index: var(--z-nav);
+  pointer-events: none;
+  display: none;
+}
+@media (min-width: 1100px) { .vx-coords { display: block; } }
+
+.vx-coords__tick {
+  position: absolute;
+  right: 10px;
+  width: 6px; height: 1px;
+  background: var(--vx-line-2);
+}
+.vx-coords__tick[data-major="1"] { width: 12px; background: var(--vx-line-3); }
+
+.vx-coords__head {
+  position: absolute;
+  right: 10px;
+  width: 16px; height: 1px;
+  background: var(--vx-ox);
+  transition: top 90ms linear;
+}
+.vx-coords__val {
+  position: absolute;
+  right: 30px;
+  font-family: var(--vx-mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.1em;
+  color: var(--vx-mute);
+  white-space: nowrap;
+  transform: translateY(-50%);
+  font-variant-numeric: tabular-nums;
+  transition: top 90ms linear;
+}

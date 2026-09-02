@@ -1,0 +1,64 @@
+/* TERMINUS
+   Not a footer. The document does not conclude — it stops, and says so in
+   a field that reports its own status one last time before the name is
+   driven off the bottom of the page. */
+
+.vx-end {
+  position: relative;
+  padding-top: clamp(40px, 8vw, 96px);
+  border-top: 1px solid var(--vx-line-2);
+  overflow: clip;
+}
+
+.vx-end__grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: var(--grid-gutter);
+  align-items: start;
+}
+@media (max-width: 860px) { .vx-end__grid { grid-template-columns: repeat(6, 1fr); } }
+
+.vx-end__rows { grid-column: 1 / span 5; }
+@media (max-width: 860px) { .vx-end__rows { grid-column: 1 / span 6; } }
+
+.vx-end__block { grid-column: 7 / span 6; }
+@media (max-width: 860px) { .vx-end__block { grid-column: 1 / span 6; margin-top: 42px; } }
+
+/* The redaction. Sixteen filled cells; the last is a different grey and
+   nothing anywhere accounts for it. */
+.vx-end__redaction { display: flex; gap: 2px; flex-wrap: wrap; }
+.vx-end__redaction i {
+  display: block;
+  width: clamp(14px, 2.1vw, 26px);
+  height: clamp(14px, 2.1vw, 26px);
+  background: var(--vx-raise);
+}
+.vx-end__redaction i:last-child { background: var(--vx-plate-2); }
+
+.vx-end__mark {
+  margin-top: clamp(48px, 10vw, 120px);
+  font-family: var(--vx-grotesk);
+  font-weight: 600;
+  font-size: clamp(58px, 19vw, 300px);
+  line-height: 0.74;
+  letter-spacing: -0.05em;
+  color: var(--vx-plate-2);
+  white-space: nowrap;
+  user-select: none;
+  /* Clipped by the end of the document rather than by a container. */
+  margin-bottom: -0.18em;
+  transition: color var(--dur-long) var(--ease-mech);
+}
+.vx-end:hover .vx-end__mark { color: var(--vx-raise); }
+
+.vx-end__base {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 18px;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--vx-line);
+  padding: 14px 0 clamp(24px, 5vw, 56px);
+  color: var(--vx-mute);
+}
+.vx-end__aside { color: var(--vx-mute); }

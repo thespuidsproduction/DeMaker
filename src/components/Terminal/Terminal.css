@@ -1,0 +1,90 @@
+/* REMNANT
+   A console that controls nothing. It is set as a real form with a real
+   label, a real submit and a real live region, so that it can be operated
+   entirely by keyboard and read aloud correctly — and then it answers
+   with nonsense, which is the only part that is pretending. */
+
+.vx-term {
+  display: grid;
+  grid-template-columns: minmax(0, 8fr) minmax(0, 4fr);
+  gap: calc(var(--grid-gutter) * 2);
+  align-items: start;
+}
+@media (max-width: 1000px) { .vx-term { grid-template-columns: 1fr; gap: 34px; } }
+
+.vx-term__shell {
+  background: var(--vx-sub);
+  border: 1px solid var(--vx-line-2);
+  min-height: 330px;
+  display: flex;
+  flex-direction: column;
+}
+
+.vx-term__bar {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 9px 13px;
+  border-bottom: 1px solid var(--vx-line);
+  color: var(--vx-mute);
+}
+
+.vx-term__log {
+  flex: 1;
+  padding: 14px 13px;
+  overflow-y: auto;
+  max-height: 46vh;
+  font-family: var(--vx-mono);
+  font-size: var(--t-small);
+  line-height: 1.75;
+  letter-spacing: 0.06em;
+  color: var(--vx-read);
+  scrollbar-width: thin;
+}
+.vx-term__log::-webkit-scrollbar { width: 2px; }
+.vx-term__log::-webkit-scrollbar-thumb { background: var(--vx-edge); }
+
+.vx-term__echo { color: var(--vx-bright); }
+.vx-term__echo::before { content: '> '; color: var(--vx-mute); }
+.vx-term__out { color: var(--vx-read); white-space: pre-wrap; }
+.vx-term__out[data-tone="ox"] { color: var(--vx-ox); }
+.vx-term__gap { height: 10px; }
+
+.vx-term__form {
+  display: grid;
+  grid-template-columns: 16px 1fr auto;
+  gap: 8px;
+  align-items: center;
+  border-top: 1px solid var(--vx-line);
+  padding: 10px 13px;
+}
+.vx-term__caret { color: var(--vx-mute); font-family: var(--vx-mono); font-size: var(--t-small); }
+
+.vx-term__input {
+  width: 100%;
+  background: transparent;
+  border: 0;
+  color: var(--vx-bright);
+  font-family: var(--vx-mono);
+  font-size: var(--t-small);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 2px 0;
+}
+.vx-term__input::placeholder { color: var(--vx-mute); letter-spacing: 0.2em; }
+.vx-term__input:focus { outline: none; }
+.vx-term__form:focus-within { background: var(--vx-plate); }
+
+.vx-term__send {
+  font-family: var(--vx-mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.2em;
+  color: var(--vx-mute);
+  border: 1px solid var(--vx-line-2);
+  padding: 5px 9px;
+  transition: color var(--dur-react) linear, border-color var(--dur-react) linear;
+}
+.vx-term__send:hover { color: var(--vx-clear); border-color: var(--vx-line-3); }
+
+.vx-term__side { display: grid; gap: 20px; }
+.vx-term__side p { color: var(--vx-mute); max-width: 32ch; }

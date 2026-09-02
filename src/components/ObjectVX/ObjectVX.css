@@ -1,0 +1,91 @@
+/* OBJECT / VX-000
+   The largest thing in VRAXXIS. It is given the full measure, a black
+   plate, and no explanation. Its metadata is set beside it as a manifest,
+   which is the only clue that anybody ever catalogued it. */
+
+.vx-obj {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(240px, 5fr);
+  gap: calc(var(--grid-gutter) * 2);
+  align-items: stretch;
+}
+@media (max-width: 1000px) { .vx-obj { grid-template-columns: 1fr; } }
+
+.vx-obj__stage {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  max-height: 74vh;
+  background:
+    radial-gradient(ellipse at 50% 44%, var(--vx-plate-2) 0%, var(--vx-sub) 46%, var(--vx-void) 78%);
+  border: 1px solid var(--vx-line);
+  touch-action: none;
+  overflow: hidden;
+}
+@media (max-width: 1000px) {
+  /* Between 861 and 1000 the manifest drops below the plate, but the rail
+     is still there — so the plate keeps its frame and stays on the measure. */
+  .vx-obj__stage { aspect-ratio: 1 / 1; }
+}
+
+@media (max-width: 860px) {
+  /* Below the rail the object stops being an exhibit and becomes the room:
+     it takes the full width of the device, edge to edge. Bleeding it any
+     wider than this would run it underneath the navigation column. */
+  .vx-obj__stage {
+    margin-left: calc(var(--grid-margin) * -1);
+    margin-right: calc(var(--grid-margin) * -1);
+    border-left: 0; border-right: 0;
+    aspect-ratio: 1 / 1.08;
+    max-height: none;
+  }
+}
+
+.vx-obj__canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+.vx-obj__id {
+  position: absolute;
+  left: 14px; top: 12px;
+  color: var(--vx-mute);
+  pointer-events: none;
+}
+.vx-obj__hint {
+  position: absolute;
+  right: 14px; bottom: 12px;
+  color: var(--vx-mute);
+  pointer-events: none;
+  transition: opacity 600ms linear;
+}
+.vx-obj__hint[data-spent="1"] { opacity: 0; }
+
+/* The depth readout climbs the left edge of the stage as layers open. */
+.vx-obj__depth {
+  position: absolute;
+  left: 14px; bottom: 12px;
+  display: flex;
+  gap: 3px;
+  align-items: flex-end;
+  pointer-events: none;
+}
+.vx-obj__depth i {
+  display: block;
+  width: 3px; height: 6px;
+  background: var(--vx-edge);
+  transition: height 320ms var(--ease-mech), background-color 320ms linear;
+}
+.vx-obj__depth i[data-open="1"] { height: 14px; background: var(--vx-read); }
+.vx-obj__depth i[data-open="1"]:last-child { background: var(--vx-ox); }
+
+.vx-obj__manifest { display: flex; flex-direction: column; gap: 22px; padding-top: 4px; }
+@media (max-width: 1000px) { .vx-obj__manifest { padding-top: 32px; } }
+
+.vx-obj__manifest-head {
+  font-family: var(--vx-grotesk);
+  font-size: clamp(22px, 3.4vw, 40px);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: var(--vx-bright);
+  line-height: 1;
+}
+.vx-obj__manifest-sub { color: var(--vx-mute); margin-top: 8px; }
+
+.vx-obj__note { color: var(--vx-mute); max-width: 30ch; }
