@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { SITE } from "@/content/site";
 import { useGsapSetup, gsap, prefersReducedMotion, trackSpecular } from "@/lib/motion";
+import { useToast } from "./Toast";
 import { EngravedRule, CoordinateRose } from "./Ornament";
 
 type Status = "unknown" | "ready" | "offline";
@@ -37,6 +38,7 @@ export function Channel() {
   const consoleRef = useRef<HTMLDivElement>(null);
   const pulseRef = useRef<HTMLSpanElement>(null);
   const firstFieldRef = useRef<HTMLInputElement>(null);
+  const { push } = useToast();
 
   useGsapSetup();
 
@@ -167,21 +169,48 @@ export function Channel() {
             openedAt: openedAt.current,
           }),
         });
-        const json = (await res.json()) as { ok?: boolean; hint?: string };
+        const json = (await res.json()) as { ok?: boolean; hint?: string; code?: string };
+
         if (res.ok && json.ok) {
           setPhase("sent");
           fireInk();
           firePulse();
-        } else {
-          setError(json.hint || "Transmission refused.");
-          setPhase("error");
+          push({
+            tone: "ok",
+            title: "Message received.",
+            body: "It reached a person, not a queue. Expect a reply.",
+          });
+          return;
         }
-      } catch {
-        setError("No route to the channel. Check your connection.");
+
+        // Say which part went wrong and what to do about it. "Something went
+        // wrong" tells the sender nothing and leaves them with no next move.
+        const hint = json.hint || "Transmission refused.";
+        const advice: Record<string, string> = {
+          timing: "Close the channel and open it again, then resend.",
+          name: "Add a name and try again.",
+          replyTo: "Check the reply address and try again.",
+          message: "Adjust the length and try again.",
+          rate: "You have sent a few already. Try again in a little while.",
+          busy: "The channel is saturated. Try again in a moment.",
+          offline: "Nothing you did. The channel has no delivery route set up yet.",
+          transport: "Your message was not lost, it just was not accepted. Try again shortly.",
+        };
+        setError(hint);
         setPhase("error");
+        push({
+          tone: "fail",
+          title: json.code === "offline" ? "Channel offline." : "Not sent.",
+          body: `${hint} ${advice[json.code ?? ""] ?? ""}`.trim(),
+        });
+      } catch {
+        const hint = "No route to the channel. Check your connection and try again.";
+        setError(hint);
+        setPhase("error");
+        push({ tone: "fail", title: "Could not reach the channel.", body: hint });
       }
     },
-    [phase, firePulse, fireInk],
+    [phase, firePulse, fireInk, push],
   );
 
   const statusText =
@@ -200,7 +229,7 @@ export function Channel() {
   return (
     <section ref={sectionRef} id="contact" className="movement ch" aria-labelledby="ch-heading">
       <div className="shell">
-        <span className="t-label ch-eyebrow">§ 09 / Contact</span>
+        <span className="t-label ch-eyebrow">§ 10 / Contact</span>
 
         <h2 id="ch-heading" className="ch-statement t-display">
           <span className="sr-only">Let&rsquo;s build something that should not exist yet.</span>

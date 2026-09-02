@@ -69,6 +69,8 @@ src/
     Profile.tsx             Editorial page, handwritten signature
     Channel.tsx             The contact console
     Ambient.tsx             The pulse: mote, trace line, header readout
+    Atlas.tsx               Mercator folding into an orthographic globe
+    Toast.tsx               Send and failure notices
     Lens.tsx                A piece of glass that follows the pointer
     Intro.tsx               The curtain, once per session, always skippable
     Ticker.tsx              The drifting strip, pushed by scroll velocity
@@ -82,6 +84,7 @@ src/
     theme.ts                Pre-paint theme boot script
   content/
     site.ts                 Single source of truth for every string on the page
+    world.ts                Land outlines as lon/lat, for client-side projection
 public/
   .well-known/              See .well-known/README.md
   humans.txt llms.txt
@@ -184,6 +187,38 @@ before being covered up. Any input at all, pointer, wheel, touch, Esc, Space,
 Enter, jumps it straight to the parting: a full run is ~2.8s, a skipped one
 ~0.9s. A CSS failsafe uncovers the page after six seconds if the script never
 runs at all, and `<noscript>` removes it entirely.
+
+### The atlas
+
+Mercator's projection of 1569 folding into an orthographic globe. Both are
+computed from the same `[lon, lat]` rings every frame and blended by a single
+value, so the transition is a real reprojection rather than a crossfade between
+two pictures. Points on the far side are drawn on their own path at an opacity
+that falls to zero as the sphere closes, which is what makes the flat map look
+like it is wrapping rather than cutting away. Drag to turn the globe; it always
+drifts back to the view that shows the marker.
+
+The outlines are Natural Earth 110m land, decoded from TopoJSON and simplified
+with Douglas-Peucker to 98 rings and 2,327 points, about 30KB. Two details that
+a naive projection gets wrong and this one does not: rings crossing the
+antimeridian have their path broken rather than being drawn as a stroke back
+across the whole map, and the Mercator is scaled from its height so the
+latitude cut-off is a deliberate choice rather than a coastline sliced off
+mid-shape.
+
+Only the country is marked. Nothing more precise is published, here or
+anywhere else on the site.
+
+### Notices
+
+Send and failure both surface as a toast: the convention people already know,
+in this site's material. A success dismisses itself after six seconds. A
+failure does not, because a message that did not send is something the sender
+needs to see and act on, and a notice that vanishes on its own can be missed.
+
+Failures say which part went wrong and what to do about it, drawn from the
+error code the API returned. "Something went wrong" tells the sender nothing
+and leaves them with no next move.
 
 ### The strip
 

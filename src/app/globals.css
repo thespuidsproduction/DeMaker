@@ -1420,7 +1420,8 @@ svg {
 .footer-base {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem 1.5rem;
+  align-items: center;
+  gap: 0.25rem 1.5rem;
   margin-top: clamp(1.75rem, 3vw, 2.5rem);
   padding-top: 1rem;
   border-top: 1px solid var(--rule);
@@ -1430,6 +1431,11 @@ svg {
 }
 
 .footer-sec {
+  /* Padded to a comfortable target rather than the height of 9px type. */
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding-block: 0.35rem;
   transition: color 300ms var(--ease-door);
 }
 
@@ -1913,7 +1919,7 @@ svg {
   appearance: none;
   background: none;
   border: 0;
-  padding: 0.85rem 0 0;
+  padding: 0.85rem 0.5rem 0.5rem 0;
   margin: 0;
   cursor: pointer;
   color: var(--fg-faint);
@@ -2326,7 +2332,8 @@ svg {
   background: none;
   border: 0;
   border-bottom: 1px solid var(--rule-strong);
-  padding: 0 0 0.5rem;
+  /* Padded to clear the minimum target size on a touchscreen. */
+  padding: 0.4rem 0 0.6rem;
   display: inline-flex;
   align-items: center;
   gap: 0.6rem;
@@ -3868,4 +3875,393 @@ svg {
   fill: var(--fg-faint);
   opacity: 0.55;
   pointer-events: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   THE ATLAS
+   Mercator folding into a globe. Both projections are computed from the same
+   coordinates every frame, so the transition is a real reprojection.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.atlas {
+  display: grid;
+  gap: clamp(1.25rem, 2.5vw, 2rem);
+}
+
+.atlas-head {
+  display: grid;
+  gap: 1.25rem;
+  align-items: end;
+}
+
+@media (min-width: 900px) {
+  .atlas-head {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 2rem;
+  }
+}
+
+.atlas-lede {
+  margin: 0;
+}
+
+.atlas-controls {
+  display: inline-flex;
+  border: 1px solid var(--rule-strong);
+  border-radius: 2px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--bg-veil) 45%, transparent);
+  align-self: start;
+  width: fit-content;
+}
+
+.atlas-toggle {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0.65rem 1.05rem;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+  cursor: pointer;
+  transition: color 300ms var(--ease-door), background 400ms var(--ease-door);
+}
+
+.atlas-toggle + .atlas-toggle {
+  border-left: 1px solid var(--rule);
+}
+
+.atlas-toggle:hover {
+  color: var(--fg);
+}
+
+.atlas-toggle-on {
+  background: var(--fg);
+  color: var(--bg);
+}
+
+/* A plate, not a band. The projection is close to square at this latitude
+   cut-off, so stretching it across the full column would leave the map
+   stranded in the middle of its own frame. */
+.atlas-frame {
+  position: relative;
+  /* `margin: auto` on a grid item cancels the stretch and shrink-wraps it to
+     content, which for an SVG sized at 100% collapses to almost nothing.
+     justify-self centres it while an explicit width keeps it filling. */
+  width: 100%;
+  max-width: 46rem;
+  justify-self: center;
+  margin: 0;
+  padding: clamp(0.6rem, 1.4vw, 1.1rem);
+  overflow: hidden;
+}
+
+.atlas-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  touch-action: pan-y;
+  cursor: grab;
+}
+
+.atlas-svg.atlas-grabbing {
+  cursor: grabbing;
+}
+
+.atlas-land {
+  fill: none;
+  stroke: var(--fg-muted);
+  stroke-width: 1;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Identical to the near side. The only difference is opacity, which the
+   render loop drives, so a flat map never looks like two different maps. */
+.atlas-land-back {
+  stroke: var(--fg-muted);
+}
+
+.atlas-grid {
+  fill: none;
+  stroke: var(--rule-strong);
+  stroke-width: 1;
+  opacity: 0.4;
+  vector-effect: non-scaling-stroke;
+}
+
+.atlas-rim {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+/* ── The marker ───────────────────────────────────────────────────────── */
+
+.atlas-mark {
+  pointer-events: none;
+}
+
+.atlas-dot {
+  fill: var(--accent);
+}
+
+.atlas-ping {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.2;
+  vector-effect: non-scaling-stroke;
+  transform-origin: center;
+  transform-box: fill-box;
+  animation: atlas-ping 2.8s var(--ease-door) infinite;
+}
+
+.atlas-ping-2 {
+  animation-delay: 1.4s;
+}
+
+@keyframes atlas-ping {
+  0% {
+    transform: scale(0.35);
+    opacity: 0.9;
+  }
+  70% {
+    opacity: 0;
+  }
+  100% {
+    transform: scale(4.2);
+    opacity: 0;
+  }
+}
+
+.atlas-leader {
+  stroke: var(--accent);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.7;
+}
+
+.atlas-tag-plate {
+  fill: color-mix(in srgb, var(--bg) 82%, transparent);
+  stroke: var(--rule);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.atlas-tag {
+  font-family: var(--font-hand);
+  font-size: 30px;
+  font-weight: 700;
+  fill: var(--accent-ink);
+}
+
+.atlas-tag-sub {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  fill: var(--fg-faint);
+}
+
+.atlas-rose {
+  position: absolute;
+  right: clamp(0.75rem, 2vw, 1.6rem);
+  bottom: clamp(2.2rem, 4vw, 3rem);
+  width: clamp(42px, 5vw, 66px);
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.atlas-caption {
+  margin: 0.6rem 0 0;
+  font-size: 0.625rem;
+  letter-spacing: 0.12em;
+  color: var(--fg-faint);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atlas-ping {
+    animation: none;
+    opacity: 0.35;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   TOASTS
+   The convention people already know, in this site's material.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.toasts {
+  position: fixed;
+  z-index: 120;
+  right: clamp(0.75rem, 2vw, 1.5rem);
+  bottom: clamp(0.75rem, 2vw, 1.5rem);
+  left: clamp(0.75rem, 2vw, 1.5rem);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.6rem;
+  pointer-events: none;
+}
+
+@media (min-width: 620px) {
+  .toasts {
+    left: auto;
+    max-width: 24rem;
+  }
+}
+
+.toast {
+  position: relative;
+  /* A toast lands on top of whatever is already there, which on this site is
+     usually more glass. Two translucent layers stacked are unreadable, so
+     this one keeps the material but sits on a near-opaque ground. */
+  background:
+    linear-gradient(140deg, var(--glass-tint) 0%, var(--glass-tint-2) 46%, var(--glass-tint) 100%),
+    color-mix(in srgb, var(--bg) 94%, transparent);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 0.7rem;
+  padding: 0.9rem 0.9rem 1rem;
+  overflow: hidden;
+  pointer-events: auto;
+  animation: toast-in 620ms var(--ease-door) both;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.97);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}
+
+/* A hairline of the tone's own colour down the leading edge. */
+.toast-rule {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 2px;
+  background: currentColor;
+  opacity: 0.85;
+}
+
+.toast-ok {
+  color: var(--sage-ink);
+}
+
+.toast-fail {
+  color: var(--accent-ink);
+}
+
+.toast-note {
+  color: var(--dusty);
+}
+
+.toast-mark {
+  display: grid;
+  place-items: center;
+  padding-top: 0.1rem;
+}
+
+.toast-draw {
+  stroke-dasharray: 30;
+  stroke-dashoffset: 30;
+  animation: toast-draw 520ms var(--ease-door) 140ms forwards;
+}
+
+@keyframes toast-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.toast-body {
+  display: grid;
+  gap: 0.28rem;
+  min-width: 0;
+}
+
+.toast-title {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--fg);
+}
+
+.toast-text {
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--fg-muted);
+}
+
+.toast-close {
+  appearance: none;
+  background: none;
+  border: 0;
+  /* 30 x 30, comfortably past the 24px minimum target size. */
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  margin: -0.35rem -0.3rem 0 0;
+  padding: 0;
+  cursor: pointer;
+  color: var(--fg-faint);
+  transition: color 260ms var(--ease-door), transform 260ms var(--ease-door);
+}
+
+.toast-close:hover {
+  color: var(--fg);
+  transform: rotate(90deg);
+}
+
+.toast-life {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 1px;
+  width: 100%;
+  background: currentColor;
+  opacity: 0.5;
+  transform-origin: left center;
+  animation-name: toast-life;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+@keyframes toast-life {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast {
+    animation: none;
+  }
+  .toast-draw {
+    stroke-dashoffset: 0;
+    animation: none;
+  }
+}
+
+/* The wordmark is a link, so it needs a target, not just a glyph. */
+.nav-mark {
+  min-height: 32px;
+  align-items: center !important;
+  padding-right: 0.4rem;
 }

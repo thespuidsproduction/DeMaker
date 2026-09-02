@@ -71,7 +71,11 @@ export function Nav() {
           height: "clamp(52px, 5.4vw, 66px)",
         }}
       >
-        <a href="#identity" style={{ display: "flex", alignItems: "baseline", gap: "0.6rem" }}>
+        <a
+          href="#identity"
+          className="nav-mark"
+          style={{ display: "flex", alignItems: "baseline", gap: "0.6rem" }}
+        >
           <span
             style={{
               fontWeight: 900,

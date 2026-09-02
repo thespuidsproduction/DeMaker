@@ -235,7 +235,7 @@ export function Chart() {
   const empty = !mounted || stars.length === 0;
 
   return (
-    <Movement id="chart" index="§ 08" title="Your Chart" aside="what you found">
+    <Movement id="chart" index="§ 09" title="Your Chart" aside="what you found">
       <div className="chart">
         <div className="chart-sky glass glass-plate corners">
           <svg

@@ -5,6 +5,8 @@ import { Lens } from "@/components/Lens";
 import { Ticker } from "@/components/Ticker";
 import { Vine } from "@/components/Vine";
 import { Chart } from "@/components/Chart";
+import { Atlas } from "@/components/Atlas";
+import { ToastProvider } from "@/components/Toast";
 import { Nav } from "@/components/Nav";
 import { Hero } from "@/components/Hero";
 import { Manifesto } from "@/components/Manifesto";
@@ -27,6 +29,7 @@ import { OpticalDefs } from "@/components/Optical";
  *   Measured  four numerals and nothing else — silence again
  *   Agent     a compact machine that grows when touched
  *   Profile   editorial, quiet, handwritten
+ *   Atlas     Mercator folding into a globe
  *   Chart     the sky of everything you opened
  *   Channel   a console
  *   Footer    almost nothing
@@ -34,6 +37,7 @@ import { OpticalDefs } from "@/components/Optical";
 export default function Page() {
   return (
     <TraceProvider>
+      <ToastProvider>
       <a className="skip-link" href="#main">
         Skip to content
       </a>
@@ -63,11 +67,13 @@ export default function Page() {
         <Credibility />
         <AgentLab />
         <Profile />
+        <Atlas />
         <Chart />
         <Channel />
       </main>
 
       <Footer />
+      </ToastProvider>
     </TraceProvider>
   );
 }
