@@ -28,7 +28,7 @@
   font-variant-numeric: tabular-nums;
   line-height: 1.05;
 }
-.vx-tracebay__big span { color: var(--vx-mute); }
+.vx-tracebay__big span:nth-child(2) { color: var(--vx-mute); }
 
 .vx-tracebay__ledger ol {
   border-top: 1px solid var(--vx-line);

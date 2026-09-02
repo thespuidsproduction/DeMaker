@@ -1,4 +1,4 @@
-import { keyed, pick, rng, seedFrom } from './rng';
+import { keyed, pick } from './rng';
 
 /**
  * THE SESSION.
@@ -32,9 +32,6 @@ function draw(): string {
 
 /** Drawn once, at load. Never written anywhere and never transmitted. */
 export const SESSION = draw();
-
-/** The session's own generator, for one-off draws made during setup. */
-export const sessionRng = rng(seedFrom(SESSION));
 
 /** Deterministic within this visit, unpredictable across visits. */
 export const skeyed = (key: string, min = 0, max = 1) => keyed(`${SESSION}/${key}`, min, max);

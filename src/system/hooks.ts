@@ -62,36 +62,6 @@ export function useMedia(query: string): boolean {
 /** Coarse pointers get a different manifestation of the interface. */
 export const useCoarsePointer = () => useMedia('(hover: none), (pointer: coarse)');
 
-/**
- * Pointer position, sampled into a ref and never into state.
- * Reading it costs nothing; nothing re-renders because a mouse moved.
- */
-export interface PointerState { x: number; y: number; vx: number; vy: number; active: boolean; t: number; }
-
-export function usePointerRef() {
-  const ref = useRef<PointerState>({ x: -9999, y: -9999, vx: 0, vy: 0, active: false, t: 0 });
-  useEffect(() => {
-    const onMove = (e: PointerEvent) => {
-      const p = ref.current;
-      const now = performance.now();
-      const dt = Math.max(now - p.t, 1);
-      p.vx = (e.clientX - p.x) / dt;
-      p.vy = (e.clientY - p.y) / dt;
-      p.x = e.clientX; p.y = e.clientY; p.t = now; p.active = true;
-    };
-    const onLeave = () => { ref.current.active = false; };
-    window.addEventListener('pointermove', onMove, { passive: true });
-    window.addEventListener('pointerdown', onMove, { passive: true });
-    document.addEventListener('pointerleave', onLeave);
-    return () => {
-      window.removeEventListener('pointermove', onMove);
-      window.removeEventListener('pointerdown', onMove);
-      document.removeEventListener('pointerleave', onLeave);
-    };
-  }, []);
-  return ref;
-}
-
 /** Element visibility. Used to suspend work that nobody is looking at. */
 export function useInView<T extends Element>(
   opts: IntersectionObserverInit = { rootMargin: '15% 0px', threshold: 0 }

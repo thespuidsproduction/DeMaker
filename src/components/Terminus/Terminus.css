@@ -41,7 +41,7 @@
   font-weight: 600;
   font-size: clamp(58px, 19vw, 300px);
   line-height: 0.74;
-  letter-spacing: -0.05em;
+  letter-spacing: var(--tr-display);
   color: var(--vx-plate-2);
   white-space: nowrap;
   user-select: none;

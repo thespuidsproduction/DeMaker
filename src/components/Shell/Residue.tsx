@@ -38,6 +38,7 @@ export function Residue({
   const armed = useRef(false);
   const nudge = useRef(0);
   const t0 = useRef(0);
+  const lastTick = useRef(-1);
 
   // Composition of this field, fixed for the visit before it is ever seen.
   const has = {
@@ -63,6 +64,10 @@ export function Residue({
     if (!has.count || !countEl.current) return;
     if (t0.current === 0) t0.current = t;
     const ticks = Math.floor((t - t0.current) / 1400);
+    // It advances every 1.4 seconds. It is not written eighty-four times
+    // between one advance and the next.
+    if (ticks === lastTick.current) return;
+    lastTick.current = ticks;
     countEl.current.textContent = pad(base + ticks, 6);
   }, inView && has.count && !reduced);
 

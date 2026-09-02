@@ -35,9 +35,6 @@ export function pick<T>(key: string, list: readonly T[]): T {
   return list[Math.floor(keyed(key, 0, list.length)) % list.length];
 }
 
-export const clamp = (v: number, a: number, b: number) => (v < a ? a : v > b ? b : v);
-export const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
-
 /** Fixed-width zero pad. Used everywhere; the system is fond of columns. */
 export const pad = (n: number, w = 4) => String(Math.abs(Math.trunc(n))).padStart(w, '0');
 

@@ -46,6 +46,22 @@
   --t-base:   13px;
   --t-lift:   16px;
 
+  /* Optical tracking. Letterspacing is not a taste — it is a function of
+     size, and the function is inverse. Small type opens up because the
+     counters close at small sizes; display type closes up because at 300px
+     the default fit reads as a gap. Every tracking value in this build
+     comes from this scale, so the whole page is spaced by one rule. */
+  --tr-micro:  0.20em;
+  --tr-meta:   0.16em;
+  --tr-small:  0.12em;
+  --tr-base:   0.06em;
+  --tr-lift:   0.02em;
+  --tr-display: -0.045em;
+  /* Two open settings, for the places that are meant to feel spaced out
+     rather than merely set: the wordmark, and anything vertical. */
+  --tr-wide:   0.34em;
+  --tr-widest: 0.50em;
+
   /* --- ARCHITECTURAL GRID ------------------------------------------- */
   /* 12 columns. The grid is correct. The contents are not. */
   --grid-cols: 12;

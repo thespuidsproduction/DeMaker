@@ -2,9 +2,33 @@
 
 `ENTITY: UNRESOLVED / CLASSIFICATION: FAILED / PURPOSE: NON-CRITICAL / STATUS: OBSERVING`
 
-A digital artefact that does not believe it is a website. Black, institutional,
-diagnostic; it presents itself as an interface for something that was never
-meant to be interacted with, and declines to say what.
+## What this is
+
+A digital artefact that does not believe it is a website.
+
+It presents itself as the operating surface of something that was never meant
+to be operated by a person — a register, an object, an archive that has
+recovered nothing, a console with no privileges — and it declines, at every
+point, to say what any of it is for. There is nothing to buy, nothing to sign
+up to, nothing to discover more about. It is not a story and it is not a
+puzzle: there is no ending and nothing to solve. It simply exists, keeps its
+own time, and behaves as though it has been running for a while and will
+carry on after you close the tab.
+
+**What it is not:** it is not hacker-coded. No terminal green, no neon, no
+Matrix rain, no glitch-art, no "cyber". The register was pointedly not built
+as a shell — inputs are *filed under an ordinal*, the way an archive files
+things, because a command prompt is what everybody reaches for and reaching
+for it would have made this the same page as every other dark mysterious
+site. The reference points are closer to a specimen sheet, a medical chart,
+a machine's own diagnostic panel, and a filing system that outlived whatever
+it was filing. Sterile and institutional rather than dark and dangerous. The
+palette is near-black and dirty grey with a single oxidised orange that
+appears perhaps four times a screen, and the whole thing is set at the
+density of a technical document.
+
+The intended feeling is not *ooh, mysterious.* It is: **something is
+happening here, and it is not happening for me.**
 
 The rule the whole build is held to: **the chaos is visual, the engineering is
 disciplined.** Nothing here is random, nothing leaks, nothing is inaccessible
@@ -208,6 +232,51 @@ Strangeness is not an excuse, and none of the following was traded away:
   information, not the behaviour.
 
 ---
+
+## Craft notes
+
+Things that are easy to get wrong and were not left wrong:
+
+- **One tracking scale.** Letterspacing is a function of size, not a taste,
+  and the function is inverse — small type opens because its counters close,
+  display type closes because at 300px the default fit reads as a gap. Every
+  tracking value in the build comes from `--tr-*` in `tokens.css`, so the
+  whole page is spaced by one rule. There is exactly one deliberate
+  exception, and it is commented as one.
+- **`font-synthesis: none`.** Faux bold on a grotesk is the single most
+  visible sign that nobody was watching the type.
+- **Nothing is written to the DOM on a frame where it has not changed.** The
+  live pointer readout assigns two text nodes only when the digits differ;
+  a residue count that advances every 1.4 seconds is not written eighty-four
+  times between advances; the cursor's coordinate is written on movement, not
+  on frames.
+- **Structural greys never set type.** `--vx-edge` and the hairline tokens
+  draw rules, ticks and borders and nothing else, which is why the contrast
+  audit comes back empty.
+- **Figures never reflow.** Tabular numerals throughout, so a changing number
+  cannot nudge the number beside it.
+- **Statements are balanced, not filled.** They are the only prose on the
+  page; a bad rag on them is visible from across a room.
+- **The archive stops at the measure.** Bleeding the track wider put its last
+  label under the document ruler, and a collision with a fixed overlay reads
+  as a mistake. The cue that it continues is a cell cut in half at the edge.
+- **No dead code.** The helpers, hooks and rules that the amendments made
+  redundant were removed rather than left in place.
+
+## Other forms
+
+Two states most sites never consider, both handled explicitly:
+
+- **`prefers-contrast: more`** lifts the ink and every hairline. VRAXXIS is
+  built almost entirely out of near-black surfaces and 7%-opacity rules —
+  exactly the kind of interface that dissolves under that setting.
+- **`forced-colors: active`** restates every rule as a real border (a forced
+  palette does not render a background as one), drops the apparatus that
+  cannot survive it, and brings the hidden rail labels back as words, since
+  the hairline standing in for them would not render.
+- **Print** is not a screenshot. It is what an archive would hold if somebody
+  had filed this: black on white, every region printing its name whatever
+  depth it reached on screen, screen-only apparatus gone, `@page` margins.
 
 ## Performance
 

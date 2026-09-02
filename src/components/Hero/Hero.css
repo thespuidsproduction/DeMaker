@@ -24,7 +24,7 @@
   font-weight: 600;
   font-size: clamp(96px, 23vw, 340px);
   line-height: 0.78;
-  letter-spacing: -0.045em;
+  letter-spacing: var(--tr-display);
   color: var(--vx-bright);
   white-space: nowrap;
   will-change: transform;
@@ -55,7 +55,7 @@
   font-weight: 600;
   font-size: clamp(96px, 23vw, 340px);
   line-height: 0.78;
-  letter-spacing: -0.045em;
+  letter-spacing: var(--tr-display);
   color: transparent;
   -webkit-text-stroke: 1px rgba(255,255,255,0.05);
   white-space: nowrap;
@@ -96,7 +96,7 @@
   top: 42%;
   writing-mode: vertical-rl;
   text-orientation: mixed;
-  letter-spacing: 0.5em;
+  letter-spacing: var(--tr-widest);
   color: var(--vx-mute);
   white-space: nowrap;
 }

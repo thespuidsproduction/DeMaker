@@ -16,6 +16,7 @@ export function Cursor() {
 
   const target = useRef({ x: -100, y: -100 });
   const shown = useRef({ x: -100, y: -100 });
+  const printed = useRef('');
 
   useEffect(() => {
     if (coarse) return;
@@ -77,7 +78,8 @@ export function Cursor() {
     s.y += (t.y - s.y) * 0.55;
     el.style.transform = `translate3d(${s.x.toFixed(1)}px, ${s.y.toFixed(1)}px, 0)`;
     if (el.dataset.coord === '1' && coordRef.current) {
-      coordRef.current.textContent = coord(Math.round(t.x), Math.round(t.y));
+      const c = coord(Math.round(t.x), Math.round(t.y));
+      if (c !== printed.current) { coordRef.current.textContent = c; printed.current = c; }
     }
   }, !coarse);
 

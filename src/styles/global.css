@@ -8,7 +8,16 @@ html {
   background: var(--vx-void);
   -webkit-text-size-adjust: 100%;
   scrollbar-color: var(--vx-edge) var(--vx-void);
+  scrollbar-width: thin;
 }
+
+/* One scrollbar treatment for the whole artefact: a hairline in the edge
+   grey, no track, no buttons, no rounding. It is a ruler, not a control. */
+::-webkit-scrollbar { width: 2px; height: 2px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--vx-edge); }
+::-webkit-scrollbar-thumb:hover { background: var(--vx-mute); }
+::-webkit-scrollbar-corner { background: transparent; }
 
 body {
   margin: 0;
@@ -22,6 +31,12 @@ body {
   text-rendering: optimizeLegibility;
   overflow-x: hidden;
   overscroll-behavior-y: none;
+  /* Never let a browser draw a weight or a slant the family does not have.
+     Faux bold on a grotesk is the single most obvious sign that nobody was
+     paying attention to the type. */
+  font-synthesis: none;
+  /* Touch should not paint a translucent rectangle over the composition. */
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* The pointer is replaced. It is not hidden from assistive technology,
@@ -38,7 +53,17 @@ a { color: inherit; text-decoration: none; }
 svg { display: block; }
 canvas { display: block; }
 
+/* Selection is one of the four places the accent is allowed. The observer
+   marking a passage is the interface being read, which it should
+   acknowledge. */
 ::selection { background: var(--vx-ox-dim); color: var(--vx-bright); }
+
+/* A caret in the accent: the one moving thing in VRAXXIS the observer owns. */
+input, textarea { caret-color: var(--vx-ox); }
+
+/* Landing on a region should not jam it flush against the top edge — the
+   measure needs air above it or the arrival reads as a jump cut. */
+[id^="vx-"] { scroll-margin-top: clamp(16px, 4vh, 44px); }
 
 /* --- FOCUS -----------------------------------------------------------
    Focus is the one place the accent is permitted freely. A keyboard
@@ -54,7 +79,7 @@ canvas { display: block; }
 .vx-mono {
   font-family: var(--vx-mono);
   font-size: var(--t-meta);
-  letter-spacing: 0.09em;
+  letter-spacing: var(--tr-meta);
   text-transform: uppercase;
   font-variant-numeric: tabular-nums;
 }
@@ -62,11 +87,15 @@ canvas { display: block; }
 .vx-micro {
   font-family: var(--vx-mono);
   font-size: var(--t-micro);
-  letter-spacing: 0.16em;
+  letter-spacing: var(--tr-micro);
   text-transform: uppercase;
   color: var(--vx-mute);
   font-variant-numeric: tabular-nums;
 }
+
+/* Figures never reflow. A number that changes must not move the number
+   beside it, anywhere in this build. */
+.vx-mono, .vx-micro, [class*="vx-"] { font-variant-numeric: tabular-nums; }
 
 .vx-rule {
   height: 1px;
@@ -142,6 +171,92 @@ canvas { display: block; }
 
   /* The archive's plates are the target, not the labels beneath them. */
   .vx-mem__plate { min-height: 148px; }
+}
+
+/* --- HIGH CONTRAST AND FORCED COLOURS ---------------------------------
+   Some observers arrive with the palette overridden at the operating
+   system level. VRAXXIS is almost entirely built out of near-black
+   surfaces and hairlines, which is exactly the kind of interface that
+   disappears under those settings, so it is told what to do rather than
+   left to guess. */
+
+@media (prefers-contrast: more) {
+  :root {
+    --vx-mute:   #9A9A9A;
+    --vx-read:   #C4C4C4;
+    --vx-line:   rgba(255, 255, 255, 0.20);
+    --vx-line-2: rgba(255, 255, 255, 0.32);
+    --vx-line-3: rgba(255, 255, 255, 0.48);
+    --vx-edge:   #4E4E4E;
+    --vx-ox:     #E0743A;
+  }
+}
+
+@media (forced-colors: active) {
+  /* Hairlines are the entire structure here, and a forced palette does not
+     render a background as a border. Every rule in the build is restated
+     as a real border so the architecture survives. */
+  .vx-diag__row,
+  .vx-bay__head,
+  .vx-index__btn,
+  .vx-index__list,
+  .vx-index__frag,
+  .vx-term__shell,
+  .vx-obj__stage,
+  .vx-mem__plate,
+  .vx-end__base { border-color: CanvasText; }
+
+  .vx-grid, .vx-reg, .vx-coords, .vx-trace, .vx-residue { display: none; }
+  .vx-cursor { display: none; }
+  body[data-cursor="synthetic"],
+  body[data-cursor="synthetic"] * { cursor: auto; }
+
+  /* The hidden rail labels come back: a forced palette cannot render the
+     hairline that stood in for them, so the words return instead. */
+  .vx-nav__label[data-shown="0"]::after { display: none; }
+
+  :focus-visible { outline: 2px solid Highlight; outline-offset: 2px; }
+}
+
+/* --- ON PAPER ---------------------------------------------------------
+   VRAXXIS printed is not a screenshot of VRAXXIS. It is what an archive
+   would hold if somebody had filed this: black on white, every region
+   named, every readout legible, and none of the apparatus that only makes
+   sense on a screen. */
+
+@media print {
+  :root {
+    --vx-void: #FFFFFF; --vx-sub: #FFFFFF; --vx-plate: #FFFFFF;
+    --vx-plate-2: #F4F4F4; --vx-raise: #EAEAEA; --vx-edge: #B0B0B0;
+    --vx-mute: #555555; --vx-read: #333333; --vx-clear: #1A1A1A; --vx-bright: #000000;
+    --vx-line: rgba(0,0,0,0.16); --vx-line-2: rgba(0,0,0,0.28); --vx-line-3: rgba(0,0,0,0.42);
+    --vx-ox: #8A3512;
+    --rail: 0px; --rail-r: 0px;
+  }
+  html, body { background: #FFFFFF; color: #333333; }
+
+  /* Screen apparatus does not survive the transfer. */
+  .vx-nav, .vx-nav-m, .vx-grid, .vx-reg, .vx-coords, .vx-trace, .vx-cursor,
+  .vx-boot, .vx-notice, .vx-internal, .vx-stillness, .vx-skip,
+  .vx-residue, .vx-obj__stage, .vx-term__form { display: none !important; }
+
+  /* Every region states its name on paper, whatever depth it had reached
+     on screen — a filed document does not withhold its own headings. Only
+     the headings: descriptions written for a screen reader stay where they
+     are, since paper is not one. */
+  .vx-bay-el > .vx-bay__head > h2.vx-sr {
+    position: static; width: auto; height: auto; clip: auto; clip-path: none;
+    margin: 0; overflow: visible; white-space: normal;
+    font: 500 11px/1.4 var(--vx-grotesk);
+    letter-spacing: var(--tr-wide); text-transform: uppercase;
+  }
+  .vx-bay-el { padding: 0 0 18mm !important; break-inside: avoid; }
+  .vx-bay__head { border-top: 1pt solid #000 !important; border-top-style: solid !important; }
+  .vx-hero__part, .vx-hero__ghost, .vx-end__mark { color: #000; }
+  .vx-hero__part--b { color: #8A8A8A; }
+  .vx-mem__track { flex-direction: column; overflow: visible; }
+  .vx-index__frag { position: static; }
+  @page { margin: 16mm; }
 }
 
 /* --- REDUCED MOTION ---------------------------------------------------

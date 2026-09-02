@@ -14,7 +14,11 @@
   overflow-x: auto;
   overflow-y: hidden;
   padding: 8px 0 34px;
-  margin-right: calc(var(--grid-margin) * -1);
+  /* The track stops at the measure rather than bleeding past it. Running
+     it wider put the last cell underneath the document ruler, and a label
+     colliding with a fixed overlay reads as a mistake, not a decision.
+     The cue that the archive continues is the cell cut in half at the
+     right edge — which is a cleaner signal than one buried under a number. */
   scrollbar-width: thin;
   scroll-snap-type: x proximity;
   overscroll-behavior-x: contain;

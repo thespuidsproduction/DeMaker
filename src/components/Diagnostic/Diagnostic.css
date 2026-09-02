@@ -18,14 +18,14 @@
 .vx-diag__k {
   font-family: var(--vx-mono);
   font-size: var(--t-micro);
-  letter-spacing: 0.2em;
+  letter-spacing: var(--tr-micro);
   text-transform: uppercase;
   color: var(--vx-mute);
 }
 .vx-diag__v {
   font-family: var(--vx-mono);
   font-size: var(--t-small);
-  letter-spacing: 0.14em;
+  letter-spacing: var(--tr-small);
   text-transform: uppercase;
   color: var(--vx-clear);
   font-variant-numeric: tabular-nums;
@@ -43,11 +43,15 @@
   font-family: var(--vx-grotesk);
   font-size: clamp(15px, 1.6vw, 21px);
   font-weight: 400;
-  letter-spacing: 0.02em;
+  letter-spacing: var(--tr-lift);
   line-height: 1.25;
   color: var(--vx-clear);
   max-width: 34ch;
   position: relative;
+  /* A statement is two or three lines long and is the only prose on the
+     page. An ugly rag on it is visible from across a room, so the lines
+     are balanced rather than filled. */
+  text-wrap: balance;
 }
 .vx-statement[data-tone="quiet"] { color: var(--vx-mute); }
 .vx-statement[data-tone="ox"] { color: var(--vx-ox); }
@@ -68,7 +72,7 @@
   gap: 7px;
   font-family: var(--vx-mono);
   font-size: var(--t-micro);
-  letter-spacing: 0.2em;
+  letter-spacing: var(--tr-micro);
   text-transform: uppercase;
   color: var(--vx-mute);
 }

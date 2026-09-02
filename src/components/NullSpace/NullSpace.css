@@ -21,6 +21,8 @@
   transform: translate(-50%, -50%);
   font-family: var(--vx-mono);
   font-size: var(--t-small);
+  /* The one word in the quietest region is set wider than anything else
+     in the build. It is the only deliberate exception to the scale. */
   letter-spacing: 0.6em;
   color: var(--vx-mute);
   text-indent: 0.6em;

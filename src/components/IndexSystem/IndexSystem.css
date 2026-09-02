@@ -26,7 +26,7 @@
   border-bottom: 1px solid var(--vx-line);
   font-family: var(--vx-mono);
   font-size: var(--t-base);
-  letter-spacing: 0.11em;
+  letter-spacing: var(--tr-base);
   text-transform: uppercase;
   color: var(--vx-read);
   transition: color var(--dur-react) linear, background-color var(--dur-react) linear, transform 110ms var(--ease-snap);

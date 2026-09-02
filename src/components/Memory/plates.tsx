@@ -52,19 +52,32 @@ export function Plate({ kind, seed }: { kind: MemoryFragment['plate']; seed: str
   }
 
   if (kind === 'strata') {
+    /* A core sample, not a barcode. Bands vary in depth, in value and in
+       how far they reach across the plate — a band that stops short is
+       the whole difference between geology and a gradient. */
     let y = 0;
     const bands: JSX.Element[] = [];
     for (let i = 0; y < 140; i++) {
       const h = 3 + k(i, 0, 17);
       const g = Math.floor(k(i + 50, 6, 34));
-      bands.push(<rect key={i} x="0" y={y} width="200" height={h} fill={`rgb(${g},${g},${g})`} />);
+      const short = wear(i + 700, 0, 1) < 0.34;
+      const from = short ? k(i + 800, 0, 64) : 0;
+      const to = short ? 200 - k(i + 900, 0, 52) : 200;
+      bands.push(
+        <rect key={i} x={from} y={y} width={to - from} height={h} fill={`rgb(${g},${g},${g})`} />
+      );
+      /* One band in six is separated by a hairline rather than a gap. */
+      if (k(i + 950, 0, 1) < 0.17) {
+        bands.push(<rect key={`r${i}`} x="0" y={y + h} width="200" height="1" fill="#3A3A3A" />);
+      }
       y += h + 1;
     }
     return (
       <svg {...common}>
         <rect width="200" height="140" fill="#050505" />
         {bands}
-        <rect x="0" y="0" width="1" height="140" fill="#666" opacity="0.4" />
+        <rect x="0" y="0" width="1" height="140" fill="#7A7A7A" opacity="0.45" />
+        <rect x="0" y="139" width="200" height="1" fill="#1A1A1A" />
       </svg>
     );
   }
