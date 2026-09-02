@@ -18,7 +18,7 @@ const MIN_STEP = 17;    // px between samples — sparse on purpose
  * deliberate, which is why they are rare.
  */
 export function TraceLayer() {
-  const { reduced } = useSystem();
+  const { reduced, observers } = useSystem();
   const { n, kind } = useAnomaly('signal');
   const coarse = useCoarsePointer();
   /**
@@ -35,6 +35,22 @@ export function TraceLayer() {
   const last = useRef({ x: 0, y: 0 });
   const dpr = useRef(1);
   const dirty = useRef(true);
+
+  /**
+   * THE OTHER PATH.
+   *
+   * Once the object has registered a second observer, the layer
+   * occasionally retains movement that is not the pointer's: a short arc,
+   * laid down over about a second, decaying like everything else and
+   * annotated with nothing, because it does not annotate.
+   *
+   * It happens perhaps twice in an hour. It is never on screen at the same
+   * moment as it is being made, it never intersects the pointer, and there
+   * is no notice, no sound and no acknowledgement anywhere in the build
+   * that anything occurred. An observer who sees it will not be sure they
+   * saw it, and there is nothing they can do to make it happen again.
+   */
+  const other = useRef<Mark[]>([]);
 
   // --- stillness -------------------------------------------------------
   const [still, setStill] = useState(0);
@@ -96,6 +112,59 @@ export function TraceLayer() {
     return () => window.removeEventListener('pointermove', onMove);
   }, [reduced]);
 
+  // --- the other path --------------------------------------------------
+  useEffect(() => {
+    if (reduced || observers < 2) return;
+    let timer = 0;
+    let laying = 0;
+
+    const lay = () => {
+      // An arc that starts off one edge, crosses a little of the field and
+      // leaves. It is given a plausible hand: an arc, not a straight line,
+      // decelerating slightly, the way a pointer moves and a script does not.
+      const w = window.innerWidth, h = window.innerHeight;
+      const fromLeft = Math.random() < 0.5;
+      const x0 = fromLeft ? -30 : w + 30;
+      const y0 = 90 + Math.random() * (h - 200);
+      const span = (fromLeft ? 1 : -1) * (180 + Math.random() * 320);
+      const bow = (Math.random() - 0.5) * 220;
+      const steps = 12 + Math.floor(Math.random() * 6);
+
+      let i = 0;
+      laying = window.setInterval(() => {
+        const u = i / steps;
+        const ease = 1 - (1 - u) * (1 - u);
+        other.current.push({
+          x: x0 + span * ease,
+          y: y0 + bow * Math.sin(u * Math.PI),
+          t: performance.now(),
+          label: null,
+        });
+        if (other.current.length > 40) other.current.shift();
+        dirty.current = true;
+        if (++i > steps) window.clearInterval(laying);
+      }, 58);
+    };
+
+    /* The first one comes shortly after the object registers the second
+       observer — which is the minute the observer is paying most attention,
+       and therefore the only minute in which it is worth happening. After
+       that it retreats to a few times an hour, so that having seen it once
+       is no help at all in seeing it again. */
+    let first = true;
+    const schedule = () => {
+      const wait = first ? 34_000 + Math.random() * 46_000 : 260_000 + Math.random() * 380_000;
+      first = false;
+      timer = window.setTimeout(() => {
+        if (!document.hidden) lay();
+        schedule();
+      }, wait);
+    };
+    schedule();
+
+    return () => { window.clearTimeout(timer); window.clearInterval(laying); other.current = []; };
+  }, [reduced, observers]);
+
   // --- sizing ----------------------------------------------------------
   useEffect(() => {
     const c = canvas.current;
@@ -121,15 +190,17 @@ export function TraceLayer() {
 
     // Retire dead marks before deciding whether there is anything to draw.
     const live = marks.current;
+    const alien = other.current;
     while (live.length && now - live[0].t > life.current) { live.shift(); dirty.current = true; }
-    if (!dirty.current && live.length === 0) return;
+    while (alien.length && now - alien[0].t > LIFE) { alien.shift(); dirty.current = true; }
+    if (!dirty.current && live.length === 0 && alien.length === 0) return;
 
     const ctx = c.getContext('2d');
     if (!ctx) return;
     const s = dpr.current;
     ctx.setTransform(s, 0, 0, s, 0, 0);
     ctx.clearRect(0, 0, c.width / s, c.height / s);
-    if (live.length === 0) { dirty.current = false; return; }
+    if (live.length === 0 && alien.length === 0) { dirty.current = false; return; }
 
     ctx.lineWidth = 1;
     ctx.font = '9px ui-monospace, SFMono-Regular, Menlo, monospace';
@@ -168,6 +239,29 @@ export function TraceLayer() {
         ctx.fillText(m.label, m.x + 6, m.y - 5);
       }
     }
+
+    // The other path. Same decay, no annotation, and no join back to the
+    // pointer's marks — the two records do not touch anywhere.
+    for (let i = 0; i < alien.length; i++) {
+      const m = alien[i];
+      const age = (now - m.t) / LIFE;
+      if (age >= 1) continue;
+      const a = (1 - age) * (1 - age);
+      const prev = alien[i - 1];
+      if (prev) {
+        ctx.strokeStyle = `rgba(160,160,160,${(a * 0.13).toFixed(3)})`;
+        ctx.beginPath();
+        ctx.moveTo(prev.x, prev.y);
+        ctx.lineTo(m.x, m.y);
+        ctx.stroke();
+      }
+      ctx.strokeStyle = `rgba(214,214,214,${(a * 0.42).toFixed(3)})`;
+      ctx.beginPath();
+      ctx.moveTo(m.x - 2, m.y); ctx.lineTo(m.x + 2, m.y);
+      ctx.moveTo(m.x, m.y - 2); ctx.lineTo(m.x, m.y + 2);
+      ctx.stroke();
+    }
+
     dirty.current = true;
   }, !reduced);
 

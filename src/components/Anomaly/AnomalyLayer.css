@@ -21,6 +21,9 @@
   max-width: 60vw;
 }
 .vx-notice[data-on="1"] { opacity: 1; transform: none; }
+/* The one notice the accent is spent on. It is available for sixty
+   seconds out of every twenty-four hours. */
+.vx-notice[data-ox="1"] { color: var(--vx-ox); }
 @media (max-width: 860px) { .vx-notice { right: 12px; bottom: 12px; left: 12px; text-align: left; } }
 
 /* --- VX / INTERNAL ----------------------------------------------------

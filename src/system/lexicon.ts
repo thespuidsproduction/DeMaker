@@ -37,7 +37,7 @@ export const STATEMENTS = [
   'PLEASE IGNORE OBJECT 07',
 ] as const;
 
-export type SectionId = 'entry' | 'trace' | 'index' | 'cases' | 'object' | 'memory' | 'null' | 'terminal' | 'end';
+export type SectionId = 'entry' | 'trace' | 'index' | 'cases' | 'object' | 'null' | 'terminal' | 'end';
 
 /**
  * Navigation as coordinates. The numbering column is authoritative and
@@ -62,7 +62,10 @@ export const NAV: readonly NavNode[] = [
   /* 05 was absent from this column from the beginning. It is the only
      region that changes on its own, and it is where the absence went. */
   { ord: '05',   label: 'CASES',   target: 'cases',    drift: ['CASES', 'CASE', 'CASES'] },
-  { ord: '03',   label: 'MEMORY',  target: 'memory',   drift: ['MEMORY', 'MEMORY', 'MEMOR'] },
+  /* 03 addressed a region that is no longer carried. The coordinate is
+     kept because removing it would leave the column continuous, and the
+     column has never been continuous. Operating it reclassifies and stays. */
+  { ord: '03',   label: 'MEMORY',  target: null, inert: true, drift: ['MEMORY', 'MEMOR', 'MEM', 'MEMORY'] },
   { ord: '06',   label: 'NULL',    target: 'null',     drift: ['NULL', 'NOT NULL', 'NULL?', 'NULL'] },
   { ord: '/\\/\\', label: 'REMNANT', target: 'terminal', drift: ['REMNANT', 'REMNANT', 'REMNANTS'] },
   { ord: '--',   label: 'UNKNOWN', target: null, inert: true, drift: ['UNKNOWN', 'KNOWN', 'UNKNOWN'] },
@@ -139,28 +142,6 @@ export const INDEX_ENTRIES: readonly IndexEntry[] = [
     id: '0013', name: 'THE INDEX',
     fragments: [['last observed', 'reading itself'], ['mass', '13'], ['origin', 'this list'], ['confidence', '13%']],
   },
-] as const;
-
-/** MEMORY holds thirteen fragments and can recover none of them. */
-export interface MemoryFragment {
-  ord: string;
-  date: string;
-  location: string;
-  status: string;
-  /** Selects which abstract plate is generated. */
-  plate: 'field' | 'strata' | 'scatter' | 'aperture' | 'lattice' | 'absent';
-  note?: string;
-}
-
-export const MEMORY_FRAGMENTS: readonly MemoryFragment[] = [
-  { ord: 'MEMORY 01', date: '████████', location: 'UNKNOWN', status: 'PARTIALLY RECOVERED', plate: 'field' },
-  { ord: 'MEMORY 02', date: '19██/██/07', location: 'ADJACENT', status: 'RECOVERED IN ERROR', plate: 'strata' },
-  { ord: 'MEMORY 03', date: '████████', location: '████████', status: 'NOT ATTEMPTED', plate: 'absent', note: 'NO REQUEST WAS MADE' },
-  { ord: 'MEMORY 04', date: '04:17:02', location: 'HERE', status: 'OVERWRITTEN', plate: 'scatter' },
-  { ord: 'MEMORY 05', date: '████████', location: 'UNKNOWN', status: 'PARTIALLY RECOVERED', plate: 'aperture' },
-  { ord: 'MEMORY 06', date: '████/██/██', location: 'REFUSED', status: 'HELD', plate: 'lattice' },
-  { ord: 'MEMORY 07', date: '████████', location: 'SEE 0007', status: '[REMOVED]', plate: 'absent', note: 'PLEASE IGNORE OBJECT 07' },
-  { ord: 'MEMORY 08', date: '00:00:00', location: 'ORIGIN', status: 'RECOVERED', plate: 'field', note: 'NOTHING WAS RESTORED' },
 ] as const;
 
 /**

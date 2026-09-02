@@ -16,7 +16,7 @@ const SEQUENCE = [
  * when a sequence it never mentioned is entered correctly.
  */
 export function AnomalyLayer() {
-  const { discoveries, discover, tone, reduced, observers } = useSystem();
+  const { discoveries, discover, tone, reduced, observers, aperture } = useSystem();
   const idle = useIdleStage([52000, 68000], !reduced);
   const [resized, flagResize] = useTransient(2400);
   const [internal, setInternal] = useState(false);
@@ -69,14 +69,17 @@ export function AnomalyLayer() {
   }, [internal]);
 
   const notice =
-    resized ? 'DIMENSIONS ACCEPTED'
+    // The aperture outranks everything. It lasts sixty seconds a day and
+    // the interface is not going to spend any of them reporting idleness.
+    aperture ? 'APERTURE OPEN / 04:17'
+    : resized ? 'DIMENSIONS ACCEPTED'
     : idle >= 2 ? IDLE_LINES[1]
     : idle === 1 ? IDLE_LINES[0]
     : null;
 
   return (
     <>
-      <p className="vx-notice" data-on={notice ? 1 : 0} role="status" aria-live="polite">
+      <p className="vx-notice" data-on={notice ? 1 : 0} data-ox={aperture ? 1 : 0} role="status" aria-live="polite">
         {notice ?? ''}
       </p>
 

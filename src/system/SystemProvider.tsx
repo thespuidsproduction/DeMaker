@@ -24,9 +24,9 @@ import { SESSION, skeyed, spick } from './session';
  */
 
 export type AnomalyChannel =
-  | 'nav' | 'hero' | 'index' | 'object' | 'memory' | 'terminus' | 'statement' | 'signal' | 'residue';
+  | 'nav' | 'hero' | 'index' | 'object' | 'terminus' | 'statement' | 'signal' | 'residue';
 
-const CHANNELS: AnomalyChannel[] = ['nav', 'hero', 'index', 'object', 'memory', 'terminus', 'statement', 'signal', 'residue'];
+const CHANNELS: AnomalyChannel[] = ['nav', 'hero', 'index', 'object', 'terminus', 'statement', 'signal', 'residue'];
 
 /**
  * What the system does when it acts. Never more than one of these at a time,
@@ -60,7 +60,7 @@ const KIND_BY_TEMPER: Record<Temper, readonly AnomalyKind[]> = {
 /** Temperaments the session may settle into unprompted, in its own order. */
 const DRIFT: readonly Temper[] = ['indifferent', 'observant', 'contradictory', 'accommodating', 'indifferent', 'observant'];
 
-export type Discovery = 'internal' | 'persistent-observer' | 'null-found' | 'dimensions' | 'sealed' | 'depth';
+export type Discovery = 'internal' | 'persistent-observer' | 'null-found' | 'dimensions' | 'sealed' | 'depth' | 'beyond' | 'aperture';
 
 export interface AnomalyEvent { n: number; kind: AnomalyKind; }
 
@@ -85,6 +85,21 @@ interface SystemValue {
   temper: Temper;
 
   /**
+   * THE APERTURE.
+   *
+   * The register gives 04:17:02 as the last observation of three separate
+   * entities, and 04:17:03 for a fourth. It is stated four times, in a
+   * document that states nothing twice by accident, and it is the only
+   * timestamp in the build that is not redacted.
+   *
+   * It is a real time. For the sixty seconds of 04:17, local, the register
+   * does not seal anything. Almost nobody will be awake, which is the
+   * correct number of people for it, and the ones who are will have to
+   * tell the others.
+   */
+  aperture: boolean;
+
+  /**
    * How far in the observer is, 0 to 4. Rises with the furthest point
    * reached and never falls — you do not get shallower by scrolling back.
    * Regions consult it to decide how much ordinary interface to withhold.
@@ -107,6 +122,7 @@ export function SystemProvider({ children }: { children: ReactNode }) {
   const [audioOn, setAudioOn] = useState(false);
   const [uptime, setUptime] = useState(0);
   const [temper, setTemper] = useState<Temper>(() => spick('temper/first', DRIFT));
+  const [aperture, setAperture] = useState(false);
   const [depth, setDepth] = useState(0);
 
   const presence = useRef<Presence | null>(null);
@@ -157,6 +173,21 @@ export function SystemProvider({ children }: { children: ReactNode }) {
   }, []);
   const uptimeRef = useRef(0);
   uptimeRef.current = uptime;
+
+  // --- THE APERTURE ----------------------------------------------------
+  // Read from the observer's own clock. Nothing is fetched to establish
+  // the time, and nothing anywhere announces the hour in advance.
+  useEffect(() => {
+    const read = () => {
+      const d = new Date();
+      setAperture(d.getHours() === 4 && d.getMinutes() === 17);
+    };
+    read();
+    const id = window.setInterval(read, 1000);
+    return () => window.clearInterval(id);
+  }, []);
+
+  useEffect(() => { if (aperture) discover('aperture'); }, [aperture, discover]);
 
   // --- DEPTH -----------------------------------------------------------
   // Measured from the furthest point reached, not the current one. The
@@ -299,10 +330,10 @@ export function SystemProvider({ children }: { children: ReactNode }) {
     discoveries, discover,
     audioOn, toggleAudio, click, tone,
     subscribeAnomaly,
-    temper, depth,
+    temper, depth, aperture,
     reduced, uptimeRef,
   }), [observers, addObserver, visits, enterRegion, discoveries, discover,
-       audioOn, toggleAudio, click, tone, subscribeAnomaly, temper, depth, reduced]);
+       audioOn, toggleAudio, click, tone, subscribeAnomaly, temper, depth, aperture, reduced]);
 
   return (
     <SystemContext.Provider value={value}>

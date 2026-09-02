@@ -70,7 +70,7 @@ const COMMANDS: Record<string, (arg: string, s: Session) => Reply> = {
   }),
 
   object: (_a, s) => { s.goto('object'); return { lines: ['OBJECT / VX-000', 'STATE: ACTIVE', 'OWNER: NONE'] }; },
-  memory: (_a, s) => { s.goto('memory'); return { lines: ['8 FRAGMENTS HELD', '0 RECOVERED', 'THE ARCHIVE IS COMPLETE'] }; },
+  memory: () => ({ lines: ['NO ARCHIVE IS CARRIED', 'THERE IS NO RECORD OF ONE HAVING BEEN CARRIED'] }),
 
   depth: () => ({ lines: ['DEPTH 07', 'THERE IS NO DEPTH 08', 'DEPTH 08 IS NOT MISSING'] }),
 

@@ -16,13 +16,12 @@ import { Hero } from './components/Hero/Hero';
 import { IndexSystem } from './components/IndexSystem/IndexSystem';
 import { CaseSystem } from './components/Cases/CaseSystem';
 import { ObjectVX } from './components/ObjectVX/ObjectVX';
-import { MemoryArchive } from './components/Memory/MemoryArchive';
 import { NullSpace } from './components/NullSpace/NullSpace';
 import { Terminal } from './components/Terminal/Terminal';
 import { Terminus } from './components/Terminus/Terminus';
 import './components/Shell/Shell.css';
 
-const ORDER: SectionId[] = ['entry', 'trace', 'index', 'cases', 'object', 'memory', 'null', 'terminal'];
+const ORDER: SectionId[] = ['entry', 'trace', 'index', 'cases', 'object', 'null', 'terminal'];
 
 function useActiveRegion(ready: boolean): SectionId | null {
   const [active, setActive] = useState<SectionId | null>(null);
@@ -113,10 +112,9 @@ function Surface() {
           <ObjectVX visits={v('object')} />
         </Bay>
 
-        <Bay id="memory" rank={3} ord="03" title="MEMORY" aux="RECOVERED 0">
-          <MemoryArchive visits={v('memory')} />
-        </Bay>
-
+        {/* Between the object and the field there is now nothing at all,
+            for the better part of two screens. The rhythm is better for it:
+            density, then a drop, then the quietest region in the build. */}
         <Residue id="f3" scale="void" ord={2} />
 
         <Bay id="null" rank={4} ord="06" title="NULL" aux="—">

@@ -7,8 +7,8 @@
 A digital artefact that does not believe it is a website.
 
 It presents itself as the operating surface of something that was never meant
-to be operated by a person — a register, an object, an archive that has
-recovered nothing, a console with no privileges — and it declines, at every
+to be operated by a person — a register, an object, a case a day, a console
+with no privileges — and it declines, at every
 point, to say what any of it is for. There is nothing to buy, nothing to sign
 up to, nothing to discover more about. It is not a story and it is not a
 puzzle: there is no ending and nothing to solve. It simply exists, keeps its
@@ -87,7 +87,6 @@ src/
     Trace/         TraceLayer (canvas) and TraceBay (live readout + ledger)
     IndexSystem/   the register of thirteen entities and its fragments
     ObjectVX/      VX-000 — geometry.ts (the mesh and its violation) + canvas
-    Memory/        the archive; plates.tsx generates every image as SVG
     NullSpace/     the quiet region
     Terminal/      REMNANT — a console that controls nothing
     Cases/         the board, the case, its four marks, the submission
@@ -157,6 +156,35 @@ The casebook (`system/casebook.ts`) lives in this browser. No account, no
 identifier that means anything anywhere else, and an export so an observer
 can take their own record away.
 
+### Three things it knows that you do not
+
+**DEPTH 08.** The console, asked, replies `THERE IS NO DEPTH 08 / DEPTH 08 IS
+NOT MISSING` — two statements, of which only the second is true. The object
+documents seven layers and opens an eighth for an observer it has registered
+twice. What is in the eighth is the inner shell's absent corner: the vertex
+that has never been present, present, with the three edges that would have
+joined it to the shell if it had ever existed. The manifest reports `DEPTH:
+08 / 07` and does not remark on the arithmetic. The console goes on denying it.
+
+**04:17.** The register gives `04:17:02` as the last observation of three
+separate entities and `04:17:03` for a fourth. It is stated four times in a
+document that states nothing twice by accident, and it is the only timestamp
+in the build that is not redacted. It is a real time. For the sixty seconds
+of 04:17 — the observer's own clock, nothing fetched — the register seals
+nothing: both refused records open, and the accent goes to the two rows that
+changed rather than to all thirteen. Almost nobody will be awake, which is
+the correct number of people for it, and the ones who are will have to tell
+the others.
+
+**THE OTHER PATH.** Once the object has registered a second observer, the
+trace layer occasionally retains movement that is not the pointer's: a short
+arc, laid down over about a second, decaying like everything else and
+annotated with nothing, because it does not annotate. The first comes about
+a minute after `OBSERVED BY: 2` — the minute the observer is paying most
+attention — and after that a few times an hour, so that having seen it once
+is no help in seeing it again. It never touches the pointer's marks, there
+is no notice, no sound, and nothing anywhere acknowledges that it happened.
+
 ### The three things that make it feel occupied
 
 **TEMPERAMENT — what it is inclined to do.** The runtime holds a disposition
@@ -211,10 +239,9 @@ rarely. A tick re-renders the two components that display it and nothing else.
 **Determinism, not randomness.** `system/rng.ts` seeds every "anomaly" from a
 string; `system/session.ts` mixes in one value drawn at load. Within a visit
 everything is fixed and reproducible. Across visits: how many objects stand
-in NULL and where, which statement holds the hero, which parts of a memory
-plate failed to survive, which empty fields contain anything, when the one
-fragment in a field appears, what temperament the session starts in, and the
-rhythm it will keep. The architecture never varies — same regions, same
+in NULL and where, which statement holds the hero, which empty fields contain
+anything, when the one fragment in a field appears, what temperament the
+session starts in, and the rhythm it will keep. The architecture never varies — same regions, same
 order, same behaviour. Only the anomalies move. That is the difference
 between a system with a mood and a page with a random number generator in it.
 
@@ -253,6 +280,7 @@ feel a rhythm, the effect is already dead.
 | the wordmark, seven times | it notices |
 | VX-000, seven times | a second observer |
 | REMNANT console | `help` lists what it recognises; everything else is accepted |
+| the object, twice observed | there is a depth the console denies |
 | `today` `cases` `case` `sig` | the board, from the console |
 | — | it has no prompt: inputs are *filed* under an ordinal, as the register files everything |
 | `AUDIO: OFF` | synthesised presence, off until asked |
@@ -284,8 +312,7 @@ Strangeness is not an excuse, and none of the following was traded away:
   real label and a `role="log"` live region; index fragments are announced as
   they arrive.
 - Pointer-only interactions all have a keyboard equivalent — VX-000 has
-  *OPEN NEXT LAYER* and *TURN*, NULL has *SWEEP FIELD*, the memory track is a
-  native scroll container.
+  *OPEN NEXT LAYER* and *TURN*, and NULL has *SWEEP FIELD*.
 - **Contrast:** `--vx-edge` and the hairline tokens are structural and never
   set type. The dimmest ink (`--vx-mute`) and the accent (`--vx-ox`) are both
   held above 4.5:1 on black, at every size used. The only text below that
@@ -320,9 +347,6 @@ Things that are easy to get wrong and were not left wrong:
   cannot nudge the number beside it.
 - **Statements are balanced, not filled.** They are the only prose on the
   page; a bad rag on them is visible from across a room.
-- **The archive stops at the measure.** Bleeding the track wider put its last
-  label under the document ruler, and a collision with a fixed overlay reads
-  as a mistake. The cue that it continues is a cell cut in half at the edge.
 - **No dead code.** The helpers, hooks and rules that the amendments made
   redundant were removed rather than left in place.
 

@@ -26,7 +26,7 @@ function confidenceOf(e: IndexEntry): number {
  * finding interesting.
  */
 export function IndexSystem({ visits }: { visits: number }) {
-  const { click, reduced, tone } = useSystem();
+  const { click, reduced, tone, aperture } = useSystem();
   const { n, kind } = useAnomaly('index');
 
   const [open, setOpen] = useState<string | null>(null);
@@ -38,7 +38,9 @@ export function IndexSystem({ visits }: { visits: number }) {
   const armed = useRef(false);
 
   const entry = INDEX_ENTRIES.find((e) => e.id === open) ?? null;
-  const showingBeneath = entry != null && unsealed === entry.id && entry.beneath != null;
+  /* During the aperture every seal is off, and the register does not
+     mention that anything is different about the register. */
+  const showingBeneath = entry != null && entry.beneath != null && (aperture || unsealed === entry.id);
 
   // --- fragments arrive one at a time ----------------------------------
   useEffect(() => {
@@ -92,7 +94,7 @@ export function IndexSystem({ visits }: { visits: number }) {
   const total = drift % 2 === 1 ? INDEX_ENTRIES.length - 1 : INDEX_ENTRIES.length;
 
   const interrogate = (e: IndexEntry) => {
-    click(e.sealed && unsealed !== e.id ? 0.35 : 0.8);
+    click(e.sealed && !aperture && unsealed !== e.id ? 0.35 : 0.8);
     setOpen((cur) => (cur === e.id ? null : e.id));
     // Opening a record is an act. Cases watching for it take their mark
     // from the record of the act, not from being present when it happened.
@@ -106,7 +108,10 @@ export function IndexSystem({ visits }: { visits: number }) {
       <ul className="vx-index__list">
         {INDEX_ENTRIES.map((e) => {
           const conf = confidenceOf(e);
-          const lifted = unsealed === e.id;
+          /* The accent marks what changed, not everything that is open.
+             During the aperture that is two rows out of thirteen — the two
+             the register has refused every other minute of the day. */
+          const lifted = e.sealed === true && (aperture || unsealed === e.id);
           return (
             <li key={e.id} className="vx-index__row" data-displaced={misfiled === e.id ? 1 : 0}>
               <button

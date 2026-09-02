@@ -10,7 +10,19 @@ import {
 } from './geometry';
 import './ObjectVX.css';
 
+/**
+ * Seven layers are documented. The console, asked about the eighth, says
+ * there is no depth 08 and that depth 08 is not missing — which is two
+ * statements, and only the second one is true.
+ *
+ * The eighth opens for an observer the object has registered twice. What
+ * is in it is the inner shell's absent corner: the vertex that has never
+ * been present, present. Nothing anywhere acknowledges this, and the
+ * manifest reports the depth as 08 / 07 without remarking on the
+ * arithmetic.
+ */
 const MAX_DEPTH = 7;
+const BEYOND = 8;
 
 /**
  * The object is examined, not operated. Dragging turns it; releasing lets
@@ -19,7 +31,7 @@ const MAX_DEPTH = 7;
  * point the manifest revises itself and stops.
  */
 export function ObjectVX({ visits }: { visits: number }) {
-  const { observers, addObserver, click, reduced } = useSystem();
+  const { observers, addObserver, click, reduced, discover, tone } = useSystem();
   const { n, kind } = useAnomaly('object');
   const [hostRef, size] = useSize<HTMLDivElement>();
   const [viewRef, inView] = useInView<HTMLDivElement>({ rootMargin: '30% 0px', threshold: 0 });
@@ -47,8 +59,10 @@ export function ObjectVX({ visits }: { visits: number }) {
     const n = hits + 1;
     setHits(n);
     setDepth((d) => {
-      const next = Math.min(d + 1, MAX_DEPTH);
+      const ceiling = observers > 1 ? BEYOND : MAX_DEPTH;
+      const next = Math.min(d + 1, ceiling);
       if (next >= MAX_DEPTH) witness('depth');
+      if (next === BEYOND && d < BEYOND) { discover('beyond'); tone(58, 1.1); }
       return next;
     });
     click(0.6 + Math.min(n, 7) * 0.05);
@@ -244,20 +258,37 @@ export function ObjectVX({ visits }: { visits: number }) {
       if (i === 0 || i === 5 || i === 7) ctx.fillText(`V${i}`, p.x + 6, p.y - 4);
     });
 
-    // The absent inner vertex is marked. Nothing is drawn there.
+    // The absent inner vertex. Ordinarily its position is ringed and
+    // nothing is drawn inside the ring.
     {
       const ghost = project(INNER[5], r.ry + twistFor(5, 'inner'), r.rx, focalFor(5, 'inner'), scale, cx, cy);
-      ctx.strokeStyle = 'rgba(192,90,34,0.35)';
-      ctx.beginPath();
-      ctx.arc(ghost.x, ghost.y, 4.5, 0, Math.PI * 2);
-      ctx.stroke();
+
+      if (depth >= BEYOND) {
+        // At the eighth layer it is there: a corner, and the three edges
+        // that would have joined it to the shell if it had ever existed.
+        ctx.strokeStyle = 'rgba(192,90,34,0.85)';
+        ctx.beginPath();
+        for (const j of [1, 4, 7]) { ctx.moveTo(ghost.x, ghost.y); ctx.lineTo(pi[j].x, pi[j].y); }
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(ghost.x - 4, ghost.y); ctx.lineTo(ghost.x + 4, ghost.y);
+        ctx.moveTo(ghost.x, ghost.y - 4); ctx.lineTo(ghost.x, ghost.y + 4);
+        ctx.stroke();
+        ctx.fillStyle = 'rgba(192,90,34,0.9)';
+        ctx.fillText('V5', ghost.x + 7, ghost.y - 5);
+      } else {
+        ctx.strokeStyle = 'rgba(192,90,34,0.35)';
+        ctx.beginPath();
+        ctx.arc(ghost.x, ghost.y, 4.5, 0, Math.PI * 2);
+        ctx.stroke();
+      }
     }
   }, inView);
 
   const rows: Row[] = [
     ['STATE', hits > 0 ? 'ACTIVE / HANDLED' : 'ACTIVE'],
     ['AGE', hits >= 4 ? 'UNKNOWN (REVISED)' : 'UNKNOWN'],
-    ['DEPTH', depth >= MAX_DEPTH ? '07 / 07' : `0${depth} / 07`],
+    ['DEPTH', depth >= BEYOND ? '08 / 07' : depth >= MAX_DEPTH ? '07 / 07' : `0${depth} / 07`],
     ['OWNER', 'NONE'],
     ['REFERENCE', 'VRAXXIS'],
     ['OBSERVED BY', String(observers)],
@@ -289,7 +320,9 @@ export function ObjectVX({ visits }: { visits: number }) {
         <div>
           <p className="vx-obj__manifest-head">VX-000</p>
           <p className="vx-obj__manifest-sub vx-micro">
-            {depth >= MAX_DEPTH ? 'NO FURTHER LAYERS ARE AVAILABLE' : 'LAYERS REMAIN'}
+            {depth >= BEYOND ? 'NO FURTHER LAYERS ARE AVAILABLE'
+              : depth >= MAX_DEPTH ? 'NO FURTHER LAYERS ARE AVAILABLE'
+              : 'LAYERS REMAIN'}
           </p>
         </div>
 
@@ -298,7 +331,13 @@ export function ObjectVX({ visits }: { visits: number }) {
         {/* Buttons for anyone who cannot drag a canvas. They do the same
             thing the canvas does, and say so plainly. */}
         <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
-          <button type="button" className="vx-nav__toggle" data-vx-cursor="+" onClick={interrogate}>
+          <button
+            type="button"
+            className="vx-nav__toggle"
+            data-vx-cursor="+"
+            onClick={interrogate}
+            aria-label={`Open the next layer of object VX-000. ${depth} open.`}
+          >
             OPEN NEXT LAYER
           </button>
           <button
@@ -312,9 +351,11 @@ export function ObjectVX({ visits }: { visits: number }) {
         </div>
 
         <p className="vx-obj__note vx-micro">
-          {hits >= 7
-            ? 'THE SECOND OBSERVER WAS NOT ADDED BY THIS INTERFACE'
-            : 'THE OBJECT DOES NOT REQUIRE ATTENTION TO PERSIST'}
+          {depth >= BEYOND
+            ? 'THE CORNER WAS NOT ADDED. IT IS WHERE IT HAS ALWAYS BEEN.'
+            : hits >= 7
+              ? 'THE SECOND OBSERVER WAS NOT ADDED BY THIS INTERFACE'
+              : 'THE OBJECT DOES NOT REQUIRE ATTENTION TO PERSIST'}
         </p>
       </div>
     </div>
