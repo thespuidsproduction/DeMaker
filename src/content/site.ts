@@ -173,11 +173,14 @@ export type Project = {
   kind: string;
   /** The surface. One line. Nothing technical. */
   line: string;
-  /** Where it lives. */
+  /** Where it lives. Never printed: some of these are still on a host's
+   *  subdomain, and a URL is not the name of a piece of work. */
   href: string;
-  /** How the link should read. */
-  hrefLabel: string;
-  /** A second address, where the project has one. */
+  /** What the control says instead. A verb, and what it opens. */
+  action: string;
+  /** The city the work was built for. */
+  place: string;
+  /** Whatever else is worth knowing about who it belongs to. */
   note?: string;
   /** Named only under the hood. */
   reveals: string[];
@@ -197,8 +200,9 @@ export const PROJECTS: Project[] = [
     kind: "Full-stack platform",
     line: "You can count the field and work out your own odds before you enter.",
     href: "https://swagrush.app",
-    hrefLabel: "swagrush.app",
-    note: "Swagrush (Pty) Ltd, Johannesburg",
+    action: "Enter the floor",
+    place: "Johannesburg",
+    note: "Swagrush (Pty) Ltd",
     reveals: ["Next.js", "PostgreSQL", "JWT", "RBAC", "Ledger", "SHA-256"],
     strata: [
       {
@@ -227,7 +231,8 @@ export const PROJECTS: Project[] = [
     kind: "Cryptographic infrastructure",
     line: "Anyone can replay the draw and check it themselves. Offline. Forever.",
     href: "https://quorbel.com",
-    hrefLabel: "quorbel.com",
+    action: "Verify a receipt",
+    place: "Manchester",
     reveals: ["Ed25519", "SHA-256", "CSPRNG", "Canonical JSON", "BigInt"],
     strata: [
       {
@@ -256,7 +261,8 @@ export const PROJECTS: Project[] = [
     kind: "Interface / WebGL",
     line: "A boxing club rendered as particles, from a crumbling colosseum into a ring.",
     href: "https://weston-warriors.vercel.app",
-    hrefLabel: "weston-warriors.vercel.app",
+    action: "Step into the ring",
+    place: "Weston-super-Mare",
     note: "Amateur boxing club",
     reveals: ["three.js", "WebGL", "Vertex shaders", "Two-bone IK", "Web Audio"],
     strata: [
@@ -286,8 +292,9 @@ export const PROJECTS: Project[] = [
     kind: "Single-book shop",
     line: "One book, one author, zero clarity, sold from inside a physics playground.",
     href: "https://htbabd.vercel.app",
-    hrefLabel: "htbabd.vercel.app",
-    note: "moving to howto.com",
+    action: "Open the shop",
+    place: "London",
+    note: "Standalone",
     reveals: ["Three.js", "Rapier", "GSAP", "Canvas", "Local-only state"],
     strata: [
       {

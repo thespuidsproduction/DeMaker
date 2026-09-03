@@ -95,8 +95,13 @@ export function Atlas() {
   const rimRef = useRef<SVGCircleElement>(null);
   const markRef = useRef<SVGGElement>(null);
 
-  /** Blend, spin and the pointer's contribution all live outside React. */
-  const view = useRef({ t: 0, spin: 0, drag: 0, vel: 0 });
+  /**
+   * Blend, orientation and momentum all live outside React. Sixty state
+   * changes a second have no business going through a render.
+   */
+  const view = useRef({ t: 0, lon: 0, lat: 0, velLon: 0, velLat: 0, touched: false });
+  const dragging = useRef(false);
+  const [adrift, setAdrift] = useState(false);
   useGsapSetup();
 
   /* ── Draw ───────────────────────────────────────────────────────────── */
@@ -109,14 +114,29 @@ export function Atlas() {
     const render = (now: number) => {
       const v = view.current;
 
-      // Idle drift keeps the home marker on the near face rather than
-      // carrying it round the back where it cannot be seen.
-      const drift = reduced ? 0 : Math.sin((now - t0) / 5200) * 13;
-      v.drag += v.vel;
-      v.vel *= 0.94;
-      v.drag *= 0.985; // always returning to the view that shows home
-      const lon0 = HOME[0] + drift + v.drag;
-      const lat0 = 24;
+      // Momentum, and nothing else. The globe used to ease back toward home
+      // every frame, which is felt through the hand as the thing resisting
+      // being turned rather than as a globe with any mass. Let go of it now
+      // and it coasts to a stop and stays exactly where it was left; the
+      // way back is a control, not a spring.
+      if (!dragging.current) {
+        v.lon += v.velLon;
+        v.lat += v.velLat;
+        v.velLon *= 0.955;
+        v.velLat *= 0.9;
+        if (Math.abs(v.velLon) < 0.002) v.velLon = 0;
+        if (Math.abs(v.velLat) < 0.002) v.velLat = 0;
+      }
+      // Past the poles the projection turns inside out, so the tilt stops
+      // just short of them.
+      v.lat = Math.max(-78, Math.min(78, v.lat));
+
+      // The idle drift is an invitation to touch the thing, so it ends for
+      // good the moment somebody does. Nothing should move under the hand
+      // except what the hand is moving.
+      const drift = reduced || v.touched ? 0 : Math.sin((now - t0) / 5200) * 13;
+      const lon0 = HOME[0] + drift + v.lon;
+      const lat0 = 24 + v.lat;
 
       const t = v.t;
       let front = "";
@@ -219,36 +239,111 @@ export function Atlas() {
   useEffect(() => {
     const svg = svgRef.current;
     if (!svg) return;
-    let last: number | null = null;
+    let lastX = 0;
+    let lastY = 0;
+    let pointer: number | null = null;
+
+    /**
+     * Degrees of rotation per pixel of travel, worked out from how large the
+     * sphere actually is on this screen. At the centre of the disc the point
+     * under the finger then moves with the finger, one to one, which is the
+     * whole of what makes a globe feel grabbed rather than nudged. Toward the
+     * limb it slows of its own accord, because that is what a sphere does.
+     */
+    const perPixel = () => {
+      const radiusPx = (svg.getBoundingClientRect().width * R) / W;
+      return radiusPx > 0 ? 57.29578 / radiusPx : 0;
+    };
 
     const down = (e: PointerEvent) => {
       if (view.current.t < 0.3) return; // nothing to spin on a flat map
-      last = e.clientX;
+      pointer = e.pointerId;
+      lastX = e.clientX;
+      lastY = e.clientY;
+      dragging.current = true;
+      view.current.touched = true;
+      view.current.velLon = 0;
+      view.current.velLat = 0;
+      setAdrift(true);
       svg.setPointerCapture(e.pointerId);
       svg.classList.add("atlas-grabbing");
     };
+
     const move = (e: PointerEvent) => {
-      if (last === null) return;
-      const dx = e.clientX - last;
-      last = e.clientX;
-      view.current.drag += dx * 0.35;
-      view.current.vel = dx * 0.09;
+      if (pointer !== e.pointerId) return;
+      const k = perPixel();
+      const dx = e.clientX - lastX;
+      const dy = e.clientY - lastY;
+      lastX = e.clientX;
+      lastY = e.clientY;
+
+      // Increasing the centre longitude carries the surface to the left, so
+      // dragging right has to lower it for the map to follow the hand.
+      const dLon = -dx * k;
+      const dLat = dy * k;
+      view.current.lon += dLon;
+      view.current.lat += dLat;
+
+      // Averaged, so that one stray final event before release cannot fling
+      // the globe off in a direction the hand never went.
+      view.current.velLon = view.current.velLon * 0.4 + dLon * 0.6;
+      view.current.velLat = view.current.velLat * 0.4 + dLat * 0.6;
     };
-    const up = () => {
-      last = null;
+
+    const up = (e: PointerEvent) => {
+      if (pointer !== e.pointerId) return;
+      pointer = null;
+      dragging.current = false;
+      if (svg.hasPointerCapture(e.pointerId)) svg.releasePointerCapture(e.pointerId);
       svg.classList.remove("atlas-grabbing");
+    };
+
+    /** Arrow keys turn it too, for anyone not using a pointer at all. */
+    const key = (e: KeyboardEvent) => {
+      const step = e.shiftKey ? 18 : 6;
+      let used = true;
+      if (e.key === "ArrowLeft") view.current.lon -= step;
+      else if (e.key === "ArrowRight") view.current.lon += step;
+      else if (e.key === "ArrowUp") view.current.lat += step;
+      else if (e.key === "ArrowDown") view.current.lat -= step;
+      else used = false;
+      if (!used || view.current.t < 0.3) return;
+      e.preventDefault();
+      view.current.touched = true;
+      view.current.velLon = 0;
+      view.current.velLat = 0;
+      setAdrift(true);
     };
 
     svg.addEventListener("pointerdown", down);
     svg.addEventListener("pointermove", move);
     svg.addEventListener("pointerup", up);
     svg.addEventListener("pointercancel", up);
+    svg.addEventListener("keydown", key);
     return () => {
       svg.removeEventListener("pointerdown", down);
       svg.removeEventListener("pointermove", move);
       svg.removeEventListener("pointerup", up);
       svg.removeEventListener("pointercancel", up);
+      svg.removeEventListener("keydown", key);
     };
+  }, []);
+
+  /* ── The way home ───────────────────────────────────────────────────── */
+  const recentre = useCallback(() => {
+    const v = view.current;
+    v.velLon = 0;
+    v.velLat = 0;
+    setAdrift(false);
+    // Longitude is wound to whichever turn of the sphere is nearest, so a
+    // globe spun four times round does not unwind four times to get back.
+    const target = Math.round(v.lon / 360) * 360 - v.lon;
+    if (prefersReducedMotion()) {
+      v.lon += target;
+      v.lat = 0;
+      return;
+    }
+    gsap.to(v, { lon: v.lon + target, lat: 0, duration: 1.1, ease: "power3.inOut" });
   }, []);
 
   return (
@@ -261,22 +356,37 @@ export function Atlas() {
             Fold it back up and you get the shape it was cut from.
           </p>
 
-          <div className="atlas-controls" role="group" aria-label="Projection">
+          <div className="atlas-actions">
+            <div className="atlas-controls" role="group" aria-label="Projection">
+              <button
+                type="button"
+                className={`atlas-toggle${!globe ? " atlas-toggle-on" : ""}`}
+                onClick={() => globe && toggle()}
+                aria-pressed={!globe}
+              >
+                Mercator
+              </button>
+              <button
+                type="button"
+                className={`atlas-toggle${globe ? " atlas-toggle-on" : ""}`}
+                onClick={() => !globe && toggle()}
+                aria-pressed={globe}
+              >
+                Globe
+              </button>
+            </div>
+
+            {/* Nothing drags the globe home behind the user's back, so the
+                way back has to be offered instead. It appears only once
+                there is somewhere to come back from. */}
             <button
               type="button"
-              className={`atlas-toggle${!globe ? " atlas-toggle-on" : ""}`}
-              onClick={() => globe && toggle()}
-              aria-pressed={!globe}
+              className={`atlas-home${globe && adrift ? " atlas-home-on" : ""}`}
+              onClick={recentre}
+              tabIndex={globe && adrift ? 0 : -1}
+              aria-hidden={!(globe && adrift)}
             >
-              Mercator
-            </button>
-            <button
-              type="button"
-              className={`atlas-toggle${globe ? " atlas-toggle-on" : ""}`}
-              onClick={() => !globe && toggle()}
-              aria-pressed={globe}
-            >
-              Globe
+              Recentre
             </button>
           </div>
         </div>
@@ -284,10 +394,15 @@ export function Atlas() {
         <figure className="atlas-frame glass glass-plate corners" data-reveal>
           <svg
             ref={svgRef}
-            className="atlas-svg"
+            className={`atlas-svg${globe ? " atlas-svg-live" : ""}`}
             viewBox={`0 0 ${W} ${H}`}
-            role="img"
-            aria-label={`World map, ${globe ? "orthographic globe" : "Mercator projection"}, marked in the ${SITE.location}.`}
+            role={globe ? "application" : "img"}
+            tabIndex={globe ? 0 : -1}
+            aria-label={
+              globe
+                ? `Orthographic globe marked in the ${SITE.location}. Drag, or use the arrow keys, to turn it.`
+                : `World map, Mercator projection, marked in the ${SITE.location}.`
+            }
           >
             <circle ref={rimRef} className="atlas-rim" cx={W / 2} cy={H / 2} r={R} opacity="0" />
             <path ref={gridRef} className="atlas-grid" />
@@ -314,7 +429,9 @@ export function Atlas() {
           <CoordinateRose className="atlas-rose" />
 
           <figcaption className="t-meta atlas-caption">
-            {globe ? "Orthographic. Drag to turn it." : "Mercator, 1569. Conformal, and a liar about area."}
+            {globe
+              ? "Orthographic. Take hold of it and turn it, any direction."
+              : "Mercator, 1569. Conformal, and a liar about area."}
           </figcaption>
         </figure>
       </div>

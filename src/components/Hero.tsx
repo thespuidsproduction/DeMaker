@@ -237,8 +237,13 @@ export function Hero() {
             <p className="t-label hero-rail-line" data-h="eyebrow">
               Portfolio № 01
             </p>
+            {/* Deliberately coarse. Two decimal places of latitude and
+                longitude is a street, and the only location this site
+                publishes is a country. This is the same imprecise pair the
+                atlas centres on, which is the middle of the island and
+                nobody's address. */}
             <p className="t-label hero-rail-line hero-rail-coord" data-h="eyebrow">
-              51.35°N 2.98°W
+              54°N 2°W
             </p>
           </div>
 

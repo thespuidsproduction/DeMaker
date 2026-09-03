@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { ThemeToggle } from "./ThemeToggle";
 import { Readout } from "./Ambient";
 import { SITE } from "@/content/site";
+import { IndexDrawer } from "./Index";
 
 const STOPS = [
   { id: "identity", label: "Identity" },
@@ -110,6 +111,7 @@ export function Nav() {
               </li>
             ))}
           </ul>
+          <IndexDrawer />
           <ThemeToggle />
         </nav>
       </div>

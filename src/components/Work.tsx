@@ -94,6 +94,32 @@ export function Work() {
     [openIndex, leave],
   );
 
+  /**
+   * The index can send someone straight to one project's blueprint. It asks
+   * by event rather than by prop, because it lives in the header and has no
+   * business holding a reference to this list.
+   */
+  useEffect(() => {
+    const onReveal = (e: Event) => {
+      const id = (e as CustomEvent<{ project?: string }>).detail?.project;
+      const i = PROJECTS.findIndex((p) => p.index === id);
+      if (i < 0) return;
+      const el = cardRefs.current[i];
+      el?.scrollIntoView({
+        behavior: prefersReducedMotion() ? "auto" : "smooth",
+        block: "start",
+      });
+      // After the scroll has been asked for, so the blueprint is not laid out
+      // while the page is still moving under it.
+      window.setTimeout(() => {
+        setOpenIndex((cur) => (cur === PROJECTS[i].index ? cur : PROJECTS[i].index));
+        leave(PROJECTS[i].name, PROJECTS[i].reveals);
+      }, prefersReducedMotion() ? 0 : 520);
+    };
+    window.addEventListener("atelier:reveal", onReveal);
+    return () => window.removeEventListener("atelier:reveal", onReveal);
+  }, [leave]);
+
   return (
     <Movement id="work" index="§ 03" title="What I Build" aside="look closer">
       <ol className="wk">
@@ -107,6 +133,7 @@ export function Work() {
               ref={(n) => {
                 cardRefs.current[i] = n as HTMLElement | null;
               }}
+              id={`project-${p.index}`}
               data-reveal
               className={`wk-item${isOpen ? " wk-item-open" : ""}`}
             >
@@ -148,7 +175,32 @@ export function Work() {
                   <h3 className="wk-title">{p.name}</h3>
                   <p className="wk-line">{p.line}</p>
 
+                  {/* Where the work is from, not where it is hosted. A
+                      half-finished address on somebody else's subdomain tells
+                      a reader nothing they wanted to know. */}
                   <p className="wk-where">
+                    <span className="wk-place">
+                      <svg
+                        className="wk-place-pin"
+                        viewBox="0 0 12 12"
+                        width="11"
+                        height="11"
+                        aria-hidden="true"
+                        fill="none"
+                      >
+                        <path
+                          d="M6 11c2.6-3.4 3.9-5.6 3.9-6.9A3.9 3.9 0 0 0 2.1 4.1C2.1 5.4 3.4 7.6 6 11Z"
+                          className="engraved"
+                          strokeWidth="1"
+                        />
+                        <circle cx="6" cy="4.2" r="1.3" className="engraved" strokeWidth="1" />
+                      </svg>
+                      {p.place}
+                    </span>
+                    {p.note ? <span className="t-meta wk-where-note">{p.note}</span> : null}
+                  </p>
+
+                  <div className="wk-acts">
                     <a
                       className="wk-visit"
                       href={p.href}
@@ -156,8 +208,8 @@ export function Work() {
                       rel="noopener noreferrer"
                     >
                       <span className="wk-visit-dot" aria-hidden="true" />
-                      {p.hrefLabel}
-                      <span className="sr-only"> (opens in a new tab)</span>
+                      <span className="wk-visit-label">{p.action}</span>
+                      <span className="sr-only">, {p.name}, opens in a new tab</span>
                       <svg
                         className="wk-visit-arrow"
                         viewBox="0 0 12 12"
@@ -169,19 +221,18 @@ export function Work() {
                         <path d="M2 10L10 2M4.5 2H10v5.5" className="engraved" strokeWidth="1.2" />
                       </svg>
                     </a>
-                    {p.note ? <span className="t-meta wk-where-note">{p.note}</span> : null}
-                  </p>
 
-                  <button
-                    type="button"
-                    className="t-label wk-hood"
-                    aria-expanded={isOpen}
-                    aria-controls={panelId}
-                    onClick={() => openHood(p, i)}
-                  >
-                    <span className="wk-hood-glyph" aria-hidden="true" />
-                    {isOpen ? "Close the hood" : "Under the hood"}
-                  </button>
+                    <button
+                      type="button"
+                      className="t-label wk-hood"
+                      aria-expanded={isOpen}
+                      aria-controls={panelId}
+                      onClick={() => openHood(p, i)}
+                    >
+                      <span className="wk-hood-glyph" aria-hidden="true" />
+                      {isOpen ? "Close the hood" : "Under the hood"}
+                    </button>
+                  </div>
 
                   {/* ── The depth ─────────────────────────────────────── */}
                   <div id={panelId} className="wk-deep" hidden={!isOpen}>

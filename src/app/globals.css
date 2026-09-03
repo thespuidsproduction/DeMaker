@@ -2097,7 +2097,7 @@ svg {
   background: none;
   border: 0;
   border-top: 1px solid var(--rule);
-  margin-top: clamp(1.5rem, 3vw, 2.25rem);
+  margin-top: clamp(1.25rem, 2.6vw, 2rem);
   padding: 1rem 0 0;
   width: 100%;
   display: flex;
@@ -3276,17 +3276,44 @@ svg {
   }
 }
 
-/* ── The live address on a project ────────────────────────────────────── */
+/* ── Provenance and controls on a project ─────────────────────────────── */
 
+/* The city, not the URL. Where a piece of work was built for is durable;
+   the address it happens to answer on this month is not. */
 .wk-where {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 0.5rem 1rem;
-  margin: 1.1rem 0 0;
+  gap: 0.4rem 0.9rem;
+  margin: 1rem 0 0;
+}
+
+.wk-place {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--sage-ink);
+}
+
+.wk-place-pin {
+  flex: none;
+  opacity: 0.85;
+  transform: translateY(-0.5px);
+}
+
+/* The link and the hood stay one group, so the eye reads them as the two
+   things this card can do rather than as decoration and a control. */
+.wk-acts {
+  display: grid;
+  margin-top: 1.05rem;
 }
 
 .wk-visit {
+  justify-self: start;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -3319,6 +3346,12 @@ svg {
   animation: ambient-breathe 3.2s var(--ease-mercury) infinite;
 }
 
+.wk-visit-label {
+  /* The label is a verb, so it is set as text rather than as an address:
+     no truncation, no monospace address styling, no wrapping mid-word. */
+  white-space: nowrap;
+}
+
 .wk-visit-arrow {
   flex: none;
   transition: transform 420ms var(--ease-door);
@@ -3333,6 +3366,19 @@ svg {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--fg-faint);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+/* Two pieces of small caps text at the same weight read as one run without
+   something between them. A rule, not a bullet: the page has no bullets. */
+.wk-where-note::before {
+  content: "";
+  width: 14px;
+  height: 1px;
+  background: var(--rule-strong);
+  flex: none;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -3826,6 +3872,13 @@ svg {
   margin: 0;
 }
 
+.atlas-actions {
+  display: grid;
+  gap: 0.6rem;
+  justify-items: start;
+  align-content: end;
+}
+
 .atlas-controls {
   display: inline-flex;
   border: 1px solid var(--rule-strong);
@@ -3863,6 +3916,43 @@ svg {
   color: var(--bg);
 }
 
+/* Only offered once the globe has actually been turned away from home. It
+   holds its space rather than appearing from nothing, so the controls above
+   it never jump under the hand that is reaching for them. */
+.atlas-home {
+  appearance: none;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--rule-strong);
+  padding: 0.35rem 0.1rem;
+  min-height: 24px;
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--accent-ink);
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-3px);
+  transition:
+    opacity 420ms var(--ease-door),
+    transform 420ms var(--ease-door),
+    visibility 0s linear 420ms,
+    color 260ms var(--ease-door);
+}
+
+.atlas-home-on {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition-delay: 0s;
+}
+
+.atlas-home:hover {
+  color: var(--fg);
+}
+
 /* A plate, not a band. The projection is close to square at this latitude
    cut-off, so stretching it across the full column would leave the map
    stranded in the middle of its own frame. */
@@ -3883,8 +3973,22 @@ svg {
   display: block;
   width: 100%;
   height: auto;
+  /* A flat map is not draggable, so the page keeps every gesture over it. */
   touch-action: pan-y;
+  cursor: default;
+}
+
+/* On the globe the vertical drag is a rotation, and the browser would
+   otherwise take it for a scroll and pull the page away mid-turn. That, on a
+   phone, is most of what the resistance was. */
+.atlas-svg-live {
+  touch-action: none;
   cursor: grab;
+}
+
+.atlas-svg-live:focus-visible {
+  outline: 1px solid var(--accent-ink);
+  outline-offset: 4px;
 }
 
 .atlas-svg.atlas-grabbing {
@@ -4206,5 +4310,306 @@ svg {
     width: 22px;
     height: auto;
     opacity: 0.55;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   THE INDEX
+   A card catalogue drawer. Command palette on a wide screen, and on a phone
+   the navigation itself: the header can hold six sections and there are nine.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.ix-open {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 32px;
+  padding: 0.4rem 0.6rem;
+  margin-left: 0.2rem;
+  background: color-mix(in srgb, var(--bg-veil) 45%, transparent);
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+  cursor: pointer;
+  transition: border-color 320ms var(--ease-door), color 320ms var(--ease-door);
+}
+
+.ix-open:hover {
+  border-color: var(--rule-strong);
+  color: var(--fg);
+}
+
+/* Three rules, of unequal length. A hamburger drawn by someone who sets type. */
+.ix-open-rules {
+  display: grid;
+  gap: 3px;
+  width: 13px;
+  flex: none;
+}
+
+.ix-open-rules i {
+  height: 1px;
+  background: currentColor;
+  transition: width 420ms var(--ease-door);
+}
+
+.ix-open-rules i:nth-child(1) { width: 13px; }
+.ix-open-rules i:nth-child(2) { width: 9px; }
+.ix-open-rules i:nth-child(3) { width: 11px; }
+
+.ix-open:hover .ix-open-rules i { width: 13px; }
+
+.ix-open-word,
+.ix-open-key {
+  display: none;
+}
+
+.ix-open-key {
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.08em;
+  padding: 0.1rem 0.3rem;
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  color: var(--fg-faint);
+}
+
+@media (min-width: 900px) {
+  .ix-open-word,
+  .ix-open-key {
+    display: inline-block;
+  }
+}
+
+/* ── The drawer ───────────────────────────────────────────────────────── */
+
+.ix {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: grid;
+  align-items: end;
+  justify-items: stretch;
+}
+
+.ix-veil {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(14px) saturate(1.1);
+  -webkit-backdrop-filter: blur(14px) saturate(1.1);
+  opacity: 0;
+  transition: opacity 420ms var(--ease-door);
+}
+
+.ix-on .ix-veil {
+  opacity: 1;
+}
+
+.ix-drawer {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  width: 100%;
+  max-height: 88dvh;
+  padding: 0;
+  overflow: hidden;
+  /* Glass is for objects sitting on the page. This one is the page, for as
+     long as it is open, so it needs a floor: type read over a headline is
+     not read at all. */
+  background: var(--bg);
+  border: 1px solid var(--rule-strong);
+  box-shadow: 0 -2px 60px -12px color-mix(in srgb, var(--fg) 20%, transparent);
+  transform: translateY(14px);
+  opacity: 0;
+  transition:
+    transform 520ms var(--ease-door),
+    opacity 380ms var(--ease-door);
+}
+
+.ix-on .ix-drawer {
+  transform: none;
+  opacity: 1;
+}
+
+@media (min-width: 760px) {
+  .ix {
+    align-items: start;
+    justify-items: center;
+    padding: 12vh 1.5rem 0;
+  }
+
+  .ix-drawer {
+    width: min(38rem, 100%);
+    max-height: 70dvh;
+    transform: translateY(-10px) scale(0.985);
+    box-shadow: 0 34px 90px -30px color-mix(in srgb, var(--fg) 30%, transparent);
+  }
+}
+
+.ix-head {
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.9rem 1.05rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.ix-caret {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border-right: 1px solid var(--accent-ink);
+  border-bottom: 1px solid var(--accent-ink);
+  transform: rotate(-45deg) translate(-1px, -1px);
+}
+
+.ix-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0.2rem 0;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  letter-spacing: 0.01em;
+  color: var(--fg);
+}
+
+.ix-input::placeholder {
+  color: var(--fg-faint);
+}
+
+.ix-input:focus {
+  outline: none;
+}
+
+.ix-close {
+  appearance: none;
+  background: none;
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  min-height: 24px;
+  padding: 0.25rem 0.45rem;
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+  cursor: pointer;
+  flex: none;
+  transition: color 300ms var(--ease-door), border-color 300ms var(--ease-door);
+}
+
+.ix-close:hover {
+  color: var(--fg);
+  border-color: var(--rule-strong);
+}
+
+.ix-list {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0.4rem 0 0.6rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+.ix-group {
+  margin: 0.85rem 1.05rem 0.3rem;
+  color: var(--fg-faint);
+}
+
+.ix-row {
+  appearance: none;
+  background: none;
+  border: 0;
+  border-left: 2px solid transparent;
+  width: 100%;
+  min-height: 44px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: baseline;
+  gap: 0.85rem;
+  padding: 0.6rem 1.05rem;
+  text-align: left;
+  cursor: pointer;
+  color: var(--fg-muted);
+  transition:
+    background 240ms var(--ease-door),
+    color 240ms var(--ease-door),
+    border-color 240ms var(--ease-door);
+}
+
+.ix-row-on {
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  border-left-color: var(--accent-ink);
+  color: var(--fg);
+}
+
+.ix-row-label {
+  font-size: 0.9375rem;
+  letter-spacing: -0.005em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ix-row-hint {
+  color: var(--fg-faint);
+  white-space: nowrap;
+}
+
+/* The accent wash on the selected row lifts its background just enough to
+   drop the faint tone under 4.5:1, so the hint steps up with the label. */
+.ix-row-on .ix-row-hint {
+  color: var(--fg-muted);
+}
+
+.ix-row-arrow {
+  opacity: 0;
+  color: var(--accent-ink);
+  transform: translateX(-4px);
+  transition: opacity 240ms var(--ease-door), transform 240ms var(--ease-door);
+}
+
+.ix-row-on .ix-row-arrow {
+  opacity: 1;
+  transform: none;
+}
+
+.ix-empty {
+  margin: 1.4rem 1.05rem;
+  color: var(--fg-faint);
+  max-width: 34ch;
+  line-height: 1.6;
+}
+
+.ix-foot {
+  display: none;
+  background: var(--bg);
+  gap: 1.2rem;
+  margin: 0;
+  padding: 0.65rem 1.05rem;
+  border-top: 1px solid var(--rule);
+  color: var(--fg-faint);
+}
+
+@media (min-width: 760px) and (pointer: fine) {
+  .ix-foot {
+    display: flex;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ix-veil,
+  .ix-drawer,
+  .ix-row-arrow {
+    transition-duration: 1ms;
   }
 }

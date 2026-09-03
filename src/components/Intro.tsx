@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { SITE, SURFACE_STACK } from "@/content/site";
 import { gsap, prefersReducedMotion, useGsapSetup } from "@/lib/motion";
+import { holdScroll } from "@/lib/lock";
 
 const KEY = "princey-intro";
 
@@ -42,7 +43,7 @@ export function Intro() {
     const root = rootRef.current;
     if (!root) return;
 
-    document.body.style.overflow = "hidden";
+    const release = holdScroll();
 
     let tl: gsap.core.Timeline;
 
@@ -62,7 +63,7 @@ export function Intro() {
     const ctx = gsap.context(() => {
       tl = gsap.timeline({
         onComplete: () => {
-          document.body.style.overflow = "";
+          release();
           try {
             sessionStorage.setItem(KEY, "seen");
           } catch {
@@ -103,7 +104,7 @@ export function Intro() {
       window.removeEventListener("touchstart", skip);
       window.removeEventListener("keydown", keys);
       ctx.revert();
-      document.body.style.overflow = "";
+      release();
     };
   }, [done]);
 
