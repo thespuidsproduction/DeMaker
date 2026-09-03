@@ -241,10 +241,22 @@ exists on paper. What people quietly do with a portfolio is press print, or
 save it as a PDF and send it on, and left alone a browser would produce a paper
 photograph of a screen: cut-off canvas, ornament, a nav bar across the top of
 page one. Instead <kbd>Cmd</kbd>/<kbd>Ctrl</kbd> + <kbd>P</kbd> yields a
-typeset one-page document, black on white, set from the same content file the
-site is built from so it cannot drift out of step with it. One address appears
-on it, the portfolio's own; no project URLs, for the same reason they are not
-on the page.
+five-page engraved document: a title plate, two pages of catalogue with each
+project's full blueprint beside its engraved figure, the toolbox and the
+principles, and the agent architecture with the way to reach me. Every word is
+read from the same content file the site is built from, so it cannot drift out
+of step with it. One address appears on it, the portfolio's own; no project
+URLs, for the same reason they are not on the page.
+
+Two constraints shape the whole of it. Browsers do not implement the `@page`
+margin boxes that would let CSS print its own folio, so **pagination is
+explicit**: each page is a box of known height, broken after, carrying its own
+running head and a hand-numbered folio, which also guarantees a figure is never
+sliced in half by a break. And **"background graphics" is off by default in
+every print dialog there is**, so the design is built from strokes, borders and
+coloured type rather than filled panels: turn backgrounds on and the paper
+gains its cream ground, leave them off and not one rule, ornament or accent is
+lost.
 
 ### Notices
 
@@ -420,9 +432,11 @@ message it cannot deliver.
       issue, or a commit. A Telegram bot token is reissued from @BotFather in
       about ten seconds and the old one dies with it.
 - [ ] Press <kbd>Cmd</kbd>/<kbd>Ctrl</kbd> + <kbd>P</kbd> once on the deployed
-      site and check the sheet still fits one page. It is generated from
-      `src/content/site.ts`, so it follows the content, but a long enough
-      project line will push it over.
+      site and check the sheet still comes to five pages with nothing clipped.
+      It is generated from `src/content/site.ts`, so it follows the content;
+      pages are a fixed height and overflow is hidden, so a long enough
+      addition is cut off rather than reflowed. A fifth project, or a longer
+      set of strata, means rebalancing the pages by hand.
 
 Already handled in the repo:
 

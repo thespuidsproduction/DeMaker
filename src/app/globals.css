@@ -4634,8 +4634,14 @@ svg {
 
 /* ═══════════════════════════════════════════════════════════════════════════
    THE SHEET
-   What comes out of the printer. Hidden on screen, and on paper it is the
-   only thing there: black on white, one page, no ornament and no canvas.
+   Four engraved pages. Hidden on screen; on paper the only thing there.
+
+   Two constraints shape the whole of this block. Browsers do not implement
+   the `@page` margin boxes that would print a folio, so pagination is
+   explicit: fixed-height pages, broken after, each carrying its own head and
+   foot. And "background graphics" is off by default in every print dialog
+   there is, so the design is built from strokes, borders and coloured type.
+   Background fills appear only as a bonus for anyone who switches them on.
    ═══════════════════════════════════════════════════════════════════════════ */
 
 .sheet {
@@ -4643,7 +4649,6 @@ svg {
 }
 
 @media print {
-  /* Everything the screen needs goes; the sheet is the document. */
   body > * {
     display: none !important;
   }
@@ -4653,262 +4658,737 @@ svg {
   }
 
   @page {
-    margin: 14mm 15mm;
+    size: A4;
+    margin: 13mm;
   }
 
   html,
   body {
     background: #fff !important;
-    color: #000 !important;
   }
 
   .sheet {
+    /* Print has its own palette. The screen tokens are tuned for a lit
+       display; on paper they wash out, so the ink goes darker and the copper
+       loses the glow it does not need. */
+    --pink: #191c1a;
+    --pcopper: #8a563a;
+    --psage: #4f6154;
+    --pfaint: #7b7a72;
+    --prule: #c9c3b4;
+    --engrave: #a9927c;
+
     font-family: var(--font-sans), system-ui, sans-serif;
-    font-size: 9.2pt;
-    line-height: 1.42;
-    color: #000;
+    font-size: 9.1pt;
+    line-height: 1.45;
+    color: var(--pink);
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
 
-  .sheet-head {
-    border-bottom: 0.6pt solid #000;
-    padding-bottom: 3.5mm;
-  }
-
-  .sheet-name {
-    margin: 0;
-    font-size: 25pt;
-    font-weight: 900;
-    letter-spacing: -0.035em;
-    line-height: 0.95;
-    text-transform: uppercase;
-  }
-
-  .sheet-roles {
-    margin: 2mm 0 0;
-    font-size: 8pt;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-  }
-
-  .sheet-meta {
-    margin: 1.4mm 0 0;
-    font-family: var(--font-mono), ui-monospace, monospace;
-    font-size: 7.4pt;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: #333;
-  }
-
-  .sheet-sep {
-    padding: 0 0.55em;
-    color: #999;
-  }
-
-  .sheet-statement {
-    margin: 5mm 0 0;
-    font-size: 13.5pt;
-    font-weight: 700;
-    line-height: 1.22;
-    letter-spacing: -0.015em;
-    max-width: 30em;
-  }
-
-  .sheet-manifesto {
-    margin: 3mm 0 0;
-    font-size: 9.2pt;
-    line-height: 1.5;
-    max-width: 46em;
-    color: #222;
-  }
-
-  /* Two columns, and a rule between them rather than a gutter of nothing. */
-  .sheet-cols {
-    display: grid;
-    grid-template-columns: 1.32fr 1fr;
-    gap: 8mm;
-    margin-top: 6mm;
-    padding-top: 5mm;
-    border-top: 0.6pt solid #000;
-  }
-
-  .sheet-col + .sheet-col {
-    padding-left: 8mm;
-    border-left: 0.4pt solid #bbb;
-  }
-
-  .sheet-h {
-    margin: 0 0 2.6mm;
-    font-family: var(--font-mono), ui-monospace, monospace;
-    font-size: 7pt;
-    font-weight: 400;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    color: #555;
-  }
-
-  .sheet-col > .sheet-h:not(:first-child) {
-    margin-top: 5mm;
-  }
-
-  .sheet-work {
-    break-inside: avoid;
-    margin-bottom: 3.6mm;
-  }
-
-  .sheet-work-name {
-    margin: 0;
-    font-size: 10.5pt;
-    font-weight: 800;
-    letter-spacing: -0.012em;
-  }
-
-  .sheet-work-n {
-    display: inline-block;
-    min-width: 5.5mm;
-    font-family: var(--font-mono), ui-monospace, monospace;
-    font-size: 7pt;
-    font-weight: 400;
-    color: #888;
-  }
-
-  .sheet-work-kind {
-    margin: 0.6mm 0 0 5.5mm;
-    font-family: var(--font-mono), ui-monospace, monospace;
-    font-size: 6.8pt;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: #555;
-  }
-
-  .sheet-work-line {
-    margin: 1.1mm 0 0 5.5mm;
-    font-size: 8.8pt;
-    line-height: 1.42;
-    color: #222;
-  }
-
-  .sheet-principles {
-    margin: 0;
-    padding: 0 0 0 5.5mm;
-    list-style: none;
-    counter-reset: pr;
-  }
-
-  .sheet-principles li {
-    position: relative;
-    margin-bottom: 1.5mm;
-    font-size: 8.4pt;
-    line-height: 1.44;
-    color: #333;
-    break-inside: avoid;
-    counter-increment: pr;
-  }
-
-  .sheet-principles li::before {
-    content: counter(pr, lower-roman);
-    position: absolute;
-    left: -5.5mm;
-    font-family: var(--font-mono), ui-monospace, monospace;
-    font-size: 6.6pt;
-    color: #999;
-  }
-
-  .sheet-principles b {
-    color: #000;
-    font-weight: 700;
-  }
-
-  .sheet-facets {
-    margin: 0;
-  }
-
-  .sheet-facet {
-    display: grid;
-    grid-template-columns: 15mm 1fr;
-    gap: 2mm;
-    margin-bottom: 1.6mm;
-    break-inside: avoid;
-  }
-
-  .sheet-facet dt {
-    font-family: var(--font-mono), ui-monospace, monospace;
-    font-size: 7pt;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: #000;
-  }
-
-  .sheet-facet dd {
-    margin: 0;
-    font-size: 8.6pt;
-    color: #222;
-  }
-
-  .sheet-nums {
+  .sheet p,
+  .sheet h1,
+  .sheet h2,
+  .sheet h3,
+  .sheet dl,
+  .sheet dd,
+  .sheet ol {
     margin: 0;
     padding: 0;
-    list-style: none;
   }
 
-  .sheet-nums li {
-    display: grid;
-    grid-template-columns: 12mm 1fr;
+  /* ── The page ─────────────────────────────────────────────────────────
+     271mm is A4 less the two 13mm margins. The height is fixed rather than
+     natural so that a folio sits at the foot of every page in the same
+     place, and so an entry can never be sliced across a break. */
+  .pg {
+    position: relative;
+    height: 271mm;
+    display: flex;
+    flex-direction: column;
+    break-after: page;
+    page-break-after: always;
+    overflow: hidden;
+  }
+
+  .pg-last {
+    break-after: auto;
+    page-break-after: auto;
+  }
+
+  .pg-head {
+    display: flex;
+    align-items: center;
+    gap: 4mm;
+    padding-bottom: 2mm;
+    border-bottom: 0.5pt solid var(--pink);
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 6.6pt;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    flex: none;
+  }
+
+  .pg-head-mark {
+    color: var(--pink);
+    font-weight: 700;
+  }
+
+  .pg-head-rule {
+    flex: 1 1 auto;
+    height: 8px;
+    opacity: 0.7;
+  }
+
+  .pg-head-title {
+    color: var(--pcopper);
+  }
+
+  .pg-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    padding-top: 5mm;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* A page of set blocks never fills exactly. Rather than let the slack pile
+     up at the foot as a hole, spread it evenly between the blocks, so the
+     page reads as composed instead of as having run out of copy. */
+  .pg-spread .pg-body {
+    justify-content: space-evenly;
+  }
+
+  .pg-foot {
+    flex: none;
+    display: flex;
     align-items: baseline;
-    gap: 2mm;
-    margin-bottom: 1.4mm;
-    font-size: 8.6pt;
-    break-inside: avoid;
+    justify-content: space-between;
+    gap: 4mm;
+    padding-top: 2mm;
+    border-top: 0.5pt solid var(--prule);
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 6.2pt;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--pfaint);
   }
 
-  .sheet-nums b {
-    font-size: 13pt;
+  /* The folio is the one number on the page written by hand. */
+  .pg-folio {
+    font-family: var(--font-hand), cursive;
+    font-size: 15pt;
+    letter-spacing: 0.06em;
+    text-transform: none;
+    color: var(--pcopper);
+    line-height: 0.8;
+  }
+
+  .pg-sep {
+    padding: 0 0.5em;
+    color: var(--prule);
+  }
+
+  .pg-h {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 6.8pt;
+    font-weight: 400;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--psage);
+    padding-bottom: 1.6mm;
+    border-bottom: 0.4pt solid var(--prule);
+    margin-bottom: 3mm !important;
+  }
+
+  .pg-lede {
+    font-size: 8.4pt;
+    color: var(--pfaint);
+    max-width: 52em;
+    margin-bottom: 3mm !important;
+  }
+
+  /* Ornament in the margins, never in the way of a line of type. */
+  .pg-leaf {
+    position: absolute;
+    width: 13mm;
+    opacity: 0.55;
+  }
+
+  .pg-leaf-tl {
+    top: 9mm;
+    left: 0;
+  }
+
+  .pg-leaf-br {
+    bottom: 10mm;
+    right: 0;
+    transform: rotate(180deg);
+  }
+
+  .pg-vine {
+    position: absolute;
+    top: 44mm;
+    left: 0;
+    width: 8mm;
+    opacity: 0.5;
+  }
+
+  /* ── i · the title plate ────────────────────────────────────────────── */
+
+  .ti {
+    text-align: center;
+    padding-top: 7mm;
+  }
+
+  .ti-eyebrow {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 6.6pt;
+    letter-spacing: 0.34em;
+    text-transform: uppercase;
+    color: var(--pfaint);
+    margin-bottom: 4mm !important;
+  }
+
+  .ti-name {
+    font-size: 40pt;
     font-weight: 900;
-    letter-spacing: -0.03em;
+    letter-spacing: -0.045em;
+    line-height: 0.86;
+    text-transform: uppercase;
+    color: var(--pink);
+  }
+
+  .ti-name span {
+    display: block;
+  }
+
+  .ti-name span:last-child {
+    color: var(--pcopper);
+  }
+
+  .ti-flourish {
+    display: block;
+    width: 64mm;
+    margin: 4mm auto 3.5mm;
+  }
+
+  .ti-roles {
+    font-size: 8.2pt;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--pink);
+  }
+
+  .ti-meta {
+    margin-top: 1.6mm !important;
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 7pt;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--psage);
+  }
+
+  .ti-statement {
+    position: relative;
+    margin: 12mm auto 0 !important;
+    max-width: 128mm;
+    text-align: center;
+  }
+
+  .ti-quote {
+    font-size: 17pt;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    color: var(--pink);
+  }
+
+  .ti-quote::before {
+    content: "\201C";
+  }
+
+  .ti-quote::after {
+    content: "\201D";
+  }
+
+  .ti-underline {
+    display: block;
+    width: 74mm;
+    margin: 2mm auto 0;
+    color: var(--pcopper);
+  }
+
+  .ti-manifesto {
+    margin: 9mm auto 0 !important;
+    max-width: 122mm;
+    text-align: center;
+    font-size: 9pt;
+    line-height: 1.58;
+    color: #3a3d3a;
+  }
+
+  /* The middle of a title page is not a gap to be closed. Give it the one
+     ornament the whole document is arranged around. */
+  .ti-rose-well {
+    margin: auto 0 !important;
+    padding: 3mm 0;
+    text-align: center;
+  }
+
+  .ti-rose {
+    display: block;
+    width: 38mm;
+    margin: 0 auto;
+    opacity: 0.42;
+  }
+
+  .ti-rose-note {
+    margin-top: 3mm !important;
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 6.4pt;
+    letter-spacing: 0.34em;
+    text-transform: uppercase;
+    color: var(--pfaint);
+  }
+
+  .ti-surface {
+    padding-top: 4mm;
+  }
+
+  .ti-stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2mm;
+  }
+
+  .ti-stack span {
+    border: 0.5pt solid var(--pcopper);
+    padding: 1.1mm 2.4mm;
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 7pt;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--pcopper);
+  }
+
+  .ti-stack-note {
+    margin-top: 2.4mm !important;
+    font-size: 7.6pt;
+    line-height: 1.5;
+    color: var(--pfaint);
+    max-width: 58em;
+  }
+
+  .ti-nums {
+    padding-top: 9mm;
+  }
+
+  .ti-nums-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 5mm;
+  }
+
+  .ti-num {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8mm;
+    padding-top: 2mm;
+    border-top: 0.5pt solid var(--pink);
+  }
+
+  .ti-num-v {
+    font-size: 27pt;
+    font-weight: 900;
+    letter-spacing: -0.04em;
+    line-height: 0.9;
+  }
+
+  .ti-num:nth-child(2n) .ti-num-v {
+    color: var(--pcopper);
+  }
+
+  .ti-num-l {
+    margin-top: 1.4mm;
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 6.4pt;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--pink);
+  }
+
+  .ti-num-n {
+    font-size: 6.8pt;
+    letter-spacing: 0.04em;
+    color: var(--pfaint);
+  }
+
+  .ti-hand {
+    margin-top: 5mm !important;
+    text-align: right;
+    font-family: var(--font-hand), cursive;
+    font-size: 14pt;
+    color: var(--pcopper);
+    opacity: 0.85;
+  }
+
+  /* ── ii & iii · the catalogue ───────────────────────────────────────── */
+
+  .pw {
+    display: grid;
+    grid-template-columns: 56mm minmax(0, 1fr);
+    gap: 8mm;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .pw + .pw {
+    margin-top: 8mm;
+    padding-top: 8mm;
+    border-top: 0.5pt solid var(--prule);
+  }
+
+  .pw-strata + .pw-strata {
+    margin-top: 1.8mm !important;
+  }
+
+  .pw-fig {
+    margin: 0;
+  }
+
+  .pw-plate {
+    display: block;
+    width: 100%;
+    height: auto;
+    border: 0.5pt solid var(--prule);
+    padding: 3mm;
+  }
+
+  .pw-fig-cap {
+    margin-top: 1.6mm;
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 6pt;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--pfaint);
+  }
+
+  .pw-kind {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 6.4pt;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--psage);
+  }
+
+  .pw-name {
+    margin-top: 1.6mm !important;
+    font-size: 17.5pt;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    line-height: 1.05;
+    color: var(--pink);
+  }
+
+  .pw-n {
+    display: inline-block;
+    margin-right: 2.4mm;
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 8pt;
+    font-weight: 400;
+    color: var(--pcopper);
+    vertical-align: 0.28em;
+  }
+
+  .pw-line {
+    margin-top: 2.4mm !important;
+    font-size: 10.8pt;
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--pink);
+    max-width: 42em;
+  }
+
+  .pw-strata {
+    margin-top: 2.4mm !important;
+    font-size: 8.9pt;
+    line-height: 1.56;
+    color: #45483f;
+  }
+
+  .pw-strata b {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 6.4pt;
+    font-weight: 400;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--psage);
+  }
+
+  /* The technologies a visitor has to open the hood to see. On paper the
+     hood is already open. */
+  .pw-reveals {
+    margin-top: 3mm !important;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.4mm 2mm;
+  }
+
+  .pw-reveals span {
+    border: 0.4pt solid var(--prule);
+    padding: 0.9mm 1.9mm;
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 6.4pt;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--pink);
+  }
+
+  .pw-hand {
+    margin-top: 2.6mm !important;
+    font-family: var(--font-hand), cursive;
+    font-size: 13.5pt;
+    line-height: 1;
+    color: var(--pcopper);
+  }
+
+  .pw-hand::before {
+    content: "\2014\00a0\00a0";
+  }
+
+  /* ── iv · practice ──────────────────────────────────────────────────── */
+
+  .pr-block + .pr-block {
+    margin-top: 6mm;
+  }
+
+  .pr-facets {
+    display: grid;
+    gap: 3.2mm;
+  }
+
+  .pr-facet {
+    display: grid;
+    grid-template-columns: 34mm 1fr;
+    gap: 5mm;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .pr-facet dt {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6mm;
+    padding-top: 0.4mm;
+    border-top: 0.5pt solid var(--pink);
+  }
+
+  .pr-verb {
+    font-size: 12pt;
+    font-weight: 800;
+    letter-spacing: -0.02em;
     line-height: 1;
   }
 
-  .sheet-nums i {
-    display: block;
-    grid-column: 2;
-    font-style: normal;
-    font-size: 7pt;
-    letter-spacing: 0.06em;
-    color: #666;
+  .pr-facet:nth-child(2n) .pr-verb {
+    color: var(--pcopper);
   }
 
-  .sheet-stack {
-    margin: 0;
+  .pr-domain {
     font-family: var(--font-mono), ui-monospace, monospace;
-    font-size: 7.6pt;
-    letter-spacing: 0.08em;
-    color: #222;
-  }
-
-  .sheet-foot {
-    margin-top: 6mm;
-    padding-top: 3mm;
-    border-top: 0.6pt solid #000;
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    gap: 6mm;
-  }
-
-  .sheet-foot p {
-    margin: 0;
-    font-size: 8.2pt;
-    color: #222;
-    max-width: 44em;
-  }
-
-  .sheet-sign {
-    font-family: var(--font-mono), ui-monospace, monospace;
-    font-size: 7pt !important;
-    letter-spacing: 0.18em;
+    font-size: 5.8pt;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
-    white-space: nowrap;
-    color: #555 !important;
+    color: var(--pfaint);
+  }
+
+  .pr-facet dd {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2mm;
+    padding-top: 0.4mm;
+    border-top: 0.5pt solid var(--prule);
+  }
+
+  .pr-claim {
+    font-size: 8.6pt;
+    line-height: 1.4;
+    color: var(--pink);
+  }
+
+  .pr-primary {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 6.6pt;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--pcopper);
+  }
+
+  .pr-secondary {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 6.2pt;
+    letter-spacing: 0.1em;
+    color: var(--pfaint);
+  }
+
+  /* Closes the toolbox page: the eye needs to be told the list has ended
+     rather than run out of paper. */
+  .pr-weave {
+    display: block;
+    width: 100%;
+    height: 6mm;
+    margin: 6mm 0;
+    opacity: 0.5;
+  }
+
+  .pr-principles {
+    display: grid;
+    gap: 2.2mm;
+    list-style: none;
+  }
+
+  .pr-principles li {
+    display: grid;
+    grid-template-columns: 7mm minmax(0, 1fr);
+    gap: 2mm;
+    font-size: 9pt;
+    line-height: 1.52;
+    color: #45483f;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .pr-say {
+    min-width: 0;
+  }
+
+  .pr-n {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 6.4pt;
+    letter-spacing: 0.1em;
+    color: var(--pcopper);
+    padding-top: 0.6mm;
+  }
+
+  .pr-principles b {
+    color: var(--pink);
+    font-weight: 700;
+  }
+
+  /* ── the agent ────────────────────────────────────────────────────── */
+
+  .ag-stages {
+    display: grid;
+    gap: 2.4mm;
+    list-style: none;
+  }
+
+  .ag-stages li {
+    display: grid;
+    grid-template-columns: 9mm minmax(0, 1fr);
+    gap: 2mm;
+    align-items: baseline;
+    font-size: 9pt;
+    line-height: 1.5;
+    color: #45483f;
+    padding-bottom: 2.2mm;
+    border-bottom: 0.4pt solid var(--prule);
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .ag-stages li:last-child {
+    border-bottom: 0;
+  }
+
+  .ag-n {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 7.4pt;
+    letter-spacing: 0.12em;
+    color: var(--pcopper);
+  }
+
+  .ag-stages b {
+    color: var(--pink);
+    font-weight: 700;
+  }
+
+  .ag-arch {
+    display: grid;
+    gap: 3mm;
+  }
+
+  .ag-arch > div {
+    display: grid;
+    grid-template-columns: 34mm minmax(0, 1fr);
+    gap: 5mm;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .ag-arch dt {
+    padding-top: 0.4mm;
+    border-top: 0.5pt solid var(--pink);
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 6.8pt;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--pink);
+  }
+
+  .ag-arch dd {
+    padding-top: 0.4mm;
+    border-top: 0.5pt solid var(--prule);
+    font-size: 8.6pt;
+    line-height: 1.5;
+    color: #45483f;
+  }
+
+  /* No auto margin here: an auto margin beats justify-content, and this
+     block is one of the things the page is distributing. */
+  .pr-close {
+    padding-top: 4mm;
+    text-align: center;
+  }
+
+  .pr-close-flourish {
+    display: block;
+    width: 56mm;
+    margin: 0 auto 4mm;
+  }
+
+  .pr-stack {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 7pt;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--psage);
+  }
+
+  .pr-channel {
+    margin-top: 3mm !important;
+    font-size: 9pt;
+    color: var(--pink);
+  }
+
+  .pr-sign {
+    margin-top: 3mm !important;
+    font-family: var(--font-hand), cursive;
+    font-size: 17pt;
+    color: var(--pcopper);
+  }
+
+  .pr-colophon {
+    margin-top: 6mm !important;
+    padding-top: 2.6mm;
+    border-top: 0.4pt solid var(--prule);
+    font-size: 6.8pt;
+    line-height: 1.55;
+    color: var(--pfaint);
+    text-align: center;
+    max-width: 116mm;
+    margin-left: auto !important;
+    margin-right: auto !important;
   }
 }
