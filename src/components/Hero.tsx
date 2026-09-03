@@ -121,6 +121,12 @@ export function Hero() {
           "-=1.0",
         )
         .fromTo(
+          "[data-h='thesis']",
+          { opacity: 0, y: 14, filter: "blur(6px)" },
+          { opacity: 1, y: 0, filter: "blur(0px)", duration: 1.1 },
+          "-=0.6",
+        )
+        .fromTo(
           "[data-h='philosophy']",
           { opacity: 0, y: 18, filter: "blur(7px)" },
           { opacity: 1, y: 0, filter: "blur(0px)", duration: 1.2 },
@@ -266,6 +272,18 @@ export function Hero() {
                 </li>
               ))}
             </ul>
+
+            {/* The claim, opened by a printer's initial. The letter is the
+                real first word of the sentence, not decoration standing in
+                front of it, so the line still reads "I work across the whole
+                surface" to anyone listening to it rather than looking. */}
+            <p className="hero-thesis" data-h="thesis">
+              <span className="hero-thesis-cap" aria-hidden="true">
+                <span className="hero-thesis-glyph">I</span>
+              </span>
+              <span className="sr-only">I</span>
+              {SITE.thesis}
+            </p>
           </div>
 
           {/* Philosophy plate — the manifesto in miniature. */}

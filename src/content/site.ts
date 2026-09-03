@@ -29,6 +29,12 @@ export const SITE = {
   location: "United Kingdom",
   country: "GB",
   philosophy: "I care about how things feel, not just how they work.",
+  /**
+   * The opening claim, set under the three disciplines so that "not three
+   * jobs" has the three sitting directly above it.
+   */
+  thesis:
+    "work across the whole surface of a product: the interface someone touches, the API it speaks to, the schema underneath, the pipeline that ships it, and the agentic layer that lets software act rather than merely answer. Not three jobs but one system, and the seams between those parts are where products usually fail.",
   manifesto:
     "I build software from the interface down to the infrastructure. Products that feel effortless at 60fps, remain useful when the network is slow, behave properly on mobile Safari, and stay understandable long after the first deployment.",
   signature: ["Build it beautifully.", "Make it behave."] as const,
@@ -263,7 +269,6 @@ export const PROJECTS: Project[] = [
     href: "https://weston-warriors.vercel.app",
     action: "Step into the ring",
     place: "Weston-super-Mare",
-    note: "Amateur boxing club",
     reveals: ["three.js", "WebGL", "Vertex shaders", "Two-bone IK", "Web Audio"],
     strata: [
       {

@@ -21,7 +21,10 @@ type Entry = {
 const goto = (hash: string) => () => {
   const el = document.getElementById(hash);
   if (!el) return;
-  el.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth", block: "start" });
+  el.scrollIntoView({
+    behavior: prefersReducedMotion() ? "auto" : "smooth",
+    block: "start",
+  });
   // The address bar should still say where you are, but pushing the hash
   // directly would make the browser jump before the smooth scroll starts.
   window.history.replaceState(null, "", `#${hash}`);
@@ -36,7 +39,12 @@ const SECTIONS: Array<[string, string, string, string]> = [
   ["profile", "The Person", "§ 07", "about bio background"],
   ["atlas", "Where From", "§ 08", "map globe mercator location united kingdom"],
   ["chart", "Your Chart", "§ 09", "memory traces constellation what you found"],
-  ["contact", "Open a Channel", "§ 10", "contact email message hire get in touch"],
+  [
+    "contact",
+    "Open a Channel",
+    "§ 10",
+    "contact email message hire get in touch",
+  ],
 ];
 
 /**
@@ -56,15 +64,10 @@ export function IndexDrawer() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [cursor, setCursor] = useState(0);
-  const [mac, setMac] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const restoreTo = useRef<HTMLElement | null>(null);
   const { leave } = useTraces();
-
-  useEffect(() => {
-    setMac(/Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent));
-  }, []);
 
   const entries = useMemo<Entry[]>(() => {
     const out: Entry[] = SECTIONS.map(([id, label, hint, keys]) => ({
@@ -158,7 +161,9 @@ export function IndexDrawer() {
         setCursor((c) => (shown.length ? (c + 1) % shown.length : 0));
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
-        setCursor((c) => (shown.length ? (c - 1 + shown.length) % shown.length : 0));
+        setCursor((c) =>
+          shown.length ? (c - 1 + shown.length) % shown.length : 0,
+        );
       } else if (e.key === "Enter") {
         e.preventDefault();
         choose(shown[cursor]);
@@ -213,108 +218,95 @@ export function IndexDrawer() {
   let lastGroup = "";
 
   return (
-    <>
-      <button
-        type="button"
-        className="ix-open"
-        onClick={show}
-        aria-expanded={open}
-        aria-haspopup="dialog"
-      >
-        <span className="ix-open-rules" aria-hidden="true">
-          <i />
-          <i />
-          <i />
-        </span>
-        <span className="ix-open-word">Index</span>
-        <kbd className="ix-open-key" aria-hidden="true">
-          {mac ? "⌘" : "Ctrl"}K
-        </kbd>
-        <span className="sr-only">Open the index. Keyboard shortcut, command or control K.</span>
-      </button>
+    <div
+      className={`ix${open ? " ix-on" : ""}`}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Index"
+      hidden={!open}
+      onKeyDown={onTrap}
+    >
+      <div className="ix-veil" onClick={close} aria-hidden="true" />
 
-      <div
-        className={`ix${open ? " ix-on" : ""}`}
-        role="dialog"
-        aria-modal="true"
-        aria-label="Index"
-        hidden={!open}
-        onKeyDown={onTrap}
-      >
-        <div className="ix-veil" onClick={close} aria-hidden="true" />
-
-        <div className="ix-drawer corners">
-          <div className="ix-head">
-            <label className="sr-only" htmlFor="ix-q">
-              Filter the index
-            </label>
-            <span className="ix-caret" aria-hidden="true" />
-            <input
-              id="ix-q"
-              ref={inputRef}
-              className="ix-input"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Sections, work, anything named"
-              autoComplete="off"
-              spellCheck={false}
-              role="combobox"
-              aria-expanded="true"
-              aria-controls="ix-list"
-              aria-activedescendant={shown[cursor] ? `ix-${shown[cursor].id}` : undefined}
-            />
-            <button type="button" className="ix-close" onClick={close}>
-              <span aria-hidden="true">Esc</span>
-              <span className="sr-only">Close the index</span>
-            </button>
-          </div>
-
-          <div className="ix-list" id="ix-list" role="listbox" ref={listRef} tabIndex={-1}>
-            {shown.length === 0 ? (
-              <p className="ix-empty t-meta">
-                Nothing under that name. The whole of it is nine sections and four
-                pieces of work.
-              </p>
-            ) : null}
-
-            {shown.map((e, i) => {
-              const head = e.group !== lastGroup ? e.group : null;
-              lastGroup = e.group;
-              return (
-                <div key={e.id}>
-                  {head ? (
-                    <p className="t-label ix-group" aria-hidden="true">
-                      {head}
-                    </p>
-                  ) : null}
-                  <button
-                    type="button"
-                    id={`ix-${e.id}`}
-                    role="option"
-                    aria-selected={i === cursor}
-                    data-cursor={i === cursor}
-                    className={`ix-row${i === cursor ? " ix-row-on" : ""}`}
-                    onMouseEnter={() => setCursor(i)}
-                    onClick={() => choose(e)}
-                  >
-                    <span className="ix-row-label">{e.label}</span>
-                    <span className="ix-row-hint t-meta">{e.hint}</span>
-                    <span className="ix-row-arrow" aria-hidden="true">
-                      &rarr;
-                    </span>
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-
-          <p className="ix-foot t-meta" aria-hidden="true">
-            <span>&uarr;&darr; move</span>
-            <span>&crarr; go</span>
-            <span>esc close</span>
-          </p>
+      <div className="ix-drawer corners">
+        <div className="ix-head">
+          <label className="sr-only" htmlFor="ix-q">
+            Filter the index
+          </label>
+          <span className="ix-caret" aria-hidden="true" />
+          <input
+            id="ix-q"
+            ref={inputRef}
+            className="ix-input"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Sections, work, anything named"
+            autoComplete="off"
+            spellCheck={false}
+            role="combobox"
+            aria-expanded="true"
+            aria-controls="ix-list"
+            aria-activedescendant={
+              shown[cursor] ? `ix-${shown[cursor].id}` : undefined
+            }
+          />
+          <button type="button" className="ix-close" onClick={close}>
+            <span aria-hidden="true">Esc</span>
+            <span className="sr-only">Close the index</span>
+          </button>
         </div>
+
+        <div
+          className="ix-list"
+          id="ix-list"
+          role="listbox"
+          ref={listRef}
+          tabIndex={-1}
+        >
+          {shown.length === 0 ? (
+            <p className="ix-empty t-meta">
+              Nothing under that name. The whole of it is nine sections and four
+              pieces of work.
+            </p>
+          ) : null}
+
+          {shown.map((e, i) => {
+            const head = e.group !== lastGroup ? e.group : null;
+            lastGroup = e.group;
+            return (
+              <div key={e.id}>
+                {head ? (
+                  <p className="t-label ix-group" aria-hidden="true">
+                    {head}
+                  </p>
+                ) : null}
+                <button
+                  type="button"
+                  id={`ix-${e.id}`}
+                  role="option"
+                  aria-selected={i === cursor}
+                  data-cursor={i === cursor}
+                  className={`ix-row${i === cursor ? " ix-row-on" : ""}`}
+                  onMouseEnter={() => setCursor(i)}
+                  onClick={() => choose(e)}
+                >
+                  <span className="ix-row-label">{e.label}</span>
+                  <span className="ix-row-hint t-meta">{e.hint}</span>
+                  <span className="ix-row-arrow" aria-hidden="true">
+                    &rarr;
+                  </span>
+                </button>
+              </div>
+            );
+          })}
+        </div>
+
+        <p className="ix-foot t-meta" aria-hidden="true">
+          <span>&uarr;&darr; move</span>
+          <span>&crarr; go</span>
+          <span>esc close</span>
+        </p>
       </div>
-    </>
+    </div>
   );
 }

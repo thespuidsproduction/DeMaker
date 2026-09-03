@@ -124,6 +124,8 @@ export function Nav() {
               </li>
             ))}
           </ul>
+          {/* The index has no button of its own. It answers to the keyboard
+              and to nothing else. */}
           <IndexDrawer />
           <ThemeToggle />
         </nav>

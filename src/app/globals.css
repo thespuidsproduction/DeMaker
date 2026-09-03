@@ -751,8 +751,13 @@ svg {
 
 /* ── Narrow viewports ─────────────────────────────────────────────────────
    Below 900px the scattered arrangement would collide with the identity
-   block, so four fragments are re-seated into the corners of the field and
-   the rest step out. The physics field simply measures whatever is left. */
+   block, so the fragments are re-seated into the corners of the field and
+   the rest step out. The physics field simply measures whatever is left.
+
+   Three seats, not four. The claim under the disciplines runs the full
+   width of a phone, which leaves nothing beside it: the seat that used to
+   sit at 46% now sits on top of a line of type, and a fragment that has to
+   be read through is worse than a fragment that is not there. */
 @media (max-width: 899px) {
   .hero-chip-far {
     display: none;
@@ -771,15 +776,17 @@ svg {
     --chip-mrx: 4%;
     --chip-my: 11.5%;
   }
-  .hero-chip[data-m="2"] {
-    --chip-mx: auto;
-    --chip-mrx: 4%;
-    --chip-my: 46%;
-  }
   .hero-chip[data-m="3"] {
     --chip-mx: 4%;
     --chip-mrx: auto;
     --chip-my: 74%;
+  }
+
+  /* Seat 2 is gone, and dropping its rule is not enough: the fragment still
+     carries the attribute, so it would simply fall back to its wide-viewport
+     coordinates and land somewhere worse. It has to be taken out. */
+  .hero-chip[data-m="2"] {
+    display: none;
   }
 
   .hero-plane-a {
@@ -857,6 +864,77 @@ svg {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
+}
+
+/* ── The claim, opened by a printer's initial ──────────────────────────── */
+
+.hero-thesis {
+  margin: clamp(1.6rem, 3vw, 2.4rem) 0 0;
+  max-width: 46ch;
+  font-size: clamp(0.9375rem, 0.86rem + 0.32vw, 1.125rem);
+  line-height: 1.62;
+  color: var(--fg-muted);
+  /* The box floats, so the paragraph has to be a block formatting context
+     or the roles above would wrap around it too. */
+  overflow: hidden;
+}
+
+/* A compositor's block, not a drop cap. The letter is set as a plain stem
+   with no shoulders and no serifs, so it reads as a mark on the page rather
+   than as a very large capital at the head of a sentence. */
+.hero-thesis-cap {
+  float: left;
+  display: grid;
+  place-items: center;
+  width: 4.35em;
+  height: 4.35em;
+  margin: 0.12em 1em 0.35em 0;
+  border: 1px solid var(--rule-strong);
+  background: color-mix(in srgb, var(--bg-veil) 40%, transparent);
+  position: relative;
+}
+
+/* Corner ticks, the same ones the glass plates carry. */
+.hero-thesis-cap::before,
+.hero-thesis-cap::after {
+  content: "";
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border: 1px solid var(--accent-ink);
+  opacity: 0.7;
+}
+
+.hero-thesis-cap::before {
+  top: -1px;
+  left: -1px;
+  border-right: 0;
+  border-bottom: 0;
+}
+
+.hero-thesis-cap::after {
+  bottom: -1px;
+  right: -1px;
+  border-left: 0;
+  border-top: 0;
+}
+
+.hero-thesis-glyph {
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-size: 3.05em;
+  line-height: 1;
+  letter-spacing: 0;
+  color: var(--accent-ink);
+  /* Nunito's capital I is already a bare stem. Narrowing it further takes
+     the last of the letterform out of it. */
+  transform: scaleX(0.62);
+}
+
+@media (min-width: 900px) {
+  .hero-thesis {
+    max-width: 52ch;
+  }
 }
 
 .hero-role {
@@ -4337,73 +4415,6 @@ svg {
    the navigation itself: the header can hold six sections and there are nine.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-.ix-open {
-  appearance: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  min-height: 32px;
-  padding: 0.4rem 0.6rem;
-  margin-left: 0.2rem;
-  background: color-mix(in srgb, var(--bg-veil) 45%, transparent);
-  border: 1px solid var(--rule);
-  border-radius: 2px;
-  font-family: var(--font-mono);
-  font-size: 0.5625rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--fg-muted);
-  cursor: pointer;
-  transition: border-color 320ms var(--ease-door), color 320ms var(--ease-door);
-}
-
-.ix-open:hover {
-  border-color: var(--rule-strong);
-  color: var(--fg);
-}
-
-/* Three rules, of unequal length. A hamburger drawn by someone who sets type. */
-.ix-open-rules {
-  display: grid;
-  gap: 3px;
-  width: 13px;
-  flex: none;
-}
-
-.ix-open-rules i {
-  height: 1px;
-  background: currentColor;
-  transition: width 420ms var(--ease-door);
-}
-
-.ix-open-rules i:nth-child(1) { width: 13px; }
-.ix-open-rules i:nth-child(2) { width: 9px; }
-.ix-open-rules i:nth-child(3) { width: 11px; }
-
-.ix-open:hover .ix-open-rules i { width: 13px; }
-
-.ix-open-word,
-.ix-open-key {
-  display: none;
-}
-
-.ix-open-key {
-  font-family: var(--font-mono);
-  font-size: 0.5rem;
-  letter-spacing: 0.08em;
-  padding: 0.1rem 0.3rem;
-  border: 1px solid var(--rule);
-  border-radius: 2px;
-  color: var(--fg-faint);
-}
-
-@media (min-width: 900px) {
-  .ix-open-word,
-  .ix-open-key {
-    display: inline-block;
-  }
-}
-
 /* ── The drawer ───────────────────────────────────────────────────────── */
 
 .ix {
@@ -5153,8 +5164,10 @@ svg {
     color: var(--pcopper);
   }
 
+  /* No em dash. A hand note is opened by a stroke of the same hand. */
   .pw-hand::before {
-    content: "\2014\00a0\00a0";
+    content: "\2044\00a0";
+    opacity: 0.6;
   }
 
   /* ── iv · practice ──────────────────────────────────────────────────── */

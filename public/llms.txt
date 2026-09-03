@@ -108,8 +108,8 @@ serialised as canonical JSON with fields sorted alphabetically, then signed with
 Ed25519 over the raw JSON bytes. Public verification tool requires no account.
 
 ### Weston Warriors, https://weston-warriors.vercel.app
-Interface and WebGL. A single page for an amateur boxing club in the South
-West of England. A particle field morphs with scroll across three baked
+Interface and WebGL. A single page for a boxing club in the South West of
+England. A particle field morphs with scroll across three baked
 position sets, blended in a vertex shader. A second scene renders a sparring
 round between two particle-bound skeletal rigs with two-bone inverse kinematics
 on every limb. Static, no build step, no framework, three.js vendored locally.
