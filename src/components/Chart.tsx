@@ -316,6 +316,18 @@ export function Chart() {
             ))}
           </svg>
 
+          {/* The picture is hover-only, so the same information is written out
+              for anyone who cannot hover or cannot see it. */}
+          {!empty ? (
+            <ul className="sr-only chart-index">
+              {groups.map((g) => (
+                <li key={g.from}>
+                  {g.from}: {g.stars.map((st) => st.label).join(", ")}.
+                </li>
+              ))}
+            </ul>
+          ) : null}
+
           {empty ? (
             <p className="chart-empty">
               <span className="t-hand">nothing charted yet</span>

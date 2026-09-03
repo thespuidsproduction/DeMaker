@@ -1,7 +1,23 @@
 import type { MetadataRoute } from "next";
 import { SITE } from "@/content/site";
 
-const SECTIONS = ["identity", "disciplines", "work", "credibility", "lab", "profile", "contact"];
+/**
+ * Must match the section ids actually rendered in src/app/page.tsx. These
+ * drifted once already: three of them pointed at anchors that had been
+ * renamed out of existence, which is a promise of a fragment that is not
+ * there.
+ */
+const SECTIONS = [
+  "identity",
+  "work",
+  "toolbox",
+  "measured",
+  "agent",
+  "profile",
+  "atlas",
+  "chart",
+  "contact",
+];
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();

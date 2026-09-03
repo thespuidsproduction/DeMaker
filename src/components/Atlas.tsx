@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { LAND } from "@/content/world";
 import { SITE } from "@/content/site";
-import { gsap, prefersReducedMotion, useGsapSetup } from "@/lib/motion";
+import { gsap, prefersReducedMotion, useGsapSetup, rafWhenVisible } from "@/lib/motion";
 import { Movement } from "./Movement";
 import { CoordinateRose } from "./Ornament";
 
@@ -103,12 +103,10 @@ export function Atlas() {
   useEffect(() => {
     const svg = svgRef.current;
     if (!svg) return;
-    let raf = 0;
     const t0 = performance.now();
     const reduced = prefersReducedMotion();
 
     const render = (now: number) => {
-      raf = requestAnimationFrame(render);
       const v = view.current;
 
       // Idle drift keeps the home marker on the near face rather than
@@ -198,8 +196,7 @@ export function Atlas() {
       }
     };
 
-    raf = requestAnimationFrame(render);
-    return () => cancelAnimationFrame(raf);
+    return rafWhenVisible(svg, render);
   }, []);
 
   /* ── Toggle ─────────────────────────────────────────────────────────── */

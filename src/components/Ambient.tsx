@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { READOUT } from "@/content/site";
 import { useTraces } from "@/lib/traces";
-import { prefersReducedMotion, publishScrollVelocity } from "@/lib/motion";
+import { prefersReducedMotion, publishScrollVelocity, rafWhenVisible } from "@/lib/motion";
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
@@ -33,18 +33,17 @@ export function Ambient() {
   useEffect(() => {
     const el = moteRef.current;
     if (!el || prefersReducedMotion()) return;
-    let raf = 0;
     const t0 = performance.now();
     const tick = (now: number) => {
-      raf = requestAnimationFrame(tick);
       const t = (now - t0) / 1000;
       const x = Math.sin(t / 14) * 46 + Math.sin(t / 5.5) * 9;
       const y = Math.cos(t / 19) * 34 + Math.cos(t / 7.3) * 7;
       const r = Math.sin(t / 23) * 9;
       el.style.transform = `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0) rotate(${r.toFixed(2)}deg)`;
     };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+    // The mote is fixed so it is always on screen; the value here is pausing
+    // it when the tab goes to the background.
+    return rafWhenVisible(el, tick);
   }, []);
 
   return (

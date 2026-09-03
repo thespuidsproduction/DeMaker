@@ -3,7 +3,14 @@
 import { SITE, PRINCIPLES } from "@/content/site";
 import { Marginalia } from "@/lib/traces";
 import { Movement } from "./Movement";
-import { CornerLeaf, EngravedRule, BotanicalDiagram, CapFrame, WovenRule } from "./Ornament";
+import {
+  CornerLeaf,
+  EngravedRule,
+  BotanicalDiagram,
+  CapFrame,
+  WovenRule,
+  HandBracket,
+} from "./Ornament";
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
@@ -61,7 +68,9 @@ export function Profile() {
         </p>
       </div>
 
-      <ol className="pf-principles" aria-label="Engineering principles">
+      <div className="pf-tenets">
+        <HandBracket className="pf-bracket" />
+        <ol className="pf-principles" aria-label="Engineering principles">
         {PRINCIPLES.map((p) => (
           <li key={p.title} className="pf-principle" data-reveal>
             <span className="pf-principle-n" aria-hidden="true">
@@ -73,7 +82,8 @@ export function Profile() {
             </div>
           </li>
         ))}
-      </ol>
+        </ol>
+      </div>
 
       <WovenRule className="woven pf-weave" />
 

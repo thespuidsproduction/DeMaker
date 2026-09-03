@@ -350,13 +350,6 @@ svg {
   text-wrap: balance;
 }
 
-.t-headline {
-  font-weight: 800;
-  line-height: 0.95;
-  letter-spacing: -0.032em;
-  text-wrap: balance;
-}
-
 /* Laboratory metadata — small caps, wide tracking, monospaced figures. */
 .t-label {
   font-family: var(--font-mono);
@@ -430,14 +423,6 @@ svg {
   }
 }
 
-.rule-t {
-  border-top: 1px solid var(--rule);
-}
-
-.rule-b {
-  border-bottom: 1px solid var(--rule);
-}
-
 /* ═══════════════════════════════════════════════════════════════════════════
    ENGRAVING
    Victorian linework, used as accent only.
@@ -502,7 +487,6 @@ svg {
   will-change: auto;
 }
 
-.no-js [data-reveal],
 .reveal-ready [data-reveal] {
   opacity: 1;
 }
@@ -510,14 +494,6 @@ svg {
 .magnetic {
   transition: transform 520ms var(--ease-door);
   will-change: transform;
-}
-
-.lift {
-  transition: transform 520ms var(--ease-door), box-shadow 520ms var(--ease-door);
-}
-
-.lift:hover {
-  transform: translate3d(0, -3px, 0);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1166,12 +1142,6 @@ svg {
   font-size: 0.5625rem;
 }
 
-.numeral-note {
-  font-size: 0.625rem;
-  letter-spacing: 0.06em;
-  color: var(--fg-faint);
-}
-
 .cred-trace {
   width: 100%;
   height: 34px;
@@ -1179,37 +1149,10 @@ svg {
   opacity: 0.4;
 }
 
-.cred-list {
-  list-style: none;
-  margin: clamp(1.25rem, 2.5vw, 2rem) 0 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
-  gap: 0;
-  border-top: 1px solid var(--rule);
-}
-
-.cred-item {
-  display: flex;
-  align-items: baseline;
-  gap: 0.7rem;
-  padding: 0.75rem 0.5rem 0.75rem 0;
-  border-bottom: 1px solid var(--rule);
-  font-size: 0.8125rem;
-  color: var(--fg-muted);
-  transition: color 300ms var(--ease-door);
-}
-
-.cred-item:hover {
-  color: var(--fg);
-}
-
-.cred-item-n {
-  font-family: var(--font-mono);
-  font-size: 0.5625rem;
-  letter-spacing: 0.14em;
-  color: var(--accent-ink);
-  flex: none;
+.numeral-note {
+  font-size: 0.625rem;
+  letter-spacing: 0.06em;
+  color: var(--fg-faint);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -1266,18 +1209,6 @@ svg {
   font-size: 0.6875rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--fg-muted);
-}
-
-.pf-address {
-  font-style: normal;
-  margin-top: 1.5rem;
-  padding-top: 1.1rem;
-  border-top: 1px solid var(--rule);
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  font-size: 0.875rem;
   color: var(--fg-muted);
 }
 
@@ -1639,8 +1570,7 @@ svg {
   color: var(--accent-ink);
 }
 
-.readout-dot,
-.ambient-dot {
+.readout-dot {
   width: 4px;
   height: 4px;
   border-radius: 50%;
@@ -1669,7 +1599,6 @@ svg {
 
 @media (prefers-reduced-motion: reduce) {
   .ambient-trace-path,
-  .ambient-dot,
   .readout-dot {
     animation: none;
   }
@@ -3281,10 +3210,6 @@ svg {
 .tb-more,
 .ag-expand,
 .ag-run,
-.room-toggle {
-  transition: color 260ms var(--ease-door), transform 180ms var(--ease-settle),
-    gap 320ms var(--ease-door), border-color 320ms var(--ease-door);
-}
 
 .wk-hood:active,
 .tb-trigger:active,
@@ -3329,10 +3254,6 @@ svg {
 /* Technology chips lift out of the plate one at a time on approach. */
 .tb-tech,
 .wk-stack-item,
-.lab-cap {
-  transition: transform 420ms var(--ease-settle), border-color 320ms var(--ease-door),
-    color 320ms var(--ease-door), background 320ms var(--ease-door);
-}
 
 .tb-tech:hover,
 .wk-stack-item:hover {
@@ -4264,4 +4185,26 @@ svg {
   min-height: 32px;
   align-items: center !important;
   padding-right: 0.4rem;
+}
+
+/* A bracket scrawled down the margin, gathering the tenets together. */
+.pf-tenets {
+  position: relative;
+}
+
+.pf-bracket {
+  display: none;
+}
+
+@media (min-width: 1100px) {
+  .pf-bracket {
+    display: block;
+    position: absolute;
+    left: -2.25rem;
+    top: 1rem;
+    bottom: 1rem;
+    width: 22px;
+    height: auto;
+    opacity: 0.55;
+  }
 }

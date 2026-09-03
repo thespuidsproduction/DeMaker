@@ -363,4 +363,56 @@ export function publishScrollVelocity(): () => void {
   };
 }
 
+/**
+ * A requestAnimationFrame loop that only runs when its element is near the
+ * viewport and the tab is in front.
+ *
+ * Without this, a per-frame render keeps working for a section nobody is
+ * looking at: the atlas rebuilds an eleven-thousand-character path sixty times
+ * a second while it is five screens away, and the agent redraws its wiring the
+ * whole time you are reading the hero. Both are pure waste, and on a laptop it
+ * is waste you can hear.
+ */
+export function rafWhenVisible(
+  el: Element,
+  tick: (now: number) => void,
+  rootMargin = "250px",
+): () => void {
+  let raf = 0;
+  let onScreen = false;
+
+  const loop = (now: number) => {
+    raf = requestAnimationFrame(loop);
+    tick(now);
+  };
+  const start = () => {
+    if (!raf && onScreen && !document.hidden) raf = requestAnimationFrame(loop);
+  };
+  const stop = () => {
+    if (raf) {
+      cancelAnimationFrame(raf);
+      raf = 0;
+    }
+  };
+
+  const io = new IntersectionObserver(
+    ([entry]) => {
+      onScreen = entry.isIntersecting;
+      if (onScreen) start();
+      else stop();
+    },
+    { rootMargin },
+  );
+  io.observe(el);
+
+  const onVisibility = () => (document.hidden ? stop() : start());
+  document.addEventListener("visibilitychange", onVisibility);
+
+  return () => {
+    io.disconnect();
+    document.removeEventListener("visibilitychange", onVisibility);
+    stop();
+  };
+}
+
 export { gsap, ScrollTrigger };

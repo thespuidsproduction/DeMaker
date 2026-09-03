@@ -2,7 +2,13 @@
 
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { SITE } from "@/content/site";
-import { useGsapSetup, gsap, prefersReducedMotion, trackSpecular } from "@/lib/motion";
+import {
+  useGsapSetup,
+  gsap,
+  prefersReducedMotion,
+  trackSpecular,
+  magnetise,
+} from "@/lib/motion";
 import { useToast } from "./Toast";
 import { EngravedRule, CoordinateRose } from "./Ornament";
 
@@ -80,7 +86,13 @@ export function Channel() {
 
   useEffect(() => {
     const el = consoleRef.current;
-    return el ? trackSpecular(el) : undefined;
+    if (!el) return;
+    const cleanups = [trackSpecular(el)];
+    // The primary action leans toward the cursor as it is approached. It has
+    // mass, so it arrives a beat behind the hand.
+    const button = el.querySelector<HTMLElement>(".ch-open, .ch-send");
+    if (button) cleanups.push(magnetise(button, 0.22, 70));
+    return () => cleanups.forEach((fn) => fn());
   }, [phase]);
 
   /* Ask the server whether there is anywhere to send. */

@@ -3,7 +3,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AGENT_STAGES, AGENT_ARCHITECTURE } from "@/content/site";
 import { createField, type FieldHandle } from "@/lib/physics";
-import { useGsapSetup, gsap, prefersReducedMotion, trackSpecular } from "@/lib/motion";
+import {
+  useGsapSetup,
+  gsap,
+  prefersReducedMotion,
+  trackSpecular,
+  rafWhenVisible,
+} from "@/lib/motion";
 import { useTraces, Marginalia } from "@/lib/traces";
 import { Movement } from "./Movement";
 import { Flourish } from "./Ornament";
@@ -74,9 +80,7 @@ export function AgentLab() {
     const svg = svgRef.current;
     if (!rig || !svg) return;
 
-    let raf = 0;
     const draw = () => {
-      raf = requestAnimationFrame(draw);
       const box = rig.getBoundingClientRect();
       svg.setAttribute("viewBox", `0 0 ${box.width} ${box.height}`);
 
@@ -100,7 +104,7 @@ export function AgentLab() {
       }
     };
     draw();
-    return () => cancelAnimationFrame(raf);
+    return rafWhenVisible(rig, draw);
   }, [visible]);
 
   useEffect(() => {

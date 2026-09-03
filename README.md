@@ -154,7 +154,7 @@ several sections later a handwritten note appears in the margin, *"from
 earlier, JWT, in Swagrush"*, and the header readout switches from
 `SYSTEM NOMINAL` to the last thing found, with a count.
 
-It makes the page feel like one connected world rather than eight unrelated
+It makes the page feel like one connected world rather than ten unrelated
 sections. It is deliberately quiet: a `Marginalia` renders nothing at all until
 enough has actually been discovered, so the site never invents a memory it does
 not have.
