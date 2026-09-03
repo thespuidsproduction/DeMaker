@@ -17,6 +17,7 @@ import { AgentLab } from "@/components/AgentLab";
 import { Profile } from "@/components/Profile";
 import { Channel } from "@/components/Channel";
 import { Footer } from "@/components/Footer";
+import { Sheet } from "@/components/Sheet";
 import { OpticalDefs } from "@/components/Optical";
 
 /**
@@ -73,6 +74,9 @@ export default function Page() {
       </main>
 
       <Footer />
+
+      {/* Invisible on screen, and the only thing that exists on paper. */}
+      <Sheet />
       </ToastProvider>
     </TraceProvider>
   );

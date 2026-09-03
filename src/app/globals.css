@@ -524,6 +524,24 @@ svg {
   margin: 0;
 }
 
+.nav-rail {
+  position: relative;
+}
+
+/* Sits on the ticks rather than beside them, so travel reads as a hand
+   moving along a scale instead of as a second bar. */
+.nav-rail-fill {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: var(--accent-ink);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  opacity: 0.75;
+}
+
 .tick-row {
   background-image: repeating-linear-gradient(
     to right,
@@ -4611,5 +4629,286 @@ svg {
   .ix-drawer,
   .ix-row-arrow {
     transition-duration: 1ms;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   THE SHEET
+   What comes out of the printer. Hidden on screen, and on paper it is the
+   only thing there: black on white, one page, no ornament and no canvas.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.sheet {
+  display: none;
+}
+
+@media print {
+  /* Everything the screen needs goes; the sheet is the document. */
+  body > * {
+    display: none !important;
+  }
+
+  body > .sheet {
+    display: block !important;
+  }
+
+  @page {
+    margin: 14mm 15mm;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  .sheet {
+    font-family: var(--font-sans), system-ui, sans-serif;
+    font-size: 9.2pt;
+    line-height: 1.42;
+    color: #000;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .sheet-head {
+    border-bottom: 0.6pt solid #000;
+    padding-bottom: 3.5mm;
+  }
+
+  .sheet-name {
+    margin: 0;
+    font-size: 25pt;
+    font-weight: 900;
+    letter-spacing: -0.035em;
+    line-height: 0.95;
+    text-transform: uppercase;
+  }
+
+  .sheet-roles {
+    margin: 2mm 0 0;
+    font-size: 8pt;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .sheet-meta {
+    margin: 1.4mm 0 0;
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 7.4pt;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #333;
+  }
+
+  .sheet-sep {
+    padding: 0 0.55em;
+    color: #999;
+  }
+
+  .sheet-statement {
+    margin: 5mm 0 0;
+    font-size: 13.5pt;
+    font-weight: 700;
+    line-height: 1.22;
+    letter-spacing: -0.015em;
+    max-width: 30em;
+  }
+
+  .sheet-manifesto {
+    margin: 3mm 0 0;
+    font-size: 9.2pt;
+    line-height: 1.5;
+    max-width: 46em;
+    color: #222;
+  }
+
+  /* Two columns, and a rule between them rather than a gutter of nothing. */
+  .sheet-cols {
+    display: grid;
+    grid-template-columns: 1.32fr 1fr;
+    gap: 8mm;
+    margin-top: 6mm;
+    padding-top: 5mm;
+    border-top: 0.6pt solid #000;
+  }
+
+  .sheet-col + .sheet-col {
+    padding-left: 8mm;
+    border-left: 0.4pt solid #bbb;
+  }
+
+  .sheet-h {
+    margin: 0 0 2.6mm;
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 7pt;
+    font-weight: 400;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: #555;
+  }
+
+  .sheet-col > .sheet-h:not(:first-child) {
+    margin-top: 5mm;
+  }
+
+  .sheet-work {
+    break-inside: avoid;
+    margin-bottom: 3.6mm;
+  }
+
+  .sheet-work-name {
+    margin: 0;
+    font-size: 10.5pt;
+    font-weight: 800;
+    letter-spacing: -0.012em;
+  }
+
+  .sheet-work-n {
+    display: inline-block;
+    min-width: 5.5mm;
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 7pt;
+    font-weight: 400;
+    color: #888;
+  }
+
+  .sheet-work-kind {
+    margin: 0.6mm 0 0 5.5mm;
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 6.8pt;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #555;
+  }
+
+  .sheet-work-line {
+    margin: 1.1mm 0 0 5.5mm;
+    font-size: 8.8pt;
+    line-height: 1.42;
+    color: #222;
+  }
+
+  .sheet-principles {
+    margin: 0;
+    padding: 0 0 0 5.5mm;
+    list-style: none;
+    counter-reset: pr;
+  }
+
+  .sheet-principles li {
+    position: relative;
+    margin-bottom: 1.5mm;
+    font-size: 8.4pt;
+    line-height: 1.44;
+    color: #333;
+    break-inside: avoid;
+    counter-increment: pr;
+  }
+
+  .sheet-principles li::before {
+    content: counter(pr, lower-roman);
+    position: absolute;
+    left: -5.5mm;
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 6.6pt;
+    color: #999;
+  }
+
+  .sheet-principles b {
+    color: #000;
+    font-weight: 700;
+  }
+
+  .sheet-facets {
+    margin: 0;
+  }
+
+  .sheet-facet {
+    display: grid;
+    grid-template-columns: 15mm 1fr;
+    gap: 2mm;
+    margin-bottom: 1.6mm;
+    break-inside: avoid;
+  }
+
+  .sheet-facet dt {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 7pt;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #000;
+  }
+
+  .sheet-facet dd {
+    margin: 0;
+    font-size: 8.6pt;
+    color: #222;
+  }
+
+  .sheet-nums {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .sheet-nums li {
+    display: grid;
+    grid-template-columns: 12mm 1fr;
+    align-items: baseline;
+    gap: 2mm;
+    margin-bottom: 1.4mm;
+    font-size: 8.6pt;
+    break-inside: avoid;
+  }
+
+  .sheet-nums b {
+    font-size: 13pt;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+
+  .sheet-nums i {
+    display: block;
+    grid-column: 2;
+    font-style: normal;
+    font-size: 7pt;
+    letter-spacing: 0.06em;
+    color: #666;
+  }
+
+  .sheet-stack {
+    margin: 0;
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 7.6pt;
+    letter-spacing: 0.08em;
+    color: #222;
+  }
+
+  .sheet-foot {
+    margin-top: 6mm;
+    padding-top: 3mm;
+    border-top: 0.6pt solid #000;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 6mm;
+  }
+
+  .sheet-foot p {
+    margin: 0;
+    font-size: 8.2pt;
+    color: #222;
+    max-width: 44em;
+  }
+
+  .sheet-sign {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 7pt !important;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: #555 !important;
   }
 }

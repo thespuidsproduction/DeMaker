@@ -324,10 +324,10 @@ export const PROJECTS: Project[] = [
    ═══════════════════════════════════════════════════════════════════════════ */
 
 export const NUMERALS = [
+  { value: "03", label: "Years of experience", note: "solid ones" },
   { value: "09+", label: "Live applications", note: "shipped and in use" },
   { value: "60", label: "FPS target", note: "compositor-only motion" },
   { value: "AA", label: "Accessibility", note: "WCAG 2.2 conformance target" },
-  { value: "100%", label: "Ownership of the stack", note: "interface → infrastructure" },
 ] as const;
 
 /* ═══════════════════════════════════════════════════════════════════════════

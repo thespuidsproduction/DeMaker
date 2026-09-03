@@ -19,6 +19,7 @@ export function Nav() {
   const [active, setActive] = useState("identity");
   const [scrolled, setScrolled] = useState(false);
   const ref = useRef<HTMLElement>(null);
+  const barRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const sections = STOPS.map((s) => document.getElementById(s.id)).filter(
@@ -36,13 +37,25 @@ export function Nav() {
     );
     sections.forEach((s) => io.observe(s));
 
-    const onScroll = () => setScrolled(window.scrollY > 40);
+    // The rail is written straight to the DOM. Travel through the page
+    // changes on every frame of a scroll, and nothing that happens sixty
+    // times a second should be asking React to re-render a header.
+    const onScroll = () => {
+      setScrolled(window.scrollY > 40);
+      const bar = barRef.current;
+      if (!bar) return;
+      const travel = document.documentElement.scrollHeight - window.innerHeight;
+      const p = travel > 0 ? Math.min(1, Math.max(0, window.scrollY / travel)) : 0;
+      bar.style.transform = `scaleX(${p.toFixed(4)})`;
+    };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
 
     return () => {
       io.disconnect();
       window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
     };
   }, []);
 
@@ -115,7 +128,12 @@ export function Nav() {
           <ThemeToggle />
         </nav>
       </div>
-      <div className="tick-row" style={{ opacity: scrolled ? 0.35 : 0, transition: "opacity 500ms" }} />
+      {/* A ruled scale, and a hand travelling along it. The ticks were
+          already there being decorative; now they measure something. */}
+      <div className="nav-rail">
+        <div className="tick-row" style={{ opacity: scrolled ? 0.35 : 0, transition: "opacity 500ms" }} />
+        <div ref={barRef} className="nav-rail-fill" />
+      </div>
     </header>
   );
 }

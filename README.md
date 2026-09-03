@@ -39,9 +39,12 @@ npm run start      # serve the production build
 npm run typecheck  # tsc --noEmit
 ```
 
-Node 20+ required. No environment variables, no database, no API keys, the
-site is a single statically-prerendered document plus one dynamic route
-(`/.well-known/webfinger`).
+Node 20+ required. No database. The site is a single statically-prerendered
+document plus two dynamic routes (`/api/channel` and `/.well-known/webfinger`),
+and the only environment variables are the contact channel's delivery
+credentials, which are optional: with none set the channel reports itself
+offline rather than accepting a message it cannot deliver. See **The channel**
+below.
 
 ---
 
@@ -195,8 +198,19 @@ computed from the same `[lon, lat]` rings every frame and blended by a single
 value, so the transition is a real reprojection rather than a crossfade between
 two pictures. Points on the far side are drawn on their own path at an opacity
 that falls to zero as the sphere closes, which is what makes the flat map look
-like it is wrapping rather than cutting away. Drag to turn the globe; it always
-drifts back to the view that shows the marker.
+like it is wrapping rather than cutting away.
+
+Rotation is momentum and nothing else. Drag maps one to one with the surface at
+the centre of the disc, worked out from the sphere's real radius on the screen,
+so the point under the finger stays under the finger; toward the limb it slows
+of its own accord, because that is what a sphere does. Both axes turn, the idle
+drift stops for good the first time anybody takes hold, and letting go coasts
+to a stop wherever it was left. An earlier version eased the globe back toward
+home every frame while the hand was still on it, which through the hand is not
+mass, it is resistance. The way back is a control instead, offered once there
+is somewhere to come back from. On a touch screen the globe claims the vertical
+gesture while it is showing, or the browser takes it for a page scroll and
+pulls the page away mid-turn.
 
 The outlines are Natural Earth 110m land, decoded from TopoJSON and simplified
 with Douglas-Peucker to 98 rings and 2,327 points, about 30KB. Two details that
@@ -208,6 +222,29 @@ mid-shape.
 
 Only the country is marked. Nothing more precise is published, here or
 anywhere else on the site.
+
+### The index
+
+<kbd>Cmd</kbd>/<kbd>Ctrl</kbd> + <kbd>K</kbd> on a wide screen, and on a phone
+the navigation itself. The header fits six sections and there are nine, so the
+atlas and the chart had been reachable by scrolling and by nothing else. It
+filters on every technology named anywhere on the site, not only on the labels
+it prints, so `rapier` finds both the book shop and the Move facet; choosing a
+project scrolls to its card and opens the blueprint. It asks by custom event
+rather than by prop, because it lives in the header and has no business holding
+a reference to the project list.
+
+### The sheet
+
+The page has a second body, `display: none` on screen and the only thing that
+exists on paper. What people quietly do with a portfolio is press print, or
+save it as a PDF and send it on, and left alone a browser would produce a paper
+photograph of a screen: cut-off canvas, ornament, a nav bar across the top of
+page one. Instead <kbd>Cmd</kbd>/<kbd>Ctrl</kbd> + <kbd>P</kbd> yields a
+typeset one-page document, black on white, set from the same content file the
+site is built from so it cannot drift out of step with it. One address appears
+on it, the portfolio's own; no project URLs, for the same reason they are not
+on the page.
 
 ### Notices
 
@@ -379,6 +416,13 @@ message it cannot deliver.
 - [ ] Point `princey.dev` at the deployment. The canonical origin comes from
       `SITE.url` in `src/content/site.ts` and nothing else needs changing.
 - [ ] Send one real message through the form and check it arrives.
+- [ ] Rotate any credential that has ever been pasted into a chat window, an
+      issue, or a commit. A Telegram bot token is reissued from @BotFather in
+      about ten seconds and the old one dies with it.
+- [ ] Press <kbd>Cmd</kbd>/<kbd>Ctrl</kbd> + <kbd>P</kbd> once on the deployed
+      site and check the sheet still fits one page. It is generated from
+      `src/content/site.ts`, so it follows the content, but a long enough
+      project line will push it over.
 
 Already handled in the repo:
 
@@ -397,19 +441,24 @@ Already handled in the repo:
 - Node 20+ is pinned in `engines` and `.nvmrc`.
 
 ## Content
-## Content
 
 Everything the site says lives in `src/content/site.ts`. Nothing is invented at
 the component layer.
 
 **Projects** are four shipped systems, all live and publicly reachable:
 
-| | System | What it is | Live at |
-| --- | --- | --- | --- |
-| 01 | Swagrush | Promotional competition platform under CPA Section 32, with a published field size so members can calculate their own odds | [swagrush.app](https://swagrush.app) |
-| 02 | Quorbel | Cryptographic draw verification; receipts anyone can replay offline, forever, without contacting the platform | [quorbel.com](https://quorbel.com) |
-| 03 | Weston Warriors | A boxing club as a scroll-driven WebGL particle field, with every sound synthesised at run time | [weston-warriors.vercel.app](https://weston-warriors.vercel.app) |
-| 04 | How to Bag a Billionaire's Daughter | A single-book shop where nothing is an image; the cover and every prop are drawn at run time | [htbabd.vercel.app](https://htbabd.vercel.app) |
+| | System | Built for | What it is | Live at |
+| --- | --- | --- | --- | --- |
+| 01 | Swagrush | Johannesburg | Promotional competition platform under CPA Section 32, with a published field size so members can calculate their own odds | [swagrush.app](https://swagrush.app) |
+| 02 | Quorbel | Manchester | Cryptographic draw verification; receipts anyone can replay offline, forever, without contacting the platform | [quorbel.com](https://quorbel.com) |
+| 03 | Weston Warriors | Weston-super-Mare | A boxing club as a scroll-driven WebGL particle field, with every sound synthesised at run time | [weston-warriors.vercel.app](https://weston-warriors.vercel.app) |
+| 04 | How to Bag a Billionaire's Daughter | London | A single-book shop where nothing is an image; the cover and every prop are drawn at run time | [htbabd.vercel.app](https://htbabd.vercel.app) |
+
+**The addresses above are in this file and never on the page.** Three of the
+four still answer on a host's subdomain, and a half-finished address tells a
+reader nothing they wanted to know, so a card shows the city the work was built
+for and a control that says what it opens. The URL is in `href`, the label is
+in `action`, and the two are deliberately unrelated.
 
 Every description was written from each project's own machine-readable
 disclosure (`llms.txt`, `security.txt`) rather than from memory, so any claim on
