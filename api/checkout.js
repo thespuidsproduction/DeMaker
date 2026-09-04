@@ -61,6 +61,11 @@ export default async function handler(req, res) {
     const physical = isPhysical(item);
     const description = `${book.title} — ${item.label}`;
 
+    // The form asks for a name, so the order should carry it. Stripe collects
+    // the cardholder's name separately, and the two are often not the same
+    // person — a gift, an assistant, an expense account.
+    const buyer = String(body.name || '').trim().slice(0, 200);
+
     const session = await stripe(
       'checkout/sessions',
       {
@@ -104,10 +109,14 @@ export default async function handler(req, res) {
 
         // The webhook reads these back. Without them a paid session cannot be
         // matched to a book, and nobody gets sent anything.
-        metadata: { editionId: item.id, quantity: String(quantity) },
+        metadata: {
+          editionId: item.id,
+          quantity: String(quantity),
+          ...(buyer ? { buyer } : {}),
+        },
         payment_intent_data: {
           description: `${description} ×${quantity}`,
-          metadata: { editionId: item.id },
+          metadata: { editionId: item.id, ...(buyer ? { buyer } : {}) },
         },
 
         line_items: [

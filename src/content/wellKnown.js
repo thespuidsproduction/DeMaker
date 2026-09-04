@@ -98,8 +98,10 @@ export function llms() {
     if (mode === 'demo') {
       return 'The checkout is currently a demonstration: it takes no payment details and charges nothing.';
     }
+    // An edition can be both: the bundle puts a hardcover in a van and the
+    // files in an inbox, so it belongs in each sentence below.
     const digital = available.filter((e) => e.files?.length);
-    const physical = available.filter((e) => !e.files?.length);
+    const physical = available.filter((e) => e.physical ?? !e.files?.length);
     return [
       digital.length
         ? `Digital editions (${digital.map((e) => e.label).join(', ')}) are emailed immediately after payment, as download links valid for 30 days. Both volumes arrive together — one link per file.`

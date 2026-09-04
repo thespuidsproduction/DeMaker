@@ -233,7 +233,7 @@ export function initPortal() {
     }
 
     if (mode() === 'stripe') {
-      startStripeCheckout({ email: email.value.trim(), quantity: count() });
+      startStripeCheckout({ name: name.value.trim(), email: email.value.trim(), quantity: count() });
       return;
     }
 
@@ -251,7 +251,7 @@ export function initPortal() {
   });
 
   /** Ask our own function for a Checkout session, then go there. */
-  async function startStripeCheckout({ email, quantity }) {
+  async function startStripeCheckout({ name, email, quantity }) {
     const button = cta;
     button.disabled = true;
     button.textContent = 'One moment…';
@@ -259,7 +259,7 @@ export function initPortal() {
       const response = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ editionId: current.id, quantity, email, currency: currency() }),
+        body: JSON.stringify({ editionId: current.id, quantity, name, email, currency: currency() }),
       });
       const body = await response.text();
       let data = {};

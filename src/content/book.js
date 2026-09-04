@@ -36,7 +36,7 @@ export const book = {
    * address; set it once you have a domain.
    */
   site: {
-    url: '',
+    url: 'https://marryup.co',
     /** 'mailto:you@example.com' — set it and /.well-known/security.txt appears. */
     contact: '',
     language: 'en',

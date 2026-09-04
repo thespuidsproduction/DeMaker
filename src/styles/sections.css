@@ -697,6 +697,12 @@
   gap: 0.9rem;
   align-items: end;
 }
+
+/* A number nobody types more than two digits into. Full width would only
+   invite somebody to try. */
+.field--copies {
+  grid-template-columns: 6rem;
+}
 .field label {
   font-size: 0.6rem;
   letter-spacing: 0.2em;
