@@ -37,7 +37,12 @@ export const book = {
    */
   site: {
     url: 'https://marryup.co',
-    /** 'mailto:you@example.com' — set it and /.well-known/security.txt appears. */
+    /**
+     * Where a person can reach you about a security problem. A `mailto:`, or
+     * any URL that gets to you — `https://t.me/yourusername` is fine, and is
+     * what RFC 9116 expects: a way to reach a human, not a bot token. Set it
+     * and /.well-known/security.txt appears.
+     */
     contact: '',
     language: 'en',
   },

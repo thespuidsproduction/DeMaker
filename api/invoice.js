@@ -10,7 +10,18 @@
    configured refuses everything rather than quietly opening the ledger.      */
 
 import crypto from 'node:crypto';
-import { book, env, findEdition, json, minorUnits, sellable, stripe } from './_lib.js';
+import {
+  book,
+  env,
+  escapeHtml,
+  findEdition,
+  json,
+  minorUnits,
+  notify,
+  readMoney,
+  sellable,
+  stripe,
+} from './_lib.js';
 
 const CURRENCIES = new Set(['usd', 'gbp', 'eur']);
 const MAX_COPIES = 5000;
@@ -150,6 +161,15 @@ export default async function handler(req, res) {
 
     const finalised = await stripe(`invoices/${invoice.id}/finalize`, {}, { idempotencyKey: key('finalize') });
     const sent = await stripe(`invoices/${invoice.id}/send`, {}, { idempotencyKey: key('send') });
+
+    await notify(
+      [
+        `🧾 <b>Wholesale invoice ${escapeHtml(finalised.number)}</b>`,
+        `${escapeHtml(name)} · ${quantity} × ${escapeHtml(item.label)}`,
+        readMoney(finalised.amount_due, finalised.currency),
+        `Net ${daysUntilDue}${poNumber ? ` · PO ${escapeHtml(poNumber)}` : ''}`,
+      ].join('\n')
+    );
 
     return json(res, 200, {
       id: finalised.id,

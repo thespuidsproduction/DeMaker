@@ -292,6 +292,8 @@ Environment Variables). None of these belong in the repository:
 | `SITE_URL` | Optional. `https://yourdomain.com`, if you do not want the request's own host used |
 | `SHIP_TO` | Optional. Comma-separated country codes you will post a hardcover to. Defaults to the UK, Ireland, North America, Australasia and most of western Europe |
 | `WHOLESALE_API_KEY` | Optional. Long random string. Unlocks `/api/invoice` — leave it unset and that endpoint refuses everything |
+| `TELEGRAM_BOT_TOKEN` | Optional. From @BotFather. With the next one, sends you a message when a book sells or an order needs help |
+| `TELEGRAM_CHAT_ID` | Optional. The chat to send to. Both must be set or nothing is sent |
 | `STRIPE_ADAPTIVE_PRICING` | Optional. `true` lets Stripe convert your price into the buyer's local currency. Off by default — see section 4 |
 
 ```json
@@ -367,6 +369,53 @@ Buying a hardcover or the bundle also asks for a posting address and a phone
 number, because those arrive in a van; the eBook does not ask, because it does
 not need to. Every order raises a real Stripe invoice as well as a card receipt,
 which is what to send the reader who asks for one.
+
+### Knowing a book sold — Telegram
+
+Set `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` and the shop taps you on the
+shoulder: when a book sells, when a wholesale invoice goes out, and — the one
+that actually matters — when a **paid order could not be delivered** and needs a
+person. Without it that last case is a line in a log nobody reads.
+
+Get the token from [@BotFather](https://t.me/BotFather). Get the chat id by
+sending your bot a message and opening
+`https://api.telegram.org/bot<TOKEN>/getUpdates`. Set neither and nothing is
+sent; the shop works exactly as before.
+
+A sale arrives looking like this:
+
+```
+📖 Sold — Hardcover ×2
+Ada Lovelace · ada@example.com
+68.00 GBP
+
+📮 Post to
+Ada Lovelace, 12 Analytical Way, London, N1 1AA, GB
+
+cs_test_a1b2c3
+```
+
+Four things about it are deliberate:
+
+- **No download links.** A signed link is a bearer token: whoever holds it can
+  fetch the file until it expires. The buyer has them, and that is the whole
+  point of them. A chat history is not a place to keep credentials.
+- **Nothing sent by a buyer is trusted.** The name comes from a public form, so
+  it is escaped before it reaches Telegram's HTML parser, and link previews are
+  off so nothing gets fetched and unfurled on your behalf.
+- **It cannot break an order.** The notification is on a path where the money
+  has already moved. It never throws, it times out after five seconds, and a
+  chat outage can never turn a completed sale into a failure Stripe retries.
+- **The token never reaches a log.** Telegram carries it in the URL, so it is
+  stripped out of any error message before it is written down.
+
+The token is a credential — anyone holding it controls the bot. Put it straight
+into Vercel's environment variables; if it ever leaks, `/revoke` in @BotFather
+issues a new one.
+
+> Telegram is a third party, and a shipping address is personal data. Sending
+> yourself the address you need in order to post the book is ordinary, but it is
+> your decision to make knowingly, and worth a line in your privacy notice.
 
 ### 5b. Bookshops — `POST /api/invoice`
 

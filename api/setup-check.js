@@ -22,7 +22,13 @@ export default function handler(req, res) {
     resendKey: Boolean(env('RESEND_API_KEY')),
     from: Boolean(env('MAIL_FROM')),
     downloadSecret: Boolean(env('DOWNLOAD_SECRET')),
+    telegramToken: Boolean(env('TELEGRAM_BOT_TOKEN')),
+    telegramChat: Boolean(env('TELEGRAM_CHAT_ID')),
   };
+
+  // Optional, so never blocking — but half of a pair sends nothing at all,
+  // silently, which is worth saying out loud.
+  const halfConfigured = has.telegramToken !== has.telegramChat;
 
   // What would actually go wrong today, in the order somebody would hit it.
   const blocking = [];
@@ -50,6 +56,12 @@ export default function handler(req, res) {
       filesDeclared: needed,
       filesConfigured: needed.filter((key) => Boolean(sources[key])),
       missing,
+    },
+    notifications: {
+      telegram: has.telegramToken && has.telegramChat,
+      warning: halfConfigured
+        ? `Only ${has.telegramToken ? 'TELEGRAM_BOT_TOKEN' : 'TELEGRAM_CHAT_ID'} is set — both are needed, so no message is being sent.`
+        : null,
     },
     wholesale: {
       // Absent key means /api/invoice refuses everything, which is the safe

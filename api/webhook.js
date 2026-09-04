@@ -8,9 +8,12 @@
 import {
   book,
   env,
+  escapeHtml,
   findEdition,
   json,
+  notify,
   rawBody,
+  readMoney,
   sendEmail,
   signDownload,
   stripe,
@@ -58,11 +61,17 @@ export default async function handler(req, res) {
   // it, and the buyer is no better off for the queue.
   if (!to) {
     console.error(`Paid session ${session.id} has no email address — deliver this one by hand.`);
+    await notify(
+      `⚠️ <b>Paid order needs you</b>\nNo email address on the session, so nothing could be sent.\n<code>${escapeHtml(session.id)}</code>`
+    );
     return json(res, 200, { received: true, undeliverable: 'no-email' });
   }
   if (!item) {
     console.error(
       `Paid session ${session.id} names edition "${session.metadata?.editionId}", which no longer exists.`
+    );
+    await notify(
+      `⚠️ <b>Paid order needs you</b>\nEdition "${escapeHtml(session.metadata?.editionId)}" no longer exists, so nothing could be sent to ${escapeHtml(to)}.\n<code>${escapeHtml(session.id)}</code>`
     );
     return json(res, 200, { received: true, undeliverable: 'unknown-edition' });
   }
@@ -98,13 +107,43 @@ export default async function handler(req, res) {
       metadata: { ...session.metadata, fulfilled: String(Math.floor(Date.now() / 1000)) },
     }).catch((error) => console.error(`could not mark ${session.id} delivered`, error));
 
+    await notify(sold(item, session, shipping, links.length));
+
     return json(res, 200, { received: true, delivered: links.length });
   } catch (error) {
     // A 500 tells Stripe to retry, which is what we want: the buyer has paid
     // and must end up with their book even if the mail provider had a moment.
     console.error('delivery failed', error);
+    await notify(
+      `⚠️ <b>Delivery failed</b>\n${escapeHtml(item.label)} for ${escapeHtml(to)} could not be sent — Stripe will retry.\n${escapeHtml(error.message || 'unknown error')}\n<code>${escapeHtml(session.id)}</code>`
+    );
     return json(res, 500, { error: 'Delivery failed' });
   }
+}
+
+/**
+ * What the shopkeeper actually needs to know about a sale.
+ *
+ * Note what is missing: the download links. Those are bearer tokens — anybody
+ * holding one can fetch the file until it expires — and a chat log is a poor
+ * place to leave credentials. The buyer has them; that is the point of them.
+ */
+function sold(item, session, shipping, delivered) {
+  const quantity = Number(session.metadata?.quantity) || 1;
+  const buyer = session.metadata?.buyer;
+  const to = session.customer_details?.email || session.customer_email;
+  const address = addressLine(shipping);
+
+  return [
+    `📖 <b>Sold — ${escapeHtml(item.label)}${quantity > 1 ? ` ×${quantity}` : ''}</b>`,
+    [buyer && escapeHtml(buyer), to && escapeHtml(to)].filter(Boolean).join(' · '),
+    readMoney(session.amount_total, session.currency),
+    address ? `\n📮 <b>Post to</b>\n${escapeHtml(address)}` : '',
+    delivered ? `\n${delivered} file${delivered === 1 ? '' : 's'} emailed.` : '',
+    `\n<code>${escapeHtml(session.id)}</code>`,
+  ]
+    .filter(Boolean)
+    .join('\n');
 }
 
 /** The posting address, as one readable line. */

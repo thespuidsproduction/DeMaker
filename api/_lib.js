@@ -194,6 +194,61 @@ export async function sendEmail({ to, subject, html, text }) {
   return response.json();
 }
 
+/* ── Telling the shopkeeper ────────────────────────────────────────────────
+   A quiet shoulder-tap on Telegram when something happens that a person
+   should know about. Deliberately outside every delivery path: the buyer's
+   book goes by email, and a chat that is down must never turn a completed
+   order into a failure Stripe will retry.
+   ───────────────────────────────────────────────────────────────────────── */
+
+/** Telegram carries the bot token in the URL, so it must never reach a log. */
+const scrub = (text) => String(text).replace(/bot\d+:[A-Za-z0-9_-]+/g, 'bot<token>');
+
+/** &, < and > — the three that matter inside Telegram's HTML mode. */
+export const escapeHtml = (value) =>
+  String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+/**
+ * Never throws, and never returns a reason to fail an order. Every caller is
+ * on a path where the money has already moved.
+ */
+export async function notify(message) {
+  const token = env('TELEGRAM_BOT_TOKEN');
+  const chat = env('TELEGRAM_CHAT_ID');
+  if (!token || !chat) return false;
+
+  try {
+    const response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chat,
+        // Telegram rejects anything longer, and a truncated notice beats none.
+        text: String(message).slice(0, 4096),
+        parse_mode: 'HTML',
+        // Nothing in here should be fetched and unfurled by anybody's servers.
+        disable_web_page_preview: true,
+      }),
+      // A serverless function has a time budget; a hanging chat API must not
+      // be what spends it.
+      signal: AbortSignal.timeout(5000),
+    });
+
+    if (!response.ok) {
+      console.error(`Telegram refused: ${response.status} ${scrub(await response.text())}`);
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.error('Telegram notification failed:', scrub(error.message));
+    return false;
+  }
+}
+
+/** Minor units back into something a person reads. */
+export const readMoney = (amount, currency) =>
+  `${(Number(amount || 0) / 100).toFixed(2)} ${String(currency || '').toUpperCase()}`;
+
 export const json = (res, status, body) => {
   res.setHeader('content-type', 'application/json');
   res.status(status).send(JSON.stringify(body));
