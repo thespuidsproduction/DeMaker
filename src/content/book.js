@@ -67,7 +67,22 @@ export const book = {
    *   'stripe' — uses this site's own /api/checkout, and emails the files
    *              after payment. See "Delivering the files" in CONTENT.md.
    */
-  checkout: { mode: 'demo' },
+  checkout: { mode: 'stripe' },
+
+  /**
+   * Bookshops buying in quantity do not pay by card at a portal; they raise a
+   * purchase order and settle on terms. /api/invoice turns one of those into a
+   * Stripe invoice at this discount, on these terms.
+   */
+  wholesale: {
+    /** Taken off the retail price. 0.45 means a shop pays 55% of the cover. */
+    discount: 0.45,
+    /** Below this, a shop is a reader and should use the ordinary checkout. */
+    minimumCopies: 10,
+    /** Net terms, in days, from the day the invoice is finalised. */
+    termsDays: 30,
+    currency: 'gbp',
+  },
 
   /**
    * Names for the files emailed after a purchase. The keys are yours; they are
@@ -91,6 +106,8 @@ export const book = {
       tagline: '247 pages. Hardcover. Regrettably real weight.',
       detail: 'Cloth boards, gold foil, and one (1) author photograph taken by his mother.',
       formats: ['Hardcover'],
+      /** Arrives in a van, so Checkout collects somewhere to send it. */
+      physical: true,
       /** Nothing to email — this one arrives in a van. */
       files: [],
       links: { USD: '', GBP: '', EUR: '' },
@@ -144,6 +161,8 @@ export const book = {
       tagline: 'The object, the file and the voice. Both volumes of each.',
       detail: 'Three times the confusion, once the postage.',
       formats: ['Hardcover', 'EPUB', 'PDF', 'M4B'],
+      /** There is a hardcover in the bundle, so this one needs an address too. */
+      physical: true,
       files: ['ebook-vol-1', 'ebook-vol-2', 'audiobook-vol-1', 'audiobook-vol-2'],
       links: { USD: '', GBP: '', EUR: '' },
     },
@@ -151,7 +170,7 @@ export const book = {
 
   /** Shown under the checkout. Say something true here. */
   fineprint:
-    'Demonstration checkout. No payment details are requested, collected, or processed — this is a design piece, and the book is a work of satire.',
+    'Payment is handled by Stripe; no card details ever reach this site. The book is a work of satire, but the checkout is real.',
 
   /* ── 01 — the spiral gallery ───────────────────────────────────────────
      `kind` picks how a plate is drawn: 'spread', 'portrait', 'napkin',

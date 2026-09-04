@@ -4,3 +4,8 @@ dist/
 *.log
 .vite/
 .vercel
+
+# Secrets. .env.example is the one that ships.
+.env
+.env.*
+!.env.example

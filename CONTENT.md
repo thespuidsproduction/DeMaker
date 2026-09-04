@@ -156,6 +156,18 @@ are meant to match.
 > buyers notice. Give each currency its own payment link (below) so the symbol
 > on the page is the currency actually charged.
 
+The `stripe` route already does that: the currency the page showed is the
+currency sent to Checkout, so a visitor shown `€34.00` is charged `€34.00`.
+
+Stripe's own **Adaptive Pricing** answers the same question a different way —
+you keep one base price and Stripe converts it into the buyer's local currency
+at its own rate. That is a genuinely better fit for most shops, but it is not
+what this one does: charging the same *number* everywhere is a deliberate
+choice here, and layering a conversion on top of an already-localised price
+would convert it twice. So it is off, and it stays off unless you set
+`STRIPE_ADAPTIVE_PRICING=true` — at which point you should give every edition a
+single base currency and let Stripe do the rest.
+
 ## 5. Taking money and delivering the files
 
 This is the part people get stuck on, so here it is in full. The button has
@@ -206,6 +218,7 @@ three small functions in `api/`. No book file ever goes in this repository.
 api/checkout.js      creates the Stripe Checkout session
 api/webhook.js       Stripe calls it once the money moves → emails the links
 api/download.js      hands over a file to a signed, expiring link
+api/invoice.js       raises a wholesale invoice for a bookshop (section 5b)
 api/setup-check.js   tells you which of the pieces below are actually set
 ```
 
@@ -277,6 +290,9 @@ Environment Variables). None of these belong in the repository:
 | `DOWNLOAD_SECRET` | Any long random string: `openssl rand -hex 32` |
 | `BOOK_FILES` | JSON mapping your keys to the private URLs (below) |
 | `SITE_URL` | Optional. `https://yourdomain.com`, if you do not want the request's own host used |
+| `SHIP_TO` | Optional. Comma-separated country codes you will post a hardcover to. Defaults to the UK, Ireland, North America, Australasia and most of western Europe |
+| `WHOLESALE_API_KEY` | Optional. Long random string. Unlocks `/api/invoice` — leave it unset and that endpoint refuses everything |
+| `STRIPE_ADAPTIVE_PRICING` | Optional. `true` lets Stripe convert your price into the buyer's local currency. Off by default — see section 4 |
 
 ```json
 {
@@ -291,11 +307,20 @@ Environment Variables). None of these belong in the repository:
 Webhooks → Add endpoint:
 
 - URL: `https://yourdomain.com/api/webhook`
-- Event: `checkout.session.completed`
+- Events: `checkout.session.completed` **and**
+  `checkout.session.async_payment_succeeded`
+
+Both, not just the first. Cards settle immediately, but a delayed method — a
+bank debit, some wallets — completes the session while the payment is still
+`unpaid`, and the money only lands minutes or days later. The webhook delivers
+nothing until `payment_status` is `paid`, so without the second event those
+buyers would pay and never receive anything.
 
 Copy the signing secret it gives you into `STRIPE_WEBHOOK_SECRET`.
 
-**Step 5 — switch the mode** to `'stripe'` in `src/content/book.js`, and deploy.
+**Step 5 — check the mode.** `checkout.mode` in `src/content/book.js` ships as
+`'stripe'`. Set it back to `'demo'` if you want the shop to stop taking money
+without tearing the integration out.
 
 **Step 6 — check your work.** Open `https://yourdomain.com/api/setup-check`. It
 reports which pieces are present — never their values — and, importantly, which
@@ -304,11 +329,18 @@ file keys are declared on an edition but missing from `BOOK_FILES`:
 ```json
 {
   "checkoutMode": "stripe",
-  "stripe": { "secretKey": true, "webhookSecret": true },
+  "sellable": true,
+  "blocking": [],
+  "stripe": { "secretKey": true, "webhookSecret": true, "livemode": false },
   "email": { "resendKey": true, "from": true },
-  "downloads": { "secret": true, "filesDeclared": ["ebook-vol-1", "…"], "missing": [] }
+  "downloads": { "secret": true, "filesDeclared": ["ebook-vol-1", "…"], "missing": [] },
+  "wholesale": { "enabled": false }
 }
 ```
+
+`sellable` is the one to read. When it is `false`, `blocking` says why in plain
+sentences — a missing webhook secret, a file key with no URL behind it — in the
+order a buyer would run into them.
 
 **Step 7 — buy your own book.** With Stripe in test mode, card `4242 4242 4242
 4242`, any future expiry, any CVC. You should get the email within seconds, and
@@ -325,7 +357,65 @@ each link should download the right file.
    never sees where the file actually lives.
 
 If the email provider has a moment, the webhook returns an error and Stripe
-retries, so a buyer who has paid always ends up with their book.
+retries, so a buyer who has paid always ends up with their book. Stripe may send
+the same purchase more than once — a retry, or the two events above describing
+one order — so the webhook stamps `fulfilled` into the session's metadata once
+the email is away, and a repeat of an order it has already delivered is answered
+and dropped. Nobody gets the same book twice.
+
+Buying a hardcover or the bundle also asks for a posting address and a phone
+number, because those arrive in a van; the eBook does not ask, because it does
+not need to. Every order raises a real Stripe invoice as well as a card receipt,
+which is what to send the reader who asks for one.
+
+### 5b. Bookshops — `POST /api/invoice`
+
+A shop buying twenty-five copies does not want a payment portal. It raises a
+purchase order, and pays on terms against an invoice with a number on it. That
+is a different transaction, so it has its own endpoint.
+
+Set `WHOLESALE_API_KEY` to a long random string (`openssl rand -hex 32`). Until
+you do, `/api/invoice` answers `503` and creates nothing — an endpoint that
+mints money owed is off by default, never open by default.
+
+The trade terms live in `src/content/book.js`:
+
+```js
+wholesale: {
+  discount: 0.45,      // a shop pays 55% of the cover price
+  minimumCopies: 10,   // below this, the ordinary checkout is cheaper to run
+  termsDays: 30,       // net 30 from the day the invoice is finalised
+  currency: 'gbp',
+},
+```
+
+```bash
+curl -X POST https://yourdomain.com/api/invoice \
+  -H "Authorization: Bearer $WHOLESALE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+        "editionId": "hardcover",
+        "name": "Example Bookshop Ltd",
+        "email": "orders@examplebookshop.co.uk",
+        "quantity": 25,
+        "poNumber": "PO-77812",
+        "reference": "WS-1001"
+      }'
+```
+
+It finds or creates the customer, prices the line at the trade discount,
+finalises the invoice and sends it. You get back the invoice number, the amount
+due, the due date, and the hosted page and PDF the shop pays from.
+
+The price is computed here from `discount`, never taken from the request — what
+a shop pays is the publisher's to decide. `reference` is what makes the call
+idempotent: submit the same purchase order twice and you get the same invoice
+back, not two. Pass `"draft": true` to stop at a draft you can look over in the
+Dashboard before it goes anywhere.
+
+`poNumber` lands in two places on purpose: in the invoice metadata, where your
+records and Stripe's API and Sigma can find it, and in a custom field, which is
+the bit that gets printed on the PDF for the shop's accounts payable team.
 
 ### Before you take real money
 
@@ -334,7 +424,13 @@ retries, so a buyer who has paid always ends up with their book.
 - Update `fineprint` in the config to describe your actual terms.
 - Digital sales carry VAT/sales-tax obligations in most places. The hosted shops
   in the `links` route handle this for you as merchant of record; with Stripe it
-  is yours to handle (Stripe Tax can do it).
+  is yours to handle. Nothing here switches Stripe Tax on: it needs an origin
+  address and your registrations before it can be trusted, so turning it on is a
+  deliberate step, not a default. Set it up in the Dashboard, then add
+  `automatic_tax: { enabled: 'true' }` to the session in `api/checkout.js` and
+  to the invoice in `api/invoice.js`.
+- Nothing counts stock. The hardcover will keep selling after the last box goes,
+  because no part of this knows how many are left.
 
 ## 6. The gallery
 

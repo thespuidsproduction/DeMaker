@@ -5,23 +5,57 @@ import { book, env, fileSources, json } from './_lib.js';
 
 export default function handler(req, res) {
   const sources = fileSources();
-  const needed = [...new Set(book.editions.flatMap((e) => e.files || []))];
+  const mode = book.checkout?.mode || 'demo';
+
+  // Only the editions that are on sale and have files to send need a source;
+  // a hardcover is posted, and an unreleased edition is nobody's problem yet.
+  const needed = [
+    ...new Set(
+      book.editions.filter((item) => item.available !== false).flatMap((item) => item.files || [])
+    ),
+  ];
+  const missing = needed.filter((key) => !sources[key]);
+
+  const has = {
+    secretKey: Boolean(env('STRIPE_SECRET_KEY')),
+    webhookSecret: Boolean(env('STRIPE_WEBHOOK_SECRET')),
+    resendKey: Boolean(env('RESEND_API_KEY')),
+    from: Boolean(env('MAIL_FROM')),
+    downloadSecret: Boolean(env('DOWNLOAD_SECRET')),
+  };
+
+  // What would actually go wrong today, in the order somebody would hit it.
+  const blocking = [];
+  if (mode === 'stripe') {
+    if (!has.secretKey) blocking.push('STRIPE_SECRET_KEY is not set — checkout cannot start.');
+    if (!has.webhookSecret) blocking.push('STRIPE_WEBHOOK_SECRET is not set — paid orders will never be delivered.');
+    if (!has.resendKey || !has.from) blocking.push('RESEND_API_KEY and MAIL_FROM must both be set — buyers get no email.');
+    if (!has.downloadSecret) blocking.push('DOWNLOAD_SECRET is not set — download links cannot be signed.');
+    if (missing.length) blocking.push(`BOOK_FILES has no source for: ${missing.join(', ')}.`);
+  }
 
   json(res, 200, {
-    checkoutMode: book.checkout?.mode || 'demo',
+    checkoutMode: mode,
+    sellable: mode !== 'stripe' || blocking.length === 0,
+    blocking,
     stripe: {
-      secretKey: Boolean(env('STRIPE_SECRET_KEY')),
-      webhookSecret: Boolean(env('STRIPE_WEBHOOK_SECRET')),
+      secretKey: has.secretKey,
+      webhookSecret: has.webhookSecret,
+      livemode: env('STRIPE_SECRET_KEY').startsWith('sk_live_') || null,
+      adaptivePricing: env('STRIPE_ADAPTIVE_PRICING') === 'true',
     },
-    email: {
-      resendKey: Boolean(env('RESEND_API_KEY')),
-      from: Boolean(env('MAIL_FROM')),
-    },
+    email: { resendKey: has.resendKey, from: has.from },
     downloads: {
-      secret: Boolean(env('DOWNLOAD_SECRET')),
+      secret: has.downloadSecret,
       filesDeclared: needed,
       filesConfigured: needed.filter((key) => Boolean(sources[key])),
-      missing: needed.filter((key) => !sources[key]),
+      missing,
+    },
+    wholesale: {
+      // Absent key means /api/invoice refuses everything, which is the safe
+      // default — it is off, not open.
+      enabled: Boolean(env('WHOLESALE_API_KEY')),
+      terms: book.wholesale || null,
     },
   });
 }

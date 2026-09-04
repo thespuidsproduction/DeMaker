@@ -11,6 +11,24 @@ import { book, edition } from '../src/content/book.js';
 
 export { book, edition };
 
+/**
+ * Strict lookup. `edition` deliberately falls back to the default edition,
+ * which is right for the page — a stale link should still show a book — and
+ * wrong for money: a typo in an id must never quietly sell somebody the
+ * hardcover instead. Anything that takes payment uses this one.
+ */
+export const findEdition = (id) => book.editions.find((item) => item.id === id) || null;
+
+/** Can this edition actually be delivered today? */
+export const sellable = (item) => Boolean(item) && item.available !== false;
+
+/** Does this edition arrive in a van? Then Stripe has to ask where to send it. */
+export const isPhysical = (item) =>
+  item?.physical ?? (item?.formats || []).some((format) => /hardcover|paperback|print/i.test(format));
+
+/** A fresh key for one attempt, so an internal retry cannot double anything up. */
+export const idempotencyKey = () => crypto.randomUUID();
+
 export const env = (name, fallback = '') => process.env[name]?.trim() || fallback;
 
 /** Minor units — 34 becomes 3400. None of the supported currencies are zero-decimal. */
@@ -83,22 +101,63 @@ export function formEncode(object, prefix = '') {
   return params;
 }
 
-export async function stripe(path, body) {
+/**
+ * The API version this code was written and tested against. Pinning it means
+ * Stripe can improve the API without changing the shape of a response beneath
+ * a deployment nobody is watching. Move it deliberately, not by accident.
+ */
+export const STRIPE_API_VERSION = '2026-08-26.dahlia';
+
+/** Worth another go: a lock, a rate limit, or Stripe having a moment. */
+const RETRYABLE = new Set([409, 429, 500, 502, 503, 504]);
+
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * One call to Stripe, with the two things a payment integration cannot do
+ * without: an idempotency key, so a retry replays the first answer instead of
+ * charging or invoicing anybody twice, and a retry loop, so a blip on the wire
+ * does not become a buyer staring at an error page.
+ */
+export async function stripe(path, body, { method = 'POST', idempotencyKey, attempts = 3 } = {}) {
   const key = env('STRIPE_SECRET_KEY');
   if (!key) throw new Error('STRIPE_SECRET_KEY is not set');
 
-  const response = await fetch(`https://api.stripe.com/v1/${path}`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${key}`,
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: formEncode(body),
-  });
+  const headers = {
+    Authorization: `Bearer ${key}`,
+    'Stripe-Version': STRIPE_API_VERSION,
+  };
+  if (idempotencyKey) headers['Idempotency-Key'] = idempotencyKey;
 
-  const data = await response.json();
-  if (!response.ok) throw new Error(data?.error?.message || `Stripe refused: ${response.status}`);
-  return data;
+  let url = `https://api.stripe.com/v1/${path}`;
+  const options = { method, headers };
+
+  if (method === 'POST') {
+    headers['Content-Type'] = 'application/x-www-form-urlencoded';
+    options.body = formEncode(body || {});
+  } else if (body) {
+    url += `?${formEncode(body)}`;
+  }
+
+  let failure;
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    if (attempt) await wait(200 * 2 ** attempt);
+
+    let response;
+    try {
+      response = await fetch(url, options);
+    } catch (error) {
+      failure = error; // the network gave out before Stripe ever saw this
+      continue;
+    }
+
+    const data = await response.json();
+    if (response.ok) return data;
+
+    failure = new Error(data?.error?.message || `Stripe refused: ${response.status}`);
+    if (!RETRYABLE.has(response.status)) throw failure;
+  }
+  throw failure;
 }
 
 /** Verify a Stripe webhook signature by hand. */

@@ -5,8 +5,8 @@ A single-book sales platform disguised as a physics-based dream library.
 One page, six movements, one book: **_How to Bag a Billionaire's Daughter — A Field
 Manual for the Alpha Acquirer_** by Chadwick P. Worthington III, Founder of the
 Alpha Acquirer Institute. The book, the author and the Institute are fiction —
-this is a satire, and the checkout is a demonstration that takes no payment
-details of any kind.
+this is a satire. The checkout is not: it runs on Stripe, and takes real money
+the moment you give it real keys.
 
 **Selling your own book here is a one-file change** — title, cover, editions,
 prices, gallery and all. See [CONTENT.md](CONTENT.md).
@@ -61,12 +61,23 @@ schema.org `Book` markup and canonical/Open Graph tags.
 
 **Real payments and delivery.** The button has three modes. `demo` takes
 nothing. `links` hands the buyer to a checkout you already run. `stripe` sells
-the book from here: four small functions in `api/` create the Stripe session,
-verify the webhook, and email the buyer a signed, expiring download link for
-every file in that edition — both volumes, both formats, whatever the edition
-declares. The files themselves live in private storage named by environment
-variable, never in this repository. `/api/setup-check` reports which pieces are
-configured. See [CONTENT.md](CONTENT.md) for the full walkthrough.
+the book from here: five small functions in `api/` create the Stripe Checkout
+session, verify the webhook, and email the buyer a signed, expiring download
+link for every file in that edition — both volumes, both formats, whatever the
+edition declares. Editions that arrive in a van collect a posting address;
+editions that arrive in an inbox do not. Delivery waits for `payment_status` to
+reach `paid`, so a delayed payment method cannot walk off with a book before the
+money lands, and a delivered order is stamped as delivered, so Stripe's retries
+cannot send it twice. The files themselves live in private storage named by
+environment variable, never in this repository. `/api/setup-check` reports what
+is still missing and what it would break. See [CONTENT.md](CONTENT.md) for the
+full walkthrough.
+
+**Invoicing for the trade.** `POST /api/invoice` turns a bookshop's purchase
+order into a real Stripe invoice — trade discount applied here rather than
+trusted from the request, net terms, PO number on the PDF, and the hosted page
+the shop pays from. It is locked behind `WHOLESALE_API_KEY` and refuses
+everything until that is set.
 
 ---
 
@@ -101,7 +112,8 @@ all generated on a 2D canvas at runtime.
 index.html               markup for all six sections and the chrome
 middleware.js            Vercel Edge Middleware: region → currency cookie
 vercel.json              build settings and cache headers
-api/                     checkout, Stripe webhook, signed downloads, setup check
+api/                     checkout, Stripe webhook, signed downloads, wholesale
+                         invoicing, setup check
 src/
   content/book.js        THE BOOK — the only file you edit to sell another one
   content/wellKnown.js   robots, sitemap, llms.txt and friends, written from it
