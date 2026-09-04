@@ -7,13 +7,15 @@
 
 import {
   book,
+  countryName,
+  dashboard,
   env,
   escapeHtml,
   findEdition,
   json,
+  money,
   notify,
   rawBody,
-  readMoney,
   sendEmail,
   signDownload,
   stripe,
@@ -61,9 +63,7 @@ export default async function handler(req, res) {
   // it, and the buyer is no better off for the queue.
   if (!to) {
     console.error(`Paid session ${session.id} has no email address — deliver this one by hand.`);
-    await notify(
-      `⚠️ <b>Paid order needs you</b>\nNo email address on the session, so nothing could be sent.\n<code>${escapeHtml(session.id)}</code>`
-    );
+    await notify(attention('This order carries no email address, so nothing could be sent.', session));
     return json(res, 200, { received: true, undeliverable: 'no-email' });
   }
   if (!item) {
@@ -71,7 +71,10 @@ export default async function handler(req, res) {
       `Paid session ${session.id} names edition "${session.metadata?.editionId}", which no longer exists.`
     );
     await notify(
-      `⚠️ <b>Paid order needs you</b>\nEdition "${escapeHtml(session.metadata?.editionId)}" no longer exists, so nothing could be sent to ${escapeHtml(to)}.\n<code>${escapeHtml(session.id)}</code>`
+      attention(
+        `Edition “${escapeHtml(session.metadata?.editionId)}” no longer exists, so nothing could be sent to ${escapeHtml(to)}.`,
+        session
+      )
     );
     return json(res, 200, { received: true, undeliverable: 'unknown-edition' });
   }
@@ -115,10 +118,22 @@ export default async function handler(req, res) {
     // and must end up with their book even if the mail provider had a moment.
     console.error('delivery failed', error);
     await notify(
-      `⚠️ <b>Delivery failed</b>\n${escapeHtml(item.label)} for ${escapeHtml(to)} could not be sent — Stripe will retry.\n${escapeHtml(error.message || 'unknown error')}\n<code>${escapeHtml(session.id)}</code>`
+      attention(
+        `${escapeHtml(item.label)} for ${escapeHtml(to)} could not be sent. Stripe will retry.\n<i>${escapeHtml(error.message || 'unknown error')}</i>`,
+        session,
+        'Delivery failed'
+      )
     );
     return json(res, 500, { error: 'Delivery failed' });
   }
+}
+
+/** Where to look this up, as a link when we can make one and a code when not. */
+function reference(session) {
+  const intent = typeof session.payment_intent === 'string' ? session.payment_intent : null;
+  return intent
+    ? `<a href="${dashboard(`payments/${intent}`, session.livemode)}">Open in Stripe</a>`
+    : `<code>${escapeHtml(session.id)}</code>`;
 }
 
 /**
@@ -132,36 +147,47 @@ function sold(item, session, shipping, delivered) {
   const quantity = Number(session.metadata?.quantity) || 1;
   const buyer = session.metadata?.buyer;
   const to = session.customer_details?.email || session.customer_email;
-  const address = addressLine(shipping);
+  const address = addressLines(shipping);
 
-  return [
-    `📖 <b>Sold — ${escapeHtml(item.label)}${quantity > 1 ? ` ×${quantity}` : ''}</b>`,
-    [buyer && escapeHtml(buyer), to && escapeHtml(to)].filter(Boolean).join(' · '),
-    readMoney(session.amount_total, session.currency),
-    address ? `\n📮 <b>Post to</b>\n${escapeHtml(address)}` : '',
-    delivered ? `\n${delivered} file${delivered === 1 ? '' : 's'} emailed.` : '',
-    `\n<code>${escapeHtml(session.id)}</code>`,
-  ]
-    .filter(Boolean)
-    .join('\n');
+  const lines = [
+    '<b>New order</b>',
+    `${escapeHtml(item.label)}${quantity > 1 ? ` × ${quantity}` : ''} — <b>${money(session.amount_total, session.currency)}</b>`,
+    '',
+    '<b>Buyer</b>',
+    ...[buyer, to].filter(Boolean).map(escapeHtml),
+  ];
+
+  // Set out the way it goes on a label, not run together with commas — this is
+  // the thing somebody copies when they are packing the parcel.
+  if (address.length) lines.push('', '<b>Ship to</b>', ...address.map(escapeHtml));
+
+  if (delivered) lines.push('', `${delivered} file${delivered === 1 ? '' : 's'} emailed.`);
+
+  lines.push('', reference(session));
+  return lines.join('\n');
 }
 
-/** The posting address, as one readable line. */
-function addressLine(shipping) {
+/** Something has gone wrong on an order that is already paid for. */
+function attention(what, session, title = 'Order needs attention') {
+  return [`⚠️ <b>${title}</b>`, what, '', reference(session)].join('\n');
+}
+
+/** A posting address the way it goes on a label — one line per line. */
+function addressLines(shipping) {
   const address = shipping?.address;
-  if (!address) return '';
+  if (!address) return [];
   return [
     shipping.name,
     address.line1,
     address.line2,
     address.city,
-    address.state,
-    address.postal_code,
-    address.country,
-  ]
-    .filter(Boolean)
-    .join(', ');
+    [address.state, address.postal_code].filter(Boolean).join(' '),
+    countryName(address.country),
+  ].filter(Boolean);
 }
+
+/** The same address run together, for a line of email copy. */
+const addressLine = (shipping) => addressLines(shipping).join(', ');
 
 function plainText(item, links, shipping) {
   const lines = [`Thank you for buying ${book.title}.`, '', `Edition: ${item?.label || 'your copy'}`, ''];

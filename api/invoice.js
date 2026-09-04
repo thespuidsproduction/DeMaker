@@ -12,13 +12,14 @@
 import crypto from 'node:crypto';
 import {
   book,
+  dashboard,
   env,
   escapeHtml,
   findEdition,
   json,
   minorUnits,
+  money,
   notify,
-  readMoney,
   sellable,
   stripe,
 } from './_lib.js';
@@ -164,10 +165,21 @@ export default async function handler(req, res) {
 
     await notify(
       [
-        `🧾 <b>Wholesale invoice ${escapeHtml(finalised.number)}</b>`,
-        `${escapeHtml(name)} · ${quantity} × ${escapeHtml(item.label)}`,
-        readMoney(finalised.amount_due, finalised.currency),
-        `Net ${daysUntilDue}${poNumber ? ` · PO ${escapeHtml(poNumber)}` : ''}`,
+        '<b>Invoice sent</b>',
+        `${escapeHtml(finalised.number)} — <b>${money(finalised.amount_due, finalised.currency)}</b>`,
+        '',
+        '<b>Customer</b>',
+        escapeHtml(name),
+        [
+          `${quantity} × ${escapeHtml(item.label)}`,
+          `net ${daysUntilDue}`,
+          // Most purchase orders already say "PO" in the number itself.
+          poNumber ? (/^po\b/i.test(poNumber) ? escapeHtml(poNumber) : `PO ${escapeHtml(poNumber)}`) : '',
+        ]
+          .filter(Boolean)
+          .join(' · '),
+        '',
+        `<a href="${dashboard(`invoices/${finalised.id}`, finalised.livemode)}">Open in Stripe</a>`,
       ].join('\n')
     );
 

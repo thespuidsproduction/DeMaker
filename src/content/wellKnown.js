@@ -259,10 +259,20 @@ export function security() {
   const expires = new Date();
   expires.setFullYear(expires.getFullYear() + 1);
 
-  return `Contact: ${contact}
-Expires: ${expires.toISOString().replace(/\.\d{3}Z$/, 'Z')}
-Preferred-Languages: ${book.site?.language || 'en'}
-`;
+  const url = siteUrl();
+
+  return (
+    [
+      `Contact: ${contact}`,
+      `Expires: ${expires.toISOString().replace(/\.\d{3}Z$/, 'Z')}`,
+      // RFC 9116 asks for this: it names the one address this file is
+      // authoritative at, so a copy found anywhere else can be disregarded.
+      url ? `Canonical: ${url}/.well-known/security.txt` : '',
+      `Preferred-Languages: ${book.site?.language || 'en'}`,
+    ]
+      .filter(Boolean)
+      .join('\n') + '\n'
+  );
 }
 
 /** Everything the build should write out, as [path, contents]. */

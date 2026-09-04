@@ -385,15 +385,33 @@ sent; the shop works exactly as before.
 A sale arrives looking like this:
 
 ```
-📖 Sold — Hardcover ×2
-Ada Lovelace · ada@example.com
-68.00 GBP
+New order
+Hardcover × 2 — £68.00
 
-📮 Post to
-Ada Lovelace, 12 Analytical Way, London, N1 1AA, GB
+Buyer
+Ada Lovelace
+ada@example.com
 
-cs_test_a1b2c3
+Ship to
+Ada Lovelace
+12 Analytical Way
+London
+N1 1AA
+United Kingdom
+
+Open in Stripe ↗
 ```
+
+The address is set out the way it goes on a label rather than run together
+with commas, because that is the moment you are actually using it. Amounts
+carry their symbol (`£68.00`, `US$18.00`, `€18.00`) so three currencies in one
+feed can never be mistaken for each other, countries are named rather than
+coded, and the last line is a link straight to the order in your Stripe
+dashboard — test or live, whichever produced it.
+
+Anything that needs a person — a paid order with no email address, an edition
+that has been deleted out from under an order, a delivery that failed and will
+be retried — arrives in the same shape under **⚠️ Order needs attention**.
 
 Four things about it are deliberate:
 

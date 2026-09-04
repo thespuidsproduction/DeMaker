@@ -245,9 +245,34 @@ export async function notify(message) {
   }
 }
 
-/** Minor units back into something a person reads. */
-export const readMoney = (amount, currency) =>
-  `${(Number(amount || 0) / 100).toFixed(2)} ${String(currency || '').toUpperCase()}`;
+/**
+ * Minor units as a person reads them: £68.00, US$68.00, €68.00. Formatted in
+ * en-GB on purpose — it marks dollars as US$, so three currencies in one feed
+ * can never be mistaken for each other at a glance.
+ */
+export function money(amount, currency) {
+  const value = Number(amount || 0) / 100;
+  const code = String(currency || 'usd').toUpperCase();
+  try {
+    return new Intl.NumberFormat('en-GB', { style: 'currency', currency: code }).format(value);
+  } catch {
+    return `${value.toFixed(2)} ${code}`;
+  }
+}
+
+/** 'GB' → 'United Kingdom'. Falls back to the code on a runtime without data. */
+export function countryName(code) {
+  if (!code) return '';
+  try {
+    return new Intl.DisplayNames(['en'], { type: 'region' }).of(String(code).toUpperCase()) || code;
+  } catch {
+    return code;
+  }
+}
+
+/** A link straight to the thing itself in the Stripe dashboard. */
+export const dashboard = (path, livemode) =>
+  `https://dashboard.stripe.com/${livemode ? '' : 'test/'}${path}`;
 
 export const json = (res, status, body) => {
   res.setHeader('content-type', 'application/json');
