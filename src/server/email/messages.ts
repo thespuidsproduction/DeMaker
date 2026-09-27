@@ -1025,3 +1025,94 @@ export function sendNominationReceipt(input: {
     ]),
   });
 }
+
+/* ── the season ─────────────────────────────────────────────────────────── */
+
+/**
+ * The countdown.
+ *
+ * Short, because it is the third one they may get. It says when, says the one
+ * thing worth doing before then, and says how to stop receiving it.
+ */
+export function sendSeasonReminder(input: {
+  to: string;
+  userId: string;
+  creatorId: string;
+  name: string;
+  year: number;
+  milestone: 'nominationsOpenAt' | 'nominationsCloseAt' | 'ceremonyAt';
+  milestoneAt: Date;
+  countdown: string;
+}) {
+  const firstName = input.name.split(' ')[0] || input.name;
+  const when = new Intl.DateTimeFormat('en-GB', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    timeZone: 'UTC',
+  }).format(input.milestoneAt);
+
+  const copy = {
+    nominationsOpenAt: {
+      eyebrow: `PALMA ${input.year}`,
+      subject: `PALMA ${input.year} opens ${input.countdown}`,
+      title: `The season opens ${input.countdown}`,
+      body: 'Nominations open to the audience across every category. Your record is what they will read, so it is worth a minute now: check your links still work and your portrait is the one you want.',
+      href: `${siteUrl}/creator/profile`,
+      cta: 'Check your record',
+    },
+    nominationsCloseAt: {
+      eyebrow: `PALMA ${input.year}`,
+      subject: `Nominations for PALMA ${input.year} close ${input.countdown}`,
+      title: `Nominations close ${input.countdown}`,
+      body: 'If you want the people who follow your work to know they can nominate you, your share page has your own link. Volume decides nothing, but nobody can nominate a creator they do not know is eligible.',
+      href: `${siteUrl}/creator/share`,
+      cta: 'Open your share page',
+    },
+    ceremonyAt: {
+      eyebrow: `PALMA ${input.year}`,
+      subject: `The PALMA ${input.year} ceremony is ${input.countdown}`,
+      title: `The ceremony is ${input.countdown}`,
+      body: 'The panel has decided. What is conferred goes on the permanent record that evening, and every honour gets its own verification link.',
+      href: `${siteUrl}/creator`,
+      cta: 'Open your portal',
+    },
+  }[input.milestone];
+
+  const preferences = `${siteUrl}/account/email-preferences`;
+
+  return dispatch({
+    template: 'season_reminder',
+    to: input.to,
+    userId: input.userId,
+    creatorId: input.creatorId,
+    subject: copy.subject,
+    html: shell({
+      mailbox: 'laurels',
+      preheader: `${when}.`,
+      body: [
+        plate({ eyebrow: copy.eyebrow, title: copy.title, meta: when }),
+        paragraph(`${e(firstName)}, ${copy.body}`),
+        action({ href: copy.href, label: copy.cta }),
+        quiet(
+          `You hold a PALMA record and season news is switched on. <a href="${preferences}" style="color:inherit;">Switch it off</a> at any time.`,
+        ),
+      ].join('\n'),
+    }),
+    text: plain([
+      copy.subject,
+      '',
+      when,
+      '',
+      `${firstName}, ${copy.body}`,
+      '',
+      `${copy.cta}: ${copy.href}`,
+      '',
+      `Switch season news off: ${preferences}`,
+    ]),
+    dossier: {
+      body: `${copy.title}: ${when}.`,
+      href: copy.href.replace(siteUrl, ''),
+    },
+  });
+}

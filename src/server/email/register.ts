@@ -184,6 +184,16 @@ export const TEMPLATES = {
     important: true,
   },
 
+  season_reminder: {
+    key: 'season_reminder',
+    name: 'Season reminder',
+    mailbox: 'laurels',
+    purpose:
+      'Sent to creators who hold a record, on the schedule set in the Creator CRM: before the season opens, before nominations close, before the ceremony.',
+    gate: 'seasonAnnouncements',
+    dossier: true,
+  },
+
   /* ── nominations ──────────────────────────────────────────────────────── */
   nomination_code: {
     key: 'nomination_code',

@@ -108,6 +108,8 @@ export const AUDIT_ACTIONS = [
   'crm.task_created',
   'crm.task_completed',
   'crm.task_reopened',
+  'crm.reminders_configured',
+  'crm.reminders_sent',
 
   // The Product Library. The sponsorship entries are separate from the
   // editorial ones on purpose: "who paid" and "who wrote the verdict" must be

@@ -89,27 +89,88 @@ export const CRM_TOUCHPOINT_KINDS = [
   'meeting',
   'event',
   'note',
+  // Written by PALMA itself, never picked from the form.
+  'stage',
+  'reminder',
 ] as const;
 
 export type CrmTouchpointKind = (typeof CRM_TOUCHPOINT_KINDS)[number];
 
+/** The kinds a person logs. `stage` and `reminder` are the desk's own entries. */
+export const CRM_LOGGABLE_KINDS = ['message', 'email', 'call', 'meeting', 'event', 'note'] as const;
+export type CrmLoggableKind = (typeof CRM_LOGGABLE_KINDS)[number];
+
 export const CRM_TOUCHPOINT_KIND_LABEL: Record<CrmTouchpointKind, string> = {
   email: 'Email',
-  message: 'Platform message',
+  message: 'Message',
   call: 'Call',
   meeting: 'Meeting',
-  event: 'At an event',
-  note: 'Desk note',
+  event: 'Event',
+  note: 'Note',
+  stage: 'Stage',
+  reminder: 'Season email',
 };
 
 export const CRM_DIRECTIONS = ['outbound', 'inbound', 'internal'] as const;
 export type CrmDirection = (typeof CRM_DIRECTIONS)[number];
 
 export const CRM_DIRECTION_LABEL: Record<CrmDirection, string> = {
-  outbound: 'PALMA to creator',
-  inbound: 'Creator to PALMA',
-  internal: 'Internal',
+  outbound: 'We reached out',
+  inbound: 'They got in touch',
+  internal: 'Just a note',
 };
+
+/**
+ * The journey, in the order a relationship normally runs. Dormant and do not
+ * contact are off the path on purpose: they are where a relationship goes when
+ * it leaves the journey, not steps along it.
+ */
+export const CRM_JOURNEY = [
+  'prospect',
+  'contacted',
+  'in_conversation',
+  'onboarding',
+  'active',
+] as const;
+export const CRM_OFF_PATH = ['dormant', 'do_not_contact'] as const;
+
+/**
+ * What each stage's colour means, in the desk's three tones.
+ *
+ * Nothing is decorative: quiet is waiting, gold is PALMA's move, green is the
+ * creator moving with PALMA, red is a line nobody crosses.
+ */
+export const CRM_STAGE_TONE: Record<CrmStage, 'neutral' | 'accent' | 'positive' | 'alert'> = {
+  prospect: 'neutral',
+  contacted: 'accent',
+  in_conversation: 'accent',
+  onboarding: 'positive',
+  active: 'positive',
+  dormant: 'neutral',
+  do_not_contact: 'alert',
+};
+
+/** One-tap follow-ups: nobody should need a date picker to say "next week". */
+export const FOLLOW_UP_CHOICES = [
+  { days: 1, label: 'Tomorrow' },
+  { days: 3, label: '3 days' },
+  { days: 7, label: 'A week' },
+  { days: 14, label: '2 weeks' },
+  { days: 30, label: 'A month' },
+] as const;
+
+/** Midnight UTC, `days` from today. */
+export function daysFromToday(days: number, now: Date = new Date()): Date {
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + days));
+}
+
+/** Two letters for an avatar: first and last word, or the first two letters. */
+export function initials(name: string): string {
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return '?';
+  if (words.length === 1) return words[0]!.slice(0, 2).toUpperCase();
+  return `${words[0]![0]}${words[words.length - 1]![0]}`.toUpperCase();
+}
 
 export function isCrmStage(value: unknown): value is CrmStage {
   return typeof value === 'string' && (CRM_STAGES as readonly string[]).includes(value);

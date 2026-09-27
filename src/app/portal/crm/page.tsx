@@ -1,21 +1,34 @@
 import Link from 'next/link';
-import { EmptyState } from '@/components/ui/feedback';
-import { Badge, Pill } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Stat } from '@/components/ui/stat';
-import { CrmStageBadge } from '@/components/operations/CrmStageBadge';
+import {
+  AlarmClock,
+  BellRing,
+  ChevronRight,
+  Contact,
+  ListTodo,
+  Search,
+  UserPlus,
+  Users,
+} from 'lucide-react';
+import { Card, Empty, List, Row, RowText, SectionHead, Tag } from '@/components/desk/surface';
+import { Dial, Masthead, Panel, Stat } from '@/components/desk/blocks';
+import {
+  CRM_TABS,
+  FollowUpTag,
+  JourneyRail,
+  Monogram,
+  StageTag,
+  Tabs,
+} from '@/components/crm/visuals';
 import { buildMetadata } from '@/lib/seo';
 import { requirePermission } from '@/lib/auth/guards';
 import { countryName, formatShortDate } from '@/lib/format';
-import { cn } from '@/lib/utils';
+import { CRM_JOURNEY, followUpState, isCrmPriority, isCrmStage, type CrmStage } from '@/domain/crm';
 import {
-  CRM_PRIORITY_LABEL,
-  CRM_STAGES,
-  CRM_STAGE_LABEL,
-  followUpState,
-  isCrmPriority,
-  isCrmStage,
-} from '@/domain/crm';
+  MILESTONE_PHRASE,
+  countdownPhrase,
+  daysUntil,
+  upcomingReminders,
+} from '@/domain/season-reminders';
 import {
   getCrmPipeline,
   listCrmCreators,
@@ -23,6 +36,7 @@ import {
   listOpenCrmTasks,
   type CrmListFilter,
 } from '@/server/data/crm';
+import { getReminderSchedule, reminderSeasons } from '@/server/services/season-reminders';
 
 export const dynamic = 'force-dynamic';
 
@@ -42,12 +56,11 @@ type Search = {
   priority?: string;
 };
 
-/** Build a filter link that keeps the rest of the current view. */
+/** A link to this page with one thing changed and everything else kept. */
 function hrefWith(current: Search, change: Partial<Search>): string {
-  const next = { ...current, ...change };
   const params = new URLSearchParams();
-  for (const [key, value] of Object.entries(next)) {
-    if (value) params.set(key, value);
+  for (const [key, value] of Object.entries({ ...current, ...change })) {
+    if (typeof value === 'string' && value) params.set(key, value);
   }
   const query = params.toString();
   return query ? `/portal/crm?${query}` : '/portal/crm';
@@ -56,6 +69,7 @@ function hrefWith(current: Search, change: Partial<Search>): string {
 export default async function CrmPage({ searchParams }: { searchParams: Promise<Search> }) {
   const session = await requirePermission('crm:view', '/portal/crm');
   const search = await searchParams;
+  const now = new Date();
 
   const filter: CrmListFilter = {
     query: search.q?.trim() || undefined,
@@ -66,245 +80,280 @@ export default async function CrmPage({ searchParams }: { searchParams: Promise<
     tag: search.tag?.trim() || undefined,
   };
 
-  const [pipeline, rows, tags, myTasks] = await Promise.all([
+  const [pipeline, rows, tags, myTasks, { schedule }, seasons] = await Promise.all([
     getCrmPipeline(),
     listCrmCreators(filter),
-    listCrmTags(),
-    listOpenCrmTasks({ assigneeId: session.user.id, limit: 8 }),
+    listCrmTags(12),
+    listOpenCrmTasks({ assigneeId: session.user.id, limit: 6 }),
+    getReminderSchedule(),
+    reminderSeasons(),
   ]);
 
-  const now = new Date();
+  const total = Object.values(pipeline.stages).reduce((sum, n) => sum + n, 0);
+  const reachable = total - pipeline.stages.do_not_contact;
+  const inTouch = CRM_JOURNEY.slice(1).reduce((sum, stage) => sum + pipeline.stages[stage], 0);
+  const nextEmail = schedule.enabled ? upcomingReminders(schedule, seasons, now)[0] : undefined;
+
+  const needs = pipeline.overdue;
+  const statement =
+    needs > 0
+      ? `${needs} follow-up${needs === 1 ? ' is' : 's are'} overdue. Start there; everything else can wait its turn.`
+      : pipeline.dueThisWeek > 0
+        ? `Nothing overdue. ${pipeline.dueThisWeek} follow-up${pipeline.dueThisWeek === 1 ? '' : 's'} coming up this week.`
+        : 'Nothing overdue and nothing due this week. A good day to pick up a prospect.';
+
+  const quick: { key: keyof Search; value: string; label: string }[] = [
+    { key: 'owner', value: 'me', label: 'Mine' },
+    { key: 'due', value: 'overdue', label: 'Overdue' },
+    { key: 'priority', value: 'high', label: 'High priority' },
+    { key: 'owner', value: 'none', label: 'Nobody owns' },
+  ];
+  const anyFilter = Object.values(search).some(Boolean);
 
   return (
-    <>
-      <div className="flex flex-col gap-3">
-        <span className="palma-label text-taupe-deep">The relationship desk</span>
-        <h1 className="text-4xl">Creator CRM</h1>
-        <p className="text-taupe-deep max-w-160 leading-relaxed">
-          Who looks after each creator, where the relationship has got to, and what was promised
-          next. Staff only: never published, never shown to the creator, and never read by judging.
-          Record the route to a creator, never their address.
-        </p>
-      </div>
-
-      <div className="border-stone-deep mt-10 grid grid-cols-2 gap-6 border-y py-6 sm:grid-cols-4">
-        <Link href={hrefWith({}, { due: 'overdue' })} className="hover:text-olive">
-          <Stat label="Follow-ups overdue" value={pipeline.overdue} />
-        </Link>
-        <Link href={hrefWith({}, { due: 'week' })} className="hover:text-olive">
-          <Stat label="Due in the next week" value={pipeline.dueThisWeek} />
-        </Link>
-        <Link href={hrefWith({}, { owner: 'none' })} className="hover:text-olive">
-          <Stat label="Nobody owns" value={pipeline.unowned} />
-        </Link>
-        <Stat label="Open tasks" value={pipeline.openTasks} />
-      </div>
-
-      {/* The pipeline, every stage present, in order. Each is a filter. */}
-      <nav aria-label="Pipeline" className="mt-8 flex flex-wrap gap-2">
-        <Link href={hrefWith(search, { stage: undefined })}>
-          <Pill active={!filter.stage}>
-            All · {CRM_STAGES.reduce((sum, stage) => sum + pipeline.stages[stage], 0)}
-          </Pill>
-        </Link>
-        {CRM_STAGES.map((stage) => (
-          <Link key={stage} href={hrefWith(search, { stage })}>
-            <Pill active={filter.stage === stage}>
-              {CRM_STAGE_LABEL[stage]} · {pipeline.stages[stage]}
-            </Pill>
-          </Link>
-        ))}
-      </nav>
-
-      <div className="border-stone-deep mt-6 flex flex-wrap items-center gap-6 border-b pb-4">
-        <nav aria-label="CRM filters" className="flex flex-wrap gap-6">
-          {(
-            [
-              [
-                hrefWith(search, { owner: search.owner === 'me' ? undefined : 'me' }),
-                'Mine',
-                search.owner === 'me',
-              ],
-              [
-                hrefWith(search, { due: search.due === 'overdue' ? undefined : 'overdue' }),
-                'Overdue',
-                search.due === 'overdue',
-              ],
-              [
-                hrefWith(search, { priority: search.priority === 'high' ? undefined : 'high' }),
-                'High priority',
-                search.priority === 'high',
-              ],
-              [
-                hrefWith(search, { owner: search.owner === 'none' ? undefined : 'none' }),
-                'Unowned',
-                search.owner === 'none',
-              ],
-              ['/portal/crm', 'Clear', false],
-            ] as const
-          ).map(([href, label, active]) => (
-            <Link
-              key={label}
-              href={href}
-              className={cn('palma-label hover:text-ink', active ? 'text-ink' : 'text-taupe-deep')}
-              aria-current={active ? 'true' : undefined}
-            >
-              {label}
-            </Link>
-          ))}
-        </nav>
-
-        <form
-          action="/portal/crm"
-          className="flex min-w-0 flex-1 items-center gap-2 sm:ml-auto sm:flex-none"
-        >
-          {Object.entries(search)
-            .filter(([key, value]) => key !== 'q' && value)
-            .map(([key, value]) => (
-              <input key={key} type="hidden" name={key} value={value} />
-            ))}
-          <label htmlFor="crm-q" className="sr-only">
-            Search creators
-          </label>
-          <input
-            id="crm-q"
-            name="q"
-            defaultValue={search.q}
-            placeholder="Search by name"
-            className="border-stone-deep bg-ivory-bright text-ink placeholder:text-taupe focus:border-olive h-10 w-full min-w-0 border px-3 text-sm focus:outline-none sm:w-48"
+    <div className="flex flex-col gap-6">
+      <Masthead
+        eyebrow="Creator CRM"
+        eyebrowIcon={Contact}
+        title="Every creator, and where we stand."
+        statement={statement}
+        aside={
+          <Dial
+            value={inTouch}
+            total={Math.max(1, reachable)}
+            caption="in touch with PALMA"
+            tone={inTouch >= reachable / 2 ? 'positive' : 'accent'}
           />
-          <Button type="submit" variant="outline" size="sm">
-            Search
-          </Button>
-        </form>
+        }
+      >
+        {nextEmail ? (
+          <Link href="/portal/crm/reminders">
+            <Tag tone="accent">
+              <BellRing className="size-3.5" />
+              Season email {countdownPhrase(daysUntil(nextEmail.sendOn, now))}:{' '}
+              {MILESTONE_PHRASE[nextEmail.reminder.milestone]}{' '}
+              {countdownPhrase(nextEmail.reminder.daysBefore)}
+            </Tag>
+          </Link>
+        ) : (
+          <Link href="/portal/crm/reminders">
+            <Tag>
+              <BellRing className="size-3.5" />
+              {schedule.enabled ? 'No season email scheduled yet' : 'Season emails paused'}
+            </Tag>
+          </Link>
+        )}
+      </Masthead>
+
+      <Tabs items={CRM_TABS} active="/portal/crm" label="Creator CRM" />
+
+      <div className="grid grid-cols-2 gap-3.5 lg:grid-cols-4">
+        <Stat
+          icon={AlarmClock}
+          label="Overdue"
+          value={pipeline.overdue}
+          tone="attention"
+          href={hrefWith({}, { due: 'overdue' })}
+        />
+        <Stat
+          icon={AlarmClock}
+          label="Due this week"
+          value={pipeline.dueThisWeek}
+          tone="accent"
+          href={hrefWith({}, { due: 'week' })}
+        />
+        <Stat
+          icon={UserPlus}
+          label="Nobody looks after"
+          value={pipeline.unowned}
+          href={hrefWith({}, { owner: 'none' })}
+        />
+        <Stat icon={ListTodo} label="Open tasks" value={pipeline.openTasks} />
       </div>
 
-      {tags.length > 0 ? (
-        <nav aria-label="Tags" className="mt-4 flex flex-wrap gap-2">
-          {tags.map(({ tag, count }) => (
-            <Link key={tag} href={hrefWith(search, { tag: filter.tag === tag ? undefined : tag })}>
-              <Badge variant={filter.tag === tag ? 'ink' : 'default'}>
-                #{tag} · {count}
-              </Badge>
-            </Link>
-          ))}
-        </nav>
-      ) : null}
+      <Card className="glow p-5 pb-4" data-lift="section">
+        <JourneyRail
+          mode="filter"
+          counts={pipeline.stages}
+          active={filter.stage ?? null}
+          hrefFor={(stage: CrmStage | null) => hrefWith(search, { stage: stage ?? undefined })}
+        />
+      </Card>
 
-      <div className="mt-6 grid gap-14 xl:grid-cols-12">
-        <section className="min-w-0 xl:col-span-9" aria-label="Creators">
+      <div className="grid gap-5 xl:grid-cols-12">
+        <section className="flex min-w-0 flex-col gap-3 xl:col-span-8" data-lift="section">
+          <div className="flex flex-wrap items-center gap-3">
+            <nav className="seg max-w-full flex-wrap" aria-label="Quick filters">
+              <Link href="/portal/crm" className="seg-item" data-active={!anyFilter}>
+                All
+              </Link>
+              {quick.map((item) => {
+                const active = search[item.key] === item.value;
+                return (
+                  <Link
+                    key={item.label}
+                    href={hrefWith(search, { [item.key]: active ? undefined : item.value })}
+                    className="seg-item"
+                    data-active={active}
+                  >
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </nav>
+
+            <form action="/portal/crm" className="relative ml-auto min-w-0 flex-1 sm:max-w-64">
+              {Object.entries(search)
+                .filter(([key, value]) => key !== 'q' && typeof value === 'string' && value)
+                .map(([key, value]) => (
+                  <input key={key} type="hidden" name={key} value={value as string} />
+                ))}
+              <Search
+                className="pointer-events-none absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-[color:var(--text-quiet)]"
+                aria-hidden
+              />
+              <input
+                name="q"
+                defaultValue={search.q}
+                placeholder="Find a creator"
+                aria-label="Find a creator"
+                className="h-9 w-full rounded-full border border-[color:var(--line)] bg-[color:var(--surface-1)] pr-3 pl-8 text-sm text-[color:var(--text)] placeholder:text-[color:var(--text-quiet)] focus:border-[color:var(--accent)] focus:outline-none"
+              />
+            </form>
+          </div>
+
+          {tags.length > 0 ? (
+            <div className="flex flex-wrap gap-1.5">
+              {tags.map(({ tag, count }) => (
+                <Link
+                  key={tag}
+                  href={hrefWith(search, { tag: filter.tag === tag ? undefined : tag })}
+                >
+                  <Tag tone={filter.tag === tag ? 'accent' : 'neutral'}>
+                    #{tag}
+                    <span className="text-[color:var(--text-quiet)] tabular-nums">{count}</span>
+                  </Tag>
+                </Link>
+              ))}
+            </div>
+          ) : null}
+
           {rows.length === 0 ? (
-            <EmptyState
-              className="mt-6"
+            <Empty
+              icon={Users}
               title="Nobody here"
-              description="No creator matches this view."
+              description="No creator matches this view. Clear a filter to see more."
             />
           ) : (
-            <ul className="flex flex-col">
+            <List className="glow" data-lift="list">
               {rows.map((row) => {
                 const due = followUpState(row.nextFollowUpAt, now);
                 return (
-                  <li key={row.creatorId}>
-                    <Link
-                      href={`/portal/crm/${row.slug}`}
-                      className="palma-row border-stone-deep grid gap-3 border-b py-5 sm:grid-cols-12 sm:items-baseline sm:gap-6"
-                    >
-                      <span className="min-w-0 sm:col-span-4">
-                        <span className="palma-row-lead font-display block text-xl">
+                  <Row
+                    key={row.creatorId}
+                    href={`/portal/crm/${row.slug}`}
+                    className={due === 'overdue' ? 'bg-[color:var(--alert-wash)]/40' : undefined}
+                  >
+                    <Monogram name={row.displayName} stage={row.stage} />
+                    <RowText
+                      title={
+                        <span className="flex items-center gap-2">
                           {row.displayName}
+                          {row.priority === 'high' ? (
+                            <span className="dot" data-tone="accent" title="High priority" />
+                          ) : null}
                         </span>
-                        <span className="text-taupe mt-1 block text-xs">
-                          {countryName(row.countryCode)} · {row.isClaimed ? 'Claimed' : 'Unclaimed'}
-                          {row.tags.length > 0
-                            ? ` · ${row.tags.map((t) => `#${t}`).join(' ')}`
-                            : ''}
+                      }
+                      note={[
+                        countryName(row.countryCode),
+                        row.isClaimed ? 'Holds the record' : 'Unclaimed',
+                        row.owner ? row.owner.name : 'Nobody looks after',
+                      ]
+                        .filter(Boolean)
+                        .join(' · ')}
+                      noteFromSm
+                    />
+                    <span className="ml-auto flex shrink-0 items-center gap-2">
+                      <span className="hidden sm:inline-flex">
+                        <StageTag stage={row.stage} />
+                      </span>
+                      <FollowUpTag at={row.nextFollowUpAt} now={now} />
+                      {row.openTasks > 0 ? (
+                        <span className="label hidden text-[10px] tabular-nums md:inline">
+                          {row.openTasks} task{row.openTasks === 1 ? '' : 's'}
                         </span>
-                      </span>
-
-                      <span className="flex flex-wrap items-center gap-2 sm:col-span-3">
-                        <CrmStageBadge stage={row.stage} />
-                        {row.priority === 'high' ? (
-                          <Badge variant="champagne">{CRM_PRIORITY_LABEL.high}</Badge>
-                        ) : null}
-                      </span>
-
-                      <span className="text-taupe-deep text-sm sm:col-span-2">
-                        {row.owner?.name ?? 'Unowned'}
-                      </span>
-
-                      <span className="text-sm sm:col-span-3 sm:text-right">
-                        {row.nextFollowUpAt ? (
-                          <span
-                            className={cn(
-                              due === 'overdue' ? 'font-medium text-red-900' : 'text-taupe-deep',
-                            )}
-                          >
-                            {due === 'overdue'
-                              ? 'Overdue · '
-                              : due === 'today'
-                                ? 'Today · '
-                                : 'Next · '}
-                            {formatShortDate(row.nextFollowUpAt)}
-                          </span>
-                        ) : (
-                          <span className="text-taupe">No follow-up</span>
-                        )}
-                        <span className="text-taupe mt-1 block text-xs">
-                          {row.lastContactAt
-                            ? `Last contact ${formatShortDate(row.lastContactAt)}`
-                            : 'Never contacted'}
-                          {row.openTasks > 0
-                            ? ` · ${row.openTasks} task${row.openTasks === 1 ? '' : 's'}`
-                            : ''}
-                        </span>
-                      </span>
-                    </Link>
-                  </li>
+                      ) : null}
+                      <ChevronRight
+                        className="size-4 -translate-x-1 text-[color:var(--text-quiet)] opacity-0 transition-all duration-400 group-hover:translate-x-0 group-hover:opacity-100"
+                        aria-hidden
+                      />
+                    </span>
+                  </Row>
                 );
               })}
-            </ul>
+            </List>
           )}
           {rows.length === 300 ? (
-            <p className="text-taupe mt-4 text-xs">
+            <p className="text-xs text-[color:var(--text-quiet)]">
               Showing the first 300. Narrow the view to see the rest.
             </p>
           ) : null}
         </section>
 
-        <aside className="flex min-w-0 flex-col gap-4 xl:col-span-3" aria-label="My tasks">
-          <h2 className="palma-label text-taupe-deep border-stone-deep border-b pb-3">
-            My open tasks
-          </h2>
-          {myTasks.length === 0 ? (
-            <p className="text-taupe text-sm">Nothing assigned to you.</p>
-          ) : (
-            <ul className="flex flex-col gap-4">
-              {myTasks.map((task) => {
-                const due = followUpState(task.dueAt, now);
-                return (
-                  <li key={task.id} className="border-stone-deep/60 border-l-2 pl-4">
-                    <Link
-                      href={`/portal/crm/${task.creator.slug}`}
-                      className="hover:text-olive block text-sm leading-snug"
-                    >
-                      {task.title}
-                    </Link>
-                    <p className="text-taupe mt-1 text-xs">
-                      {task.creator.displayName}
+        <aside className="flex min-w-0 flex-col gap-3.5 xl:col-span-4">
+          <section data-lift="section">
+            <SectionHead icon={ListTodo} title="On your list" />
+            {myTasks.length === 0 ? (
+              <Card className="glow p-4 text-sm text-[color:var(--text-quiet)]">
+                Nothing assigned to you. Tasks you add on a creator land here.
+              </Card>
+            ) : (
+              <List className="glow">
+                {myTasks.map((task) => {
+                  const taskDue = followUpState(task.dueAt, now);
+                  return (
+                    <Row key={task.id} href={`/portal/crm/${task.creator.slug}`}>
+                      <RowText title={task.title} note={task.creator.displayName} />
                       {task.dueAt ? (
-                        <span className={cn(due === 'overdue' && 'text-red-900')}>
-                          {' '}
-                          · {formatShortDate(task.dueAt)}
+                        <span className="ml-auto shrink-0">
+                          <Tag
+                            tone={
+                              taskDue === 'overdue'
+                                ? 'alert'
+                                : taskDue === 'today'
+                                  ? 'accent'
+                                  : 'neutral'
+                            }
+                          >
+                            {taskDue === 'today' ? 'Today' : formatShortDate(task.dueAt)}
+                          </Tag>
                         </span>
                       ) : null}
-                    </p>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
+                    </Row>
+                  );
+                })}
+              </List>
+            )}
+          </section>
+
+          <Panel icon={Contact} title="What the colours mean">
+            <span className="flex flex-col gap-1.5">
+              <span>
+                <Tag>Quiet</Tag> waiting on PALMA to begin.
+              </span>
+              <span>
+                <Tag tone="accent">Gold</Tag> PALMA is making the running.
+              </span>
+              <span>
+                <Tag tone="positive">Green</Tag> the creator is walking with PALMA.
+              </span>
+              <span>
+                <Tag tone="alert">Red</Tag> do not contact. Nothing outbound.
+              </span>
+            </span>
+          </Panel>
         </aside>
       </div>
-    </>
+    </div>
   );
 }

@@ -67,14 +67,20 @@ Nomination and judging are deliberately separate. Many nominations may point at 
 
 ## Creator CRM
 
-`/portal/crm` is the relationship desk: for every creator on the record, who at PALMA owns the relationship, its stage (prospect → contacted → in conversation → onboarding → active, plus dormant and do-not-contact), priority, tags, next follow-up, a touchpoint history and tasks. Moderators and administrators hold `crm:view` and `crm:manage`; nobody else does.
+`/portal/crm` is the relationship desk, built on the same desk kit as the moderation overview. Three tabs:
 
-It lives in three tables added by `supabase/migrations/0004_creator_crm.sql` (`CreatorRelationship`, `CreatorTouchpoint`, `CreatorTask`), read and written through the same postgres.js layer as everything else. Two rules are enforced in code and tests (`src/domain/crm.ts`):
+- **Creators.** Every creator on the record with where the relationship stands: a pipeline rail (prospect → contacted → in conversation → onboarding → active, plus dormant and do-not-contact) that filters the list, overdue and due follow-ups, and your own tasks. Each creator has an Overview (tap the journey to move stage, one box to log contact, one-tap follow-ups, tasks, details) and a **History** tab of its own.
+- **History.** Every conversation, stage move and automatic season email across the desk.
+- **Season emails.** Before each season PALMA writes to every creator who holds a record: by default 14, 7 and 1 days before nominations open. The schedule is editable there (any number of days before the season opening, nominations closing or the ceremony), can be paused, and is drawn as a countdown. It runs daily with the existing `POST /api/cron/retention` call, sends each reminder to each account once, respects the creator's own "season news" switch and the suppression list, never writes to do-not-contact, and logs every send in the creator's history.
 
-- **No contact details.** The desk records the _route_ to a creator (account email, platform message, representative), never an address. Summaries, tasks and tags that contain an email address or phone number are refused.
+Colour means one thing throughout: quiet is waiting, gold is PALMA's move, green is the creator moving with PALMA, red is do not contact.
+
+Data lives in `CreatorRelationship`, `CreatorTouchpoint`, `CreatorTask` (`supabase/migrations/0004_creator_crm.sql`) and `SeasonReminderSend` (`0005_season_reminders.sql`); the schedule is a `SystemSetting`. Moderators and administrators hold `crm:view` and `crm:manage`; changing the email schedule takes `communications:send_list` (administrators).
+
+Two rules are enforced in code and tests (`src/domain/crm.ts`):
+
+- **No contact details.** The desk records the _route_ to a creator, never an address. Notes, tasks and tags containing an email address or phone number are refused.
 - **Nothing from judging.** No nomination count, candidacy or score is read.
-
-`do_not_contact` blocks outbound touchpoints and follow-ups. An upheld objection sets it and deletes the touchpoints and tasks; deleting a record removes all three by cascade.
 
 ## Verification
 

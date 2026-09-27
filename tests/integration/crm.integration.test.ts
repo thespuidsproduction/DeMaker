@@ -1,6 +1,7 @@
 /**
- * Integration coverage for the relationship desk: the actions write what the
- * read layer reads, the automatic stage moves land, and do-not-contact holds.
+ * Integration coverage for the relationship desk and its season emails: the
+ * actions write what the read layer reads, stage moves land in the history,
+ * do-not-contact holds, and a reminder reaches an account exactly once.
  *
  * Runs only when DATABASE_URL is set. Everything it creates is namespaced and
  * removed again; the creator's delete cascades to the relationship rows.
@@ -8,6 +9,7 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 const actor = vi.hoisted(() => ({ id: null as string | null }));
+const sent = vi.hoisted(() => ({ count: 0 }));
 
 vi.mock('next/headers', () => ({
   headers: async () => new Headers(),
@@ -15,14 +17,33 @@ vi.mock('next/headers', () => ({
 }));
 vi.mock('next/cache', () => ({ revalidatePath: () => undefined }));
 vi.mock('@/server/audit', () => ({ recordAudit: async () => undefined }));
+vi.mock('@/server/email/messages', () => ({
+  sendSeasonReminder: async () => {
+    sent.count += 1;
+    return { status: 'sent' };
+  },
+}));
 vi.mock('@/lib/auth/guards', () => ({
   authorise: async () => ({
-    user: { id: actor.id, role: 'moderator', email: 'crm-integration@test.invalid' },
+    user: {
+      id: actor.id,
+      name: 'Integration',
+      role: 'moderator',
+      email: 'crm-integration@test.invalid',
+    },
   }),
 }));
 
-import { addCrmTask, logTouchpoint, saveRelationship, toggleCrmTask } from '@/server/actions/crm';
-import { getCrmCreator, getCrmPipeline, listCrmCreators } from '@/server/data/crm';
+import {
+  addCrmTask,
+  logTouchpoint,
+  saveDetails,
+  setFollowUp,
+  setStage,
+  toggleCrmTask,
+} from '@/server/actions/crm';
+import { getCrmCreator, getCrmPipeline, listCrmActivity, listCrmCreators } from '@/server/data/crm';
+import { runSeasonReminders } from '@/server/services/season-reminders';
 import { createId } from '@/server/db/ids';
 import { closeSql, sql } from '@/server/db/sql';
 
@@ -31,6 +52,8 @@ const SUFFIX = `crm-it-${Date.now()}`;
 const idle = { status: 'idle' as const };
 
 let creatorId = '';
+let seasonId = '';
+let userId = '';
 const slug = `crm-${SUFFIX}`;
 
 function form(values: Record<string, string>): FormData {
@@ -51,6 +74,8 @@ describe.skipIf(!hasDatabase)('the relationship desk (integration)', () => {
 
   afterAll(async () => {
     await sql`delete from "Creator" where id = ${creatorId}`;
+    if (seasonId) await sql`delete from "AwardYear" where id = ${seasonId}`;
+    if (userId) await sql`delete from "User" where id = ${userId}`;
     await closeSql();
   });
 
@@ -63,7 +88,7 @@ describe.skipIf(!hasDatabase)('the relationship desk (integration)', () => {
     expect(rows.map((row) => row.slug)).toContain(slug);
   });
 
-  it('moves a prospect to contacted on the first approach', async () => {
+  it('moves a prospect on at the first approach, and writes the move into history', async () => {
     const result = await logTouchpoint(
       idle,
       form({
@@ -71,8 +96,7 @@ describe.skipIf(!hasDatabase)('the relationship desk (integration)', () => {
         kind: 'message',
         direction: 'outbound',
         summary: 'Invited them to claim the record through their platform inbox.',
-        occurredAt: new Date().toISOString().slice(0, 10),
-        nextFollowUpAt: '2099-01-15',
+        followUpDays: '7',
       }),
     );
     expect(result.status).toBe('success');
@@ -80,11 +104,12 @@ describe.skipIf(!hasDatabase)('the relationship desk (integration)', () => {
     const record = await getCrmCreator(slug);
     expect(record?.relationship.stage).toBe('contacted');
     expect(record?.relationship.lastContactAt).not.toBeNull();
-    expect(record?.relationship.nextFollowUpAt).toBe('2099-01-15T00:00:00.000Z');
-    expect(record?.touchpoints).toHaveLength(1);
+    expect(record?.relationship.nextFollowUpAt).not.toBeNull();
+    expect(record?.touchpoints.map((t) => t.kind).sort()).toEqual(['message', 'stage']);
+    expect(record?.touchpointCount).toBe(2);
   });
 
-  it('refuses a touchpoint that carries an address', async () => {
+  it('refuses a note that carries an address', async () => {
     const result = await logTouchpoint(
       idle,
       form({
@@ -95,19 +120,33 @@ describe.skipIf(!hasDatabase)('the relationship desk (integration)', () => {
       }),
     );
     expect(result.status).toBe('error');
-    expect((await getCrmCreator(slug))?.touchpoints).toHaveLength(1);
+    expect((await getCrmCreator(slug))?.touchpointCount).toBe(2);
   });
 
-  it('saves stage, priority and tags, and filters by them', async () => {
-    const result = await saveRelationship(
+  it('moves the stage in one click, and sets or clears a follow-up in one click', async () => {
+    await setStage(form({ creatorId, stage: 'in_conversation' }));
+    let record = await getCrmCreator(slug);
+    expect(record?.relationship.stage).toBe('in_conversation');
+    expect(record?.touchpoints[0]?.summary).toBe('Contacted → In conversation');
+
+    await setFollowUp(form({ creatorId, days: '0' }));
+    record = await getCrmCreator(slug);
+    expect(record?.relationship.nextFollowUpAt).toBeNull();
+
+    await setFollowUp(form({ creatorId, on: '2000-01-01' }));
+    const overdue = await listCrmCreators({ due: 'overdue', query: SUFFIX });
+    expect(overdue.map((row) => row.slug)).toEqual([slug]);
+    expect((await getCrmPipeline()).overdue).toBeGreaterThanOrEqual(1);
+  });
+
+  it('saves the details and filters by tag', async () => {
+    const result = await saveDetails(
       idle,
       form({
         creatorId,
-        stage: 'in_conversation',
         priority: 'high',
         ownerId: '',
         contactRoute: 'platform_message',
-        nextFollowUpAt: '2000-01-01',
         tags: `Ceremony 2027, ${SUFFIX}`,
       }),
     );
@@ -116,54 +155,76 @@ describe.skipIf(!hasDatabase)('the relationship desk (integration)', () => {
     const record = await getCrmCreator(slug);
     expect(record?.relationship.priority).toBe('high');
     expect(record?.relationship.tags).toContain('ceremony-2027');
-
-    const overdue = await listCrmCreators({ due: 'overdue', tag: 'ceremony-2027', query: SUFFIX });
-    expect(overdue.map((row) => row.slug)).toEqual([slug]);
-
-    const pipeline = await getCrmPipeline();
-    expect(pipeline.stages.in_conversation).toBeGreaterThanOrEqual(1);
-    expect(pipeline.overdue).toBeGreaterThanOrEqual(1);
+    expect((await listCrmCreators({ tag: 'ceremony-2027', query: SUFFIX })).length).toBe(1);
   });
 
   it('adds a task, ticks it off and reopens it', async () => {
     const added = await addCrmTask(
       idle,
-      form({ creatorId, title: 'Send the ceremony pack', dueAt: '2099-02-01', assigneeId: '' }),
+      form({ creatorId, title: 'Send the ceremony pack', dueAt: '2099-02-01' }),
     );
     expect(added.status).toBe('success');
 
     let record = await getCrmCreator(slug);
-    const task = record?.tasks[0];
-    expect(task?.completedAt).toBeNull();
-    expect((await listCrmCreators({ query: SUFFIX }))[0]?.openTasks).toBe(1);
+    const task = record!.tasks[0]!;
+    expect(task.completedAt).toBeNull();
 
-    await toggleCrmTask(form({ taskId: task!.id, done: 'true' }));
+    await toggleCrmTask(form({ taskId: task.id, done: 'true' }));
     record = await getCrmCreator(slug);
     expect(record?.tasks[0]?.completedAt).not.toBeNull();
 
-    await toggleCrmTask(form({ taskId: task!.id, done: 'false' }));
+    await toggleCrmTask(form({ taskId: task.id, done: 'false' }));
     record = await getCrmCreator(slug);
     expect(record?.tasks[0]?.completedAt).toBeNull();
   });
 
-  it('holds do not contact: no follow-up, no approach, inbound still recorded', async () => {
-    await saveRelationship(
-      idle,
-      form({
-        creatorId,
-        stage: 'do_not_contact',
-        priority: 'normal',
-        ownerId: '',
-        contactRoute: '',
-        nextFollowUpAt: '2099-03-01',
-        tags: '',
-      }),
+  it('sends a due season email once, to a creator who holds a record, and logs it', async () => {
+    userId = createId();
+    const now = new Date();
+    await sql`
+      insert into "User" (id, email, name, role, "isActive", "createdAt", "updatedAt")
+      values (${userId}, ${`${SUFFIX}@test.invalid`}, 'CRM Integration', 'creator', true, ${now}, ${now})
+    `;
+    await sql`update "Creator" set "userId" = ${userId} where id = ${creatorId}`;
+
+    // A season opening in exactly seven days: the default schedule's one-week
+    // reminder is due today.
+    seasonId = createId();
+    const opens = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 7, 9),
     );
+    await sql`
+      insert into "AwardYear" (id, year, title, stage, "nominationsOpenAt", "createdAt", "updatedAt")
+      values (${seasonId}, ${3000 + (Date.now() % 900)}, ${`PALMA ${SUFFIX}`}, 'announced', ${opens}, ${now}, ${now})
+    `;
+
+    const before = sent.count;
+    const first = await runSeasonReminders({ now });
+    expect(first.sent).toBeGreaterThanOrEqual(1);
+    const second = await runSeasonReminders({ now });
+    expect(second.alreadySent).toBeGreaterThanOrEqual(1);
+
+    const [row] = await sql<{ count: number }[]>`
+      select count(*)::int as count from "SeasonReminderSend"
+      where "awardYearId" = ${seasonId} and "userId" = ${userId}
+    `;
+    expect(row?.count).toBe(1);
+    expect(sent.count - before).toBe(first.sent);
+    expect(sent.count).toBeGreaterThan(0);
+
+    const history = await listCrmActivity({ kind: 'reminder', limit: 50 });
+    expect(history.some((entry) => entry.creator.slug === slug)).toBe(true);
+  });
+
+  it('holds do not contact: no follow-up, no approach, no season email, inbound still recorded', async () => {
+    await setStage(form({ creatorId, stage: 'do_not_contact' }));
 
     let record = await getCrmCreator(slug);
     expect(record?.relationship.stage).toBe('do_not_contact');
     expect(record?.relationship.nextFollowUpAt).toBeNull();
-    expect(record?.relationship.tags).toEqual([]);
+
+    await setFollowUp(form({ creatorId, days: '7' }));
+    expect((await getCrmCreator(slug))?.relationship.nextFollowUpAt).toBeNull();
 
     const approach = await logTouchpoint(
       idle,
@@ -182,8 +243,14 @@ describe.skipIf(!hasDatabase)('the relationship desk (integration)', () => {
     );
     expect(reply.status).toBe('success');
 
+    await sql`delete from "SeasonReminderSend" where "userId" = ${userId}`;
+    await runSeasonReminders();
+    const [row] = await sql<{ count: number }[]>`
+      select count(*)::int as count from "SeasonReminderSend" where "userId" = ${userId}
+    `;
+    expect(row?.count).toBe(0);
+
     record = await getCrmCreator(slug);
     expect(record?.relationship.stage).toBe('do_not_contact');
-    expect(record?.touchpoints).toHaveLength(2);
   });
 });

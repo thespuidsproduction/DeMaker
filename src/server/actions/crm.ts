@@ -5,6 +5,7 @@ import { authorise } from '@/lib/auth/guards';
 import { assertSameOrigin } from '@/lib/auth/session';
 import {
   CRM_STAGE_LABEL,
+  daysFromToday,
   mayContact,
   mayLogTouchpoint,
   normaliseTags,
@@ -13,7 +14,9 @@ import {
 } from '@/domain/crm';
 import {
   dayToDate,
-  relationshipSchema,
+  detailsSchema,
+  followUpSchema,
+  stageSchema,
   taskSchema,
   taskToggleSchema,
   touchpointSchema,
@@ -22,7 +25,15 @@ import { fieldErrors } from '@/lib/validation/nomination';
 import { recordAudit } from '@/server/audit';
 import { isCrmStaff } from '@/server/data/crm';
 import { createId } from '@/server/db/ids';
-import { sql, withTransaction } from '@/server/db/sql';
+import { sql, withTransaction, type TransactionSql } from '@/server/db/sql';
+
+/**
+ * The relationship desk's writes.
+ *
+ * Most of them are one click: move the stage, take the relationship, set a
+ * follow-up. Only the things that need words (a note, a task, the details)
+ * are forms, and each of those is one field and a button.
+ */
 
 export type CrmState = {
   status: 'idle' | 'error' | 'success';
@@ -50,7 +61,9 @@ async function findCreator(creatorId: string): Promise<CreatorRef | null> {
 
 function revalidateCrm(slug: string) {
   revalidatePath('/portal/crm');
+  revalidatePath('/portal/crm/history');
   revalidatePath(`/portal/crm/${slug}`);
+  revalidatePath(`/portal/crm/${slug}/history`);
 }
 
 async function manager() {
@@ -61,26 +74,161 @@ async function manager() {
   }
 }
 
+type Session = NonNullable<Awaited<ReturnType<typeof manager>>>;
+
+const actorOf = (session: Session) => ({
+  id: session.user.id,
+  role: session.user.role,
+  label: session.user.email,
+});
+
+/** Make sure the relationship row exists, so every update below is a plain update. */
+async function ensureRelationship(tx: TransactionSql | typeof sql, creatorId: string) {
+  const now = new Date();
+  await tx`
+    insert into "CreatorRelationship" ("creatorId", "stageChangedAt", "createdAt", "updatedAt")
+    values (${creatorId}, ${now}, ${now}, ${now})
+    on conflict ("creatorId") do nothing
+  `;
+}
+
 /**
- * Stage, priority, owner, route, follow-up date and tags, in one form.
+ * Move a relationship, and write the move into its history.
  *
- * Moving a creator to `do_not_contact` clears the follow-up date: a reminder to
- * write to somebody who asked not to be written to is the one reminder the desk
- * must never be given.
+ * Moving to do-not-contact clears the follow-up: a reminder to write to
+ * somebody who asked not to be written to is the one reminder the desk must
+ * never be given.
  */
-export async function saveRelationship(_previous: CrmState, formData: FormData): Promise<CrmState> {
+async function moveStage(
+  tx: TransactionSql,
+  creatorId: string,
+  from: CrmStage,
+  to: CrmStage,
+  authorId: string | null,
+) {
+  const now = new Date();
+  await tx`
+    update "CreatorRelationship" set
+      stage = ${to}::"CrmStage",
+      "stageChangedAt" = ${now},
+      "nextFollowUpAt" = case when ${to} = 'do_not_contact' then null else "nextFollowUpAt" end
+    where "creatorId" = ${creatorId}
+  `;
+  await tx`
+    insert into "CreatorTouchpoint" (
+      id, "creatorId", "authorId", kind, direction, summary, "occurredAt", "createdAt"
+    ) values (
+      ${createId()}, ${creatorId}, ${authorId}, 'stage', 'internal',
+      ${`${CRM_STAGE_LABEL[from]} → ${CRM_STAGE_LABEL[to]}`}, ${now}, ${now}
+    )
+  `;
+}
+
+/** One click on the journey rail. */
+export async function setStage(formData: FormData): Promise<void> {
+  await assertSameOrigin();
+  const session = await manager();
+  if (!session) return;
+
+  const parsed = stageSchema.safeParse({
+    creatorId: formData.get('creatorId'),
+    stage: formData.get('stage'),
+  });
+  if (!parsed.success) return;
+
+  const creator = await findCreator(parsed.data.creatorId);
+  if (!creator) return;
+
+  const from = creator.stage ?? 'prospect';
+  const to = parsed.data.stage;
+  if (from === to) return;
+
+  await withTransaction(async (tx) => {
+    await ensureRelationship(tx, creator.id);
+    await moveStage(tx, creator.id, from, to, session.user.id);
+  });
+
+  await recordAudit({
+    action: 'crm.relationship_updated',
+    entityType: 'Creator',
+    entityId: creator.id,
+    actor: actorOf(session),
+    summary: `${creator.displayName} moved from ${CRM_STAGE_LABEL[from]} to ${CRM_STAGE_LABEL[to]}`,
+    before: { stage: from },
+    after: { stage: to },
+  });
+
+  revalidateCrm(creator.slug);
+}
+
+/** "I'll look after this one." */
+export async function takeRelationship(formData: FormData): Promise<void> {
+  await assertSameOrigin();
+  const session = await manager();
+  if (!session) return;
+
+  const creator = await findCreator(String(formData.get('creatorId') ?? ''));
+  if (!creator) return;
+
+  await ensureRelationship(sql, creator.id);
+  await sql`
+    update "CreatorRelationship" set "ownerId" = ${session.user.id}
+    where "creatorId" = ${creator.id}
+  `;
+
+  await recordAudit({
+    action: 'crm.relationship_updated',
+    entityType: 'Creator',
+    entityId: creator.id,
+    actor: actorOf(session),
+    summary: `${session.user.name} took the relationship with ${creator.displayName}`,
+    after: { ownerId: session.user.id },
+  });
+
+  revalidateCrm(creator.slug);
+}
+
+/** One of the quick picks, a date, or clear. */
+export async function setFollowUp(formData: FormData): Promise<void> {
+  await assertSameOrigin();
+  const session = await manager();
+  if (!session) return;
+
+  const parsed = followUpSchema.safeParse({
+    creatorId: formData.get('creatorId'),
+    days: formData.get('days') ?? '',
+    on: formData.get('on') ?? '',
+  });
+  if (!parsed.success) return;
+
+  const creator = await findCreator(parsed.data.creatorId);
+  if (!creator) return;
+  if (!mayContact(creator.stage ?? 'prospect')) return;
+
+  const { days, on } = parsed.data;
+  const next = on ? dayToDate(on) : days && days !== '0' ? daysFromToday(Number(days)) : null;
+
+  await ensureRelationship(sql, creator.id);
+  await sql`
+    update "CreatorRelationship" set "nextFollowUpAt" = ${next}
+    where "creatorId" = ${creator.id}
+  `;
+
+  revalidateCrm(creator.slug);
+}
+
+/** Owner, priority, route and tags. The things that change rarely. */
+export async function saveDetails(_previous: CrmState, formData: FormData): Promise<CrmState> {
   await assertSameOrigin();
 
   const session = await manager();
   if (!session) return { status: 'error', message: 'You are not authorised to change this.' };
 
-  const parsed = relationshipSchema.safeParse({
+  const parsed = detailsSchema.safeParse({
     creatorId: formData.get('creatorId'),
-    stage: formData.get('stage'),
     priority: formData.get('priority'),
     ownerId: formData.get('ownerId') ?? '',
     contactRoute: formData.get('contactRoute') ?? '',
-    nextFollowUpAt: formData.get('nextFollowUpAt') ?? '',
     tags: formData.get('tags') ?? '',
   });
 
@@ -106,75 +254,36 @@ export async function saveRelationship(_previous: CrmState, formData: FormData):
   }
 
   const tags = normaliseTags(input.tags ?? '');
-  const followUp = mayContact(input.stage) ? dayToDate(input.nextFollowUpAt) : null;
-  const previousStage = creator.stage ?? 'prospect';
-  const now = new Date();
 
+  await ensureRelationship(sql, creator.id);
   await sql`
-    insert into "CreatorRelationship" (
-      "creatorId", stage, priority, "ownerId", "contactRoute", tags, "nextFollowUpAt",
-      "stageChangedAt", "createdAt", "updatedAt"
-    ) values (
-      ${creator.id},
-      ${input.stage}::"CrmStage",
-      ${input.priority}::"CrmPriority",
-      ${ownerId},
-      ${input.contactRoute || null}::"CrmContactRoute",
-      ${tags}::text[],
-      ${followUp},
-      ${now},
-      ${now},
-      ${now}
-    )
-    on conflict ("creatorId") do update set
-      stage = excluded.stage,
-      priority = excluded.priority,
-      "ownerId" = excluded."ownerId",
-      "contactRoute" = excluded."contactRoute",
-      tags = excluded.tags,
-      "nextFollowUpAt" = excluded."nextFollowUpAt",
-      "stageChangedAt" = case
-        when "CreatorRelationship".stage is distinct from excluded.stage then excluded."stageChangedAt"
-        else "CreatorRelationship"."stageChangedAt"
-      end
+    update "CreatorRelationship" set
+      priority = ${input.priority}::"CrmPriority",
+      "ownerId" = ${ownerId},
+      "contactRoute" = ${input.contactRoute || null}::"CrmContactRoute",
+      tags = ${tags}::text[]
+    where "creatorId" = ${creator.id}
   `;
 
   await recordAudit({
     action: 'crm.relationship_updated',
     entityType: 'Creator',
     entityId: creator.id,
-    actor: { id: session.user.id, role: session.user.role, label: session.user.email },
-    summary:
-      previousStage === input.stage
-        ? `Relationship with ${creator.displayName} updated`
-        : `${creator.displayName} moved from ${CRM_STAGE_LABEL[previousStage]} to ${CRM_STAGE_LABEL[input.stage]}`,
-    before: { stage: previousStage },
-    after: {
-      stage: input.stage,
-      priority: input.priority,
-      ownerId,
-      contactRoute: input.contactRoute || null,
-      tags,
-      nextFollowUpAt: followUp,
-    },
+    actor: actorOf(session),
+    summary: `Relationship details for ${creator.displayName} updated`,
+    after: { priority: input.priority, ownerId, contactRoute: input.contactRoute || null, tags },
   });
 
   revalidateCrm(creator.slug);
-  return {
-    status: 'success',
-    message:
-      input.stage === 'do_not_contact'
-        ? 'Saved. Nothing outbound will be scheduled or logged for this creator.'
-        : 'Relationship saved.',
-  };
+  return { status: 'success', message: 'Saved.' };
 }
 
 /**
  * What passed between PALMA and the creator.
  *
- * Logging a touchpoint also moves the relationship on where the move is
- * obvious (see `stageAfterTouchpoint`), stamps the last contact, and sets the
- * next follow-up when one is given.
+ * Also moves the relationship on where the move is obvious (a first approach
+ * makes a prospect contacted, a reply starts a conversation), stamps the last
+ * contact, and sets the follow-up when one was picked.
  */
 export async function logTouchpoint(_previous: CrmState, formData: FormData): Promise<CrmState> {
   await assertSameOrigin();
@@ -188,7 +297,7 @@ export async function logTouchpoint(_previous: CrmState, formData: FormData): Pr
     direction: formData.get('direction'),
     summary: formData.get('summary'),
     occurredAt: formData.get('occurredAt') ?? '',
-    nextFollowUpAt: formData.get('nextFollowUpAt') ?? '',
+    followUpDays: formData.get('followUpDays') ?? '',
   });
 
   if (!parsed.success) {
@@ -207,8 +316,7 @@ export async function logTouchpoint(_previous: CrmState, formData: FormData): Pr
   if (!mayLogTouchpoint(stage, input.direction)) {
     return {
       status: 'error',
-      message:
-        'This creator is marked do not contact. Record what they sent PALMA, never an approach.',
+      message: 'Marked do not contact. Record what they sent PALMA, never an approach.',
     };
   }
 
@@ -217,60 +325,41 @@ export async function logTouchpoint(_previous: CrmState, formData: FormData): Pr
   if (occurredAt.getTime() > now.getTime()) {
     return {
       status: 'error',
-      message: 'A touchpoint is something that already happened.',
+      message: 'A note is about something that already happened.',
       errors: { occurredAt: 'Choose today or earlier.' },
     };
   }
 
   const nextStage = stageAfterTouchpoint(stage, input.direction);
-  const followUp = mayContact(nextStage) ? dayToDate(input.nextFollowUpAt) : null;
+  const days = Number(input.followUpDays || 0);
+  const followUp = days > 0 && mayContact(nextStage) ? daysFromToday(days, now) : null;
   const contact = input.direction === 'internal' ? null : occurredAt;
 
   await withTransaction(async (tx) => {
+    await ensureRelationship(tx, creator.id);
     await tx`
       insert into "CreatorTouchpoint" (
         id, "creatorId", "authorId", kind, direction, summary, "occurredAt", "createdAt"
       ) values (
-        ${createId()},
-        ${creator.id},
-        ${session.user.id},
-        ${input.kind}::"CrmTouchpointKind",
-        ${input.direction}::"CrmDirection",
-        ${input.summary},
-        ${occurredAt},
-        ${now}
+        ${createId()}, ${creator.id}, ${session.user.id},
+        ${input.kind}::"CrmTouchpointKind", ${input.direction}::"CrmDirection",
+        ${input.summary}, ${occurredAt}, ${now}
       )
     `;
-
     await tx`
-      insert into "CreatorRelationship" (
-        "creatorId", stage, "lastContactAt", "nextFollowUpAt", "stageChangedAt",
-        "createdAt", "updatedAt"
-      ) values (
-        ${creator.id},
-        ${nextStage}::"CrmStage",
-        ${contact},
-        ${followUp},
-        ${now},
-        ${now},
-        ${now}
-      )
-      on conflict ("creatorId") do update set
-        stage = excluded.stage,
-        "lastContactAt" = greatest("CreatorRelationship"."lastContactAt", excluded."lastContactAt"),
-        "nextFollowUpAt" = coalesce(excluded."nextFollowUpAt", "CreatorRelationship"."nextFollowUpAt"),
-        "stageChangedAt" = case
-          when "CreatorRelationship".stage is distinct from excluded.stage then excluded."stageChangedAt"
-          else "CreatorRelationship"."stageChangedAt"
-        end
+      update "CreatorRelationship" set
+        "lastContactAt" = greatest("lastContactAt", ${contact}),
+        "nextFollowUpAt" = coalesce(${followUp}, "nextFollowUpAt")
+      where "creatorId" = ${creator.id}
     `;
+    if (nextStage !== stage) await moveStage(tx, creator.id, stage, nextStage, session.user.id);
   });
 
   await recordAudit({
     action: 'crm.touchpoint_logged',
     entityType: 'Creator',
     entityId: creator.id,
-    actor: { id: session.user.id, role: session.user.role, label: session.user.email },
+    actor: actorOf(session),
     summary: `${input.direction} ${input.kind} logged for ${creator.displayName}`,
     after: { kind: input.kind, direction: input.direction, stage: nextStage },
   });
@@ -281,7 +370,7 @@ export async function logTouchpoint(_previous: CrmState, formData: FormData): Pr
     message:
       nextStage === stage
         ? 'Logged.'
-        : `Logged. ${creator.displayName} is now ${CRM_STAGE_LABEL[nextStage].toLowerCase()}.`,
+        : `Logged, and moved to ${CRM_STAGE_LABEL[nextStage].toLowerCase()}.`,
   };
 }
 
@@ -310,8 +399,9 @@ export async function addCrmTask(_previous: CrmState, formData: FormData): Promi
   const creator = await findCreator(input.creatorId);
   if (!creator) return { status: 'error', message: 'That record does not exist.' };
 
-  const assigneeId = input.assigneeId || null;
-  if (assigneeId && !(await isCrmStaff(assigneeId))) {
+  // Nobody named: it is yours. Assigning is a choice, not a required field.
+  const assigneeId = input.assigneeId || session.user.id;
+  if (assigneeId !== session.user.id && !(await isCrmStaff(assigneeId))) {
     return {
       status: 'error',
       message: 'A task can only be given to an active member of staff.',
@@ -325,14 +415,8 @@ export async function addCrmTask(_previous: CrmState, formData: FormData): Promi
     insert into "CreatorTask" (
       id, "creatorId", title, "dueAt", "assigneeId", "createdById", "createdAt", "updatedAt"
     ) values (
-      ${id},
-      ${creator.id},
-      ${input.title},
-      ${dayToDate(input.dueAt)},
-      ${assigneeId},
-      ${session.user.id},
-      ${now},
-      ${now}
+      ${id}, ${creator.id}, ${input.title}, ${dayToDate(input.dueAt)},
+      ${assigneeId}, ${session.user.id}, ${now}, ${now}
     )
   `;
 
@@ -340,16 +424,16 @@ export async function addCrmTask(_previous: CrmState, formData: FormData): Promi
     action: 'crm.task_created',
     entityType: 'CreatorTask',
     entityId: id,
-    actor: { id: session.user.id, role: session.user.role, label: session.user.email },
+    actor: actorOf(session),
     summary: `Task added for ${creator.displayName}`,
     after: { creatorId: creator.id, assigneeId, dueAt: input.dueAt || null },
   });
 
   revalidateCrm(creator.slug);
-  return { status: 'success', message: 'Task added.' };
+  return { status: 'success', message: 'Added.' };
 }
 
-/** Tick a task off, or put it back. Used straight from a form, so it returns nothing. */
+/** Tick a task off, or put it back. */
 export async function toggleCrmTask(formData: FormData): Promise<void> {
   await assertSameOrigin();
 
@@ -380,7 +464,7 @@ export async function toggleCrmTask(formData: FormData): Promise<void> {
     action: done ? 'crm.task_completed' : 'crm.task_reopened',
     entityType: 'CreatorTask',
     entityId: task.id,
-    actor: { id: session.user.id, role: session.user.role, label: session.user.email },
+    actor: actorOf(session),
     summary: `Task for ${task.displayName} ${done ? 'completed' : 'reopened'}`,
   });
 

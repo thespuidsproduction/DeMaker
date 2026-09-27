@@ -15,6 +15,8 @@ import { sql } from '@/server/db/sql';
 export const SETTINGS = {
   /** Who performs age and identity assurance: 'manual' or 'automatic'. */
   verificationMode: 'verification.mode',
+  /** The Creator CRM's season reminder schedule, as JSON. */
+  seasonReminders: 'crm.season_reminders',
 } as const;
 
 export type VerificationMode = 'manual' | 'automatic';
@@ -32,7 +34,7 @@ export type VerificationConfig = {
   updatedBy: string | null;
 };
 
-async function readSetting(
+export async function readSetting(
   key: string,
 ): Promise<{ value: string; updatedAt: Date; updatedById: string | null } | null> {
   const [row] = await sql<{ value: string; updatedAt: Date; updatedById: string | null }[]>`

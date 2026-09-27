@@ -288,7 +288,9 @@ export type CrmCreator = {
     lastContactAt: string | null;
     stageChangedAt: string | null;
   };
+  /** The most recent entries; the History page asks for all of them. */
   touchpoints: CrmTouchpoint[];
+  touchpointCount: number;
   tasks: {
     id: string;
     title: string;
@@ -298,7 +300,10 @@ export type CrmCreator = {
   }[];
 };
 
-export async function getCrmCreator(slug: string): Promise<CrmCreator | null> {
+export async function getCrmCreator(
+  slug: string,
+  options: { touchpoints?: number } = {},
+): Promise<CrmCreator | null> {
   const [creator] = await sql<
     {
       id: string;
@@ -312,6 +317,7 @@ export async function getCrmCreator(slug: string): Promise<CrmCreator | null> {
       verificationStatus: string | null;
       activeHonours: number;
       hasRelationship: boolean;
+      touchpointCount: number;
       stage: CrmStage | null;
       priority: CrmPriority | null;
       ownerId: string | null;
@@ -336,6 +342,8 @@ export async function getCrmCreator(slug: string): Promise<CrmCreator | null> {
       (select count(*)::int from "Honour" h
         where h."creatorId" = c.id and h.state = 'active') as "activeHonours",
       (r."creatorId" is not null) as "hasRelationship",
+      (select count(*)::int from "CreatorTouchpoint" tp
+        where tp."creatorId" = c.id) as "touchpointCount",
       r.stage,
       r.priority,
       r."ownerId",
@@ -375,7 +383,7 @@ export async function getCrmCreator(slug: string): Promise<CrmCreator | null> {
       left join "User" a on a.id = t."authorId"
       where t."creatorId" = ${creator.id}
       order by t."occurredAt" desc, t."createdAt" desc
-      limit 100
+      limit ${options.touchpoints ?? 5}
     `,
     sql<
       {
@@ -434,6 +442,7 @@ export async function getCrmCreator(slug: string): Promise<CrmCreator | null> {
       stageChangedAt: creator.stageChangedAt,
     },
     touchpoints,
+    touchpointCount: creator.touchpointCount,
     tasks: tasks.map((task) => ({
       id: task.id,
       title: task.title,
@@ -480,4 +489,39 @@ export async function listCrmTags(limit = 24): Promise<{ tag: string; count: num
     order by count desc, tag asc
     limit ${limit}
   `;
+}
+
+export type CrmActivity = CrmTouchpoint & {
+  creator: { slug: string; displayName: string };
+};
+
+/** Everything the desk has recorded, across every creator, newest first. */
+export async function listCrmActivity(
+  filter: { limit?: number; kind?: 'contact' | 'stage' | 'reminder' } = {},
+): Promise<CrmActivity[]> {
+  const rows = await sql<(CrmTouchpoint & { slug: string; displayName: string })[]>`
+    select
+      t.id,
+      t.kind,
+      t.direction,
+      t.summary,
+      ${isoTs('t."occurredAt"')} as "occurredAt",
+      coalesce(a.name, a.email) as author,
+      c.slug,
+      c."displayName"
+    from "CreatorTouchpoint" t
+    join "Creator" c on c.id = t."creatorId"
+    left join "User" a on a.id = t."authorId"
+    where true
+      ${filter.kind === 'stage' ? sql`and t.kind = 'stage'` : sql``}
+      ${filter.kind === 'reminder' ? sql`and t.kind = 'reminder'` : sql``}
+      ${filter.kind === 'contact' ? sql`and t.kind not in ('stage', 'reminder')` : sql``}
+    order by t."occurredAt" desc, t."createdAt" desc
+    limit ${filter.limit ?? 150}
+  `;
+
+  return rows.map(({ slug, displayName, ...touchpoint }) => ({
+    ...touchpoint,
+    creator: { slug, displayName },
+  }));
 }
