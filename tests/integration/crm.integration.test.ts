@@ -43,7 +43,8 @@ import {
   toggleCrmTask,
 } from '@/server/actions/crm';
 import { getCrmCreator, getCrmPipeline, listCrmActivity, listCrmCreators } from '@/server/data/crm';
-import { runSeasonReminders } from '@/server/services/season-reminders';
+import { runSeasonReminders, saveReminderSchedule } from '@/server/services/season-reminders';
+import { SETTINGS, readSetting } from '@/server/settings';
 import { createId } from '@/server/db/ids';
 import { closeSql, sql } from '@/server/db/sql';
 
@@ -54,6 +55,7 @@ const idle = { status: 'idle' as const };
 let creatorId = '';
 let seasonId = '';
 let userId = '';
+let storedSchedule: string | null = null;
 const slug = `crm-${SUFFIX}`;
 
 function form(values: Record<string, string>): FormData {
@@ -65,6 +67,7 @@ function form(values: Record<string, string>): FormData {
 describe.skipIf(!hasDatabase)('the relationship desk (integration)', () => {
   beforeAll(async () => {
     const created = new Date();
+    storedSchedule = (await readSetting(SETTINGS.seasonReminders))?.value ?? null;
     creatorId = createId();
     await sql`
       insert into "Creator" (id, slug, "displayName", "countryCode", "createdAt", "updatedAt")
@@ -73,6 +76,12 @@ describe.skipIf(!hasDatabase)('the relationship desk (integration)', () => {
   });
 
   afterAll(async () => {
+    // Put the desk's own schedule back exactly as it was.
+    if (storedSchedule === null) {
+      await sql`delete from "SystemSetting" where key = ${SETTINGS.seasonReminders}`;
+    } else {
+      await sql`update "SystemSetting" set value = ${storedSchedule} where key = ${SETTINGS.seasonReminders}`;
+    }
     await sql`delete from "Creator" where id = ${creatorId}`;
     if (seasonId) await sql`delete from "AwardYear" where id = ${seasonId}`;
     if (userId) await sql`delete from "User" where id = ${userId}`;
@@ -187,8 +196,13 @@ describe.skipIf(!hasDatabase)('the relationship desk (integration)', () => {
     `;
     await sql`update "Creator" set "userId" = ${userId} where id = ${creatorId}`;
 
-    // A season opening in exactly seven days: the default schedule's one-week
-    // reminder is due today.
+    // The app ships no schedule, so the test sets one: a week before opening.
+    await saveReminderSchedule(
+      { enabled: true, reminders: [{ daysBefore: 7, milestone: 'nominationsOpenAt' }] },
+      userId,
+    );
+
+    // A season opening in exactly seven days, so that reminder is due today.
     seasonId = createId();
     const opens = new Date(
       Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 7, 9),

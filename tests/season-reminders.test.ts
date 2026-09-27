@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  DEFAULT_SCHEDULE,
+  EMPTY_SCHEDULE,
   GRACE_DAYS,
   MAX_REMINDERS,
   countdownPhrase,
@@ -25,19 +25,22 @@ const season: SeasonDates = {
 
 const at = (iso: string) => new Date(iso);
 
-describe('the default schedule', () => {
-  it('is two weeks, one week and the day before the season opens', () => {
-    expect(DEFAULT_SCHEDULE.enabled).toBe(true);
-    expect(DEFAULT_SCHEDULE.reminders).toEqual([
-      { daysBefore: 14, milestone: 'nominationsOpenAt' },
-      { daysBefore: 7, milestone: 'nominationsOpenAt' },
-      { daysBefore: 1, milestone: 'nominationsOpenAt' },
-    ]);
-  });
+/** The schedule the tests run against. Test data only; the app ships none. */
+const SCHEDULE = {
+  enabled: true,
+  reminders: [
+    { daysBefore: 14, milestone: 'nominationsOpenAt' as const },
+    { daysBefore: 7, milestone: 'nominationsOpenAt' as const },
+    { daysBefore: 1, milestone: 'nominationsOpenAt' as const },
+  ],
+};
 
-  it('is what an empty or unreadable setting falls back to', () => {
-    expect(parseSchedule(null)).toEqual(DEFAULT_SCHEDULE);
-    expect(parseSchedule('not json')).toEqual(DEFAULT_SCHEDULE);
+describe('the stored schedule', () => {
+  it('has no built-in default: nothing stored, or something unreadable, sends nothing', () => {
+    expect(parseSchedule(null)).toEqual(EMPTY_SCHEDULE);
+    expect(parseSchedule('not json')).toEqual(EMPTY_SCHEDULE);
+    expect(EMPTY_SCHEDULE.reminders).toHaveLength(0);
+    expect(dueReminders(EMPTY_SCHEDULE, [season], at('2027-03-18T06:00:00Z'))).toHaveLength(0);
   });
 
   it('survives a round trip through the settings table', () => {
@@ -85,14 +88,14 @@ describe('cleaning a schedule', () => {
 
 describe('what goes out today', () => {
   it('sends the two-week reminder fourteen days before the season opens', () => {
-    const due = dueReminders(DEFAULT_SCHEDULE, [season], at('2027-03-18T06:00:00Z'));
+    const due = dueReminders(SCHEDULE, [season], at('2027-03-18T06:00:00Z'));
     expect(due.map((d) => d.reminder.daysBefore)).toEqual([14]);
   });
 
   it('still sends it within the grace window after a missed day, and not after', () => {
-    expect(dueReminders(DEFAULT_SCHEDULE, [season], at('2027-03-20T06:00:00Z'))).toHaveLength(1);
+    expect(dueReminders(SCHEDULE, [season], at('2027-03-20T06:00:00Z'))).toHaveLength(1);
     const late = new Date(Date.UTC(2027, 2, 18 + GRACE_DAYS + 1, 6));
-    expect(dueReminders(DEFAULT_SCHEDULE, [season], late)).toHaveLength(0);
+    expect(dueReminders(SCHEDULE, [season], late)).toHaveLength(0);
   });
 
   it('sends only the nearest when two fall due at once', () => {
@@ -115,7 +118,7 @@ describe('what goes out today', () => {
     expect(dueReminders(sameDay, [season], at('2027-04-01T06:00:00Z'))).toHaveLength(1);
     expect(dueReminders(sameDay, [season], at('2027-04-01T10:00:00Z'))).toHaveLength(0);
     expect(
-      dueReminders({ ...DEFAULT_SCHEDULE, enabled: false }, [season], at('2027-03-18T06:00:00Z')),
+      dueReminders({ ...SCHEDULE, enabled: false }, [season], at('2027-03-18T06:00:00Z')),
     ).toHaveLength(0);
   });
 
@@ -128,7 +131,7 @@ describe('what goes out today', () => {
   });
 
   it('lists what is still to come, soonest first', () => {
-    const upcoming = upcomingReminders(DEFAULT_SCHEDULE, [season], at('2027-03-20T00:00:00Z'));
+    const upcoming = upcomingReminders(SCHEDULE, [season], at('2027-03-20T00:00:00Z'));
     expect(upcoming.map((p) => p.reminder.daysBefore)).toEqual([7, 1]);
     expect(upcoming[0]?.sendOn.toISOString()).toBe('2027-03-25T00:00:00.000Z');
   });

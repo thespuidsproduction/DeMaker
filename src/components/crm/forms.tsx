@@ -315,7 +315,6 @@ export function DetailsForm({
           defaultValue={details.tags.join(', ')}
           maxLength={400}
           autoComplete="off"
-          placeholder="ceremony-2027, press"
           className="h-10 py-2 text-sm"
         />
       </label>
@@ -344,7 +343,7 @@ export function ReminderAdd() {
           min={0}
           max={120}
           required
-          defaultValue={3}
+          placeholder="Days"
           aria-label="Days before"
           className="h-10 w-20 py-2 text-sm"
         />

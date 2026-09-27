@@ -1,8 +1,8 @@
 /**
  * Season reminders.
  *
- * Before a season opens, PALMA writes to the creators who hold a record: two
- * weeks out, one week out, the day before. The schedule is the desk's to
+ * Before a season opens, PALMA writes to the creators who hold a record, on
+ * whatever days the desk has scheduled. The schedule is the desk's to
  * change, because dates move and so does what is worth a reminder, so it is
  * data rather than code: a list of "N days before <milestone>".
  *
@@ -40,15 +40,12 @@ export type ReminderSchedule = {
 export const MAX_REMINDERS = 8;
 export const MAX_DAYS_BEFORE = 120;
 
-/** Two weeks, a week and the day before the season opens. */
-export const DEFAULT_SCHEDULE: ReminderSchedule = {
-  enabled: true,
-  reminders: [
-    { daysBefore: 14, milestone: 'nominationsOpenAt' },
-    { daysBefore: 7, milestone: 'nominationsOpenAt' },
-    { daysBefore: 1, milestone: 'nominationsOpenAt' },
-  ],
-};
+/**
+ * Nothing is scheduled until somebody schedules it. There is no built-in
+ * default: the schedule is the desk's data, kept in the database, and an empty
+ * one sends nothing.
+ */
+export const EMPTY_SCHEDULE: ReminderSchedule = { enabled: true, reminders: [] };
 
 /**
  * A reminder stays sendable for this many days after its date, so a daily run
@@ -87,9 +84,12 @@ export function normaliseReminders(input: readonly unknown[]): Reminder[] {
     .slice(0, MAX_REMINDERS);
 }
 
-/** Read the stored setting, falling back to the default for anything unreadable. */
+/**
+ * Read the stored setting. Nothing stored, or something unreadable, is an
+ * empty schedule: a corrupted setting must never turn into emails nobody chose.
+ */
 export function parseSchedule(raw: string | null | undefined): ReminderSchedule {
-  if (!raw) return DEFAULT_SCHEDULE;
+  if (!raw) return EMPTY_SCHEDULE;
   try {
     const parsed = JSON.parse(raw) as { enabled?: unknown; reminders?: unknown };
     return {
@@ -97,7 +97,7 @@ export function parseSchedule(raw: string | null | undefined): ReminderSchedule 
       reminders: Array.isArray(parsed.reminders) ? normaliseReminders(parsed.reminders) : [],
     };
   } catch {
-    return DEFAULT_SCHEDULE;
+    return EMPTY_SCHEDULE;
   }
 }
 
