@@ -28,6 +28,7 @@ import {
   BookOpen,
   Send,
   Layers,
+  Contact,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -97,6 +98,12 @@ export const MODERATION_NAV: AdminGroup[] = [
         label: 'Creators',
         permission: 'creators:view_records',
         icon: Users,
+      },
+      {
+        href: '/portal/crm',
+        label: 'Creator CRM',
+        permission: 'crm:view',
+        icon: Contact,
       },
       {
         href: '/portal/creators/import',
@@ -191,6 +198,12 @@ export const ADMIN_NAV: AdminGroup[] = [
         label: 'Creators',
         permission: 'creators:view_records',
         icon: Users,
+      },
+      {
+        href: '/portal/crm',
+        label: 'Creator CRM',
+        permission: 'crm:view',
+        icon: Contact,
       },
       {
         href: '/admin/users',

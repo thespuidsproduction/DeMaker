@@ -101,6 +101,14 @@ export const AUDIT_ACTIONS = [
   'creator.portrait_withdrawn',
   'creator.portrait_removed',
 
+  // The relationship desk. Staff working material, audited because who
+  // changed a creator's owner or stage is a question somebody will ask.
+  'crm.relationship_updated',
+  'crm.touchpoint_logged',
+  'crm.task_created',
+  'crm.task_completed',
+  'crm.task_reopened',
+
   // The Product Library. The sponsorship entries are separate from the
   // editorial ones on purpose: "who paid" and "who wrote the verdict" must be
   // two different lines in the log, or the log cannot answer the only question

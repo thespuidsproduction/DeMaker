@@ -74,6 +74,12 @@ export const PERMISSIONS = [
   'editorial:edit_creator',
   'editorial:write_internal_note',
 
+  // The relationship desk. Staff-only working material about how PALMA is
+  // getting on with a creator; no permission here reaches an outcome, a
+  // nomination count or a score.
+  'crm:view',
+  'crm:manage',
+
   // Operations queues
   'claims:review',
   'claims:decide',
@@ -182,6 +188,10 @@ const MODERATOR: Permission[] = [
   'editorial:create_creator',
   'editorial:edit_creator',
   'editorial:write_internal_note',
+  // The desk that writes a creator's record is the desk that keeps in touch
+  // with them, so the relationship desk is theirs too.
+  'crm:view',
+  'crm:manage',
   'moderation:view_reports',
   'moderation:act',
   'claims:review',

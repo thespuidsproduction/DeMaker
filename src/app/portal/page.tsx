@@ -3,6 +3,7 @@ import { requirePermission } from '@/lib/auth/guards';
 import { can } from '@/lib/auth/rbac';
 import { getQueueCounts } from '@/server/data/operations';
 import { recentActivity } from '@/server/data/people';
+import { getCrmPipeline } from '@/server/data/crm';
 import { greeting } from '@/lib/judging-nav';
 import { formatShortDate } from '@/lib/format';
 import { PortalOverview } from '@/components/desk/PortalOverview';
@@ -18,7 +19,12 @@ export const metadata = buildMetadata({
 
 export default async function ModerationOverviewPage() {
   const session = await requirePermission('operations:view_dashboard', '/portal');
-  const [queues, activity] = await Promise.all([getQueueCounts(), recentActivity(8)]);
+  const canCrm = can(session.user.role, 'crm:view');
+  const [queues, activity, crm] = await Promise.all([
+    getQueueCounts(),
+    recentActivity(8),
+    canCrm ? getCrmPipeline() : null,
+  ]);
 
   const firstName = session.user.name.split(' ')[0] ?? session.user.name;
 
@@ -57,6 +63,13 @@ export default async function ModerationOverviewPage() {
       count: queues.unpublishedRecords,
       note: 'Written by PALMA, not yet public.',
       visible: can(session.user.role, 'editorial:edit_creator'),
+    },
+    {
+      href: '/portal/crm?due=overdue',
+      label: 'Creator follow-ups overdue',
+      count: crm?.overdue ?? 0,
+      note: 'Relationships somebody promised to pick back up.',
+      visible: canCrm,
     },
   ].filter((item) => item.visible);
 

@@ -38,9 +38,19 @@ export default async function CreatorRecordPage({ params }: { params: Promise<{ 
         <Link href="/portal/creators" className="palma-label text-taupe-deep hover:text-ink">
           ← Creator records
         </Link>
-        <Link href={`/creators/${record.slug}`} className="palma-link text-taupe-deep text-sm">
-          View the public record
-        </Link>
+        <div className="flex flex-wrap gap-6">
+          {can(session.user.role, 'crm:view') ? (
+            <Link
+              href={`/portal/crm/${record.slug}`}
+              className="palma-link text-taupe-deep text-sm"
+            >
+              Relationship in the CRM
+            </Link>
+          ) : null}
+          <Link href={`/creators/${record.slug}`} className="palma-link text-taupe-deep text-sm">
+            View the public record
+          </Link>
+        </div>
       </div>
 
       <div className="mt-8 flex flex-col gap-3">

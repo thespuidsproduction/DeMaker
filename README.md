@@ -65,6 +65,17 @@ The rule that shapes the layout: `domain/` never touches I/O. Eligibility, score
 
 Nomination and judging are deliberately separate. Many nominations may point at one candidacy, but nothing in the judging path reads the count: judges never see it, it is never published, and no ranking derives from it. Popularity brings a creator to PALMA's attention and stops there.
 
+## Creator CRM
+
+`/portal/crm` is the relationship desk: for every creator on the record, who at PALMA owns the relationship, its stage (prospect → contacted → in conversation → onboarding → active, plus dormant and do-not-contact), priority, tags, next follow-up, a touchpoint history and tasks. Moderators and administrators hold `crm:view` and `crm:manage`; nobody else does.
+
+It lives in three tables added by `supabase/migrations/0004_creator_crm.sql` (`CreatorRelationship`, `CreatorTouchpoint`, `CreatorTask`), read and written through the same postgres.js layer as everything else. Two rules are enforced in code and tests (`src/domain/crm.ts`):
+
+- **No contact details.** The desk records the _route_ to a creator (account email, platform message, representative), never an address. Summaries, tasks and tags that contain an email address or phone number are refused.
+- **Nothing from judging.** No nomination count, candidacy or score is read.
+
+`do_not_contact` blocks outbound touchpoints and follow-ups. An upheld objection sets it and deletes the touchpoints and tasks; deleting a record removes all three by cascade.
+
 ## Verification
 
 Every honour has a permanent verification URL. The code is derived, the record is signed, and the signature is checked on request. Revocation never deletes: a revoked honour remains on the record marked revoked.

@@ -232,7 +232,33 @@ export async function decideObjection(
           "updatedAt" = ${now}
         where id = ${objection.creatorId}
       `;
+      // The relationship desk goes too: what PALMA said to them and what it
+      // meant to do next. All that stays is the marker that stops anybody
+      // approaching them again.
+      await tx`
+        delete from "CreatorTouchpoint" where "creatorId" = ${objection.creatorId}
+      `;
+      await tx`
+        delete from "CreatorTask" where "creatorId" = ${objection.creatorId}
+      `;
+      await tx`
+        insert into "CreatorRelationship" (
+          "creatorId", stage, "stageChangedAt", "createdAt", "updatedAt"
+        ) values (
+          ${objection.creatorId}, 'do_not_contact', ${now}, ${now}, ${now}
+        )
+        on conflict ("creatorId") do update set
+          stage = 'do_not_contact',
+          priority = 'normal',
+          "ownerId" = null,
+          "contactRoute" = null,
+          tags = '{}',
+          "nextFollowUpAt" = null,
+          "lastContactAt" = null,
+          "stageChangedAt" = ${now}
+      `;
     } else {
+      // The relationship desk's rows cascade with the record.
       // Nothing conferred: the record has no institutional reason to exist.
       await tx`
         delete from "Creator" where id = ${objection.creatorId}
